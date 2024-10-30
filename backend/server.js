@@ -1,13 +1,12 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const multer = require('multer');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const multer = require('multer');
 const fs = require('fs');
 const moment = require('moment');
 const path = require('path');
-
 
 const app = express();
 app.use(express.json());
@@ -44,15 +43,6 @@ const userSchema = new mongoose.Schema({
   password: String,
 });
 
-const fileSchema = new mongoose.Schema({
-  filename: String,
-  file_path: String,
-  sender: String,
-  satisfied_receivers: [String],
-  pending_receivers: [String],
-  expiry_date: Date,
-});
-
 const sessionSchema = new mongoose.Schema({
   email: String,
   last_keepalive: Date,
@@ -71,41 +61,15 @@ const fileLog = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now },
   from: String,
   to: String,
-  file_path: String,
-  fname: String,
+  fPath: String,
+  fName: String,
   expiry_date: Date
 })
 
 const User = mongoose.model('User', userSchema);
-const File = mongoose.model('File', fileSchema);
+const File = mongoose.model('fileLogs', fileLog);
 const Session = mongoose.model('Session', sessionSchema);
 const chat = mongoose.model('chatHistory', chatHistory);
-const fileLogs = mongoose.model('fileLogs', fileLog);
-
-// Middleware for JWT authentication
-const authenticateJWT = (req, res, next) => {
-  const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
-  if (!token) return res.sendStatus(401);
-
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
-    req.user = user;
-    next();
-  });
-};
-
-// File upload setup using Multer
-const uploadFolder = 'uploads';
-if (!fs.existsSync(uploadFolder)) {
-  fs.mkdirSync(uploadFolder);
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadFolder),
-  filename: (req, file, cb) => cb(null, file.originalname),
-});
-
-const upload = multer({ storage });
 
 // User Signup
 app.post('/signup', async (req, res) => {
@@ -123,7 +87,6 @@ app.post('/signup', async (req, res) => {
   } catch (err) {
     console.log("error signing up: ", err)
   }
-  
 });
 
 // User Login
@@ -146,71 +109,109 @@ app.post('/login', async (req, res) => {
   res.status(200).json({ accessToken });
 });
 
-// File Upload
-app.post('/upload', authenticateJWT, upload.array('files'), async (req, res) => {
-  const { receivers } = req.body;
-  if (!receivers) return res.status(400).json({ msg: 'Receivers are required' });
+const uploadFolder = path.join(__dirname, 'uploads');
+const upload = multer();
 
-  const pendingReceivers = JSON.parse(receivers);
-  const fileEntries = req.files.map(file => ({
-    filename: file.originalname,
-    file_path: path.join(uploadFolder, file.originalname),
-    sender: req.user.email,
-    satisfied_receivers: [],
-    pending_receivers: pendingReceivers,
-    expiry_date: moment().add(24, 'hours').toDate(),
-  }));
-
-  await File.insertMany(fileEntries);
-  res.status(201).json({ msg: 'Files uploaded successfully' });
-});
-
-// Receive Files
-app.post('/receive', authenticateJWT, async (req, res) => {
-  const receiver = req.user.email;
-  const files = await File.find({
-    pending_receivers: receiver,
-    expiry_date: { $gte: new Date() }
-  });
-
-  const responseFiles = files.map(file => ({
-    filename: file.filename,
-    file_path: file.file_path
-  }));
-
-  res.status(200).json({ files: responseFiles });
-});
-
-// Download File
-app.get('/download/:filename', authenticateJWT, async (req, res) => {
-  const { filename } = req.params;
-  const receiver = req.user.email;
-  const file = await File.findOne({ filename });
-
-  if (!file) return res.status(404).json({ msg: 'File not found or expired' });
-  if (!file.pending_receivers.includes(receiver)) {
-    return res.status(403).json({ msg: 'You do not have permission to download this file' });
+app.post('/upload', upload.single('file'), async (req, res) => {
+  var { from, to } = req.body; 
+  var file = req.file
+  if (!file || !from || !to) {
+    return res.status(400).json({ msg: 'File, from, and to are required' });
   }
 
-  // Mark receiver as having downloaded the file
-  await File.updateOne({ filename }, {
-    $addToSet: { satisfied_receivers: receiver },
-    $pull: { pending_receivers: receiver }
-  });
-
-  // Delete the file if all receivers have downloaded
-  // const updatedFile = await File.findOne({ filename });
-  // if (updatedFile.pending_receivers.length === 0) {
-  //   fs.unlinkSync(file.file_path);
-  //   await File.deleteOne({ filename });
-  // }
-  console.log(`User ${receiver} downloaded the file ${filename}.`);
-
-  res.download(file.file_path);
+  const filePath = path.join(uploadFolder, file.originalname);
+  const fileEntry = {
+    fName: file.originalname,
+    fPath: filePath,
+    from: from,
+    to: to,
+    expiry_date: moment().add(24, 'hours').toDate(),
+  };
+  console.log(fileEntry)
+  try {
+    fs.writeFileSync(filePath, file.buffer);
+    const savedFileEntry = await File.create(fileEntry);
+    res.status(201).json({ msg: 'File uploaded successfully' });
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ msg: 'Error saving file entry to database' });
+  }
 });
 
+app.get('/receiver', async (req, res) => {
+  const { receiver } = req.query; 
+
+  if (!receiver) {
+    return res.status(400).json({ msg: 'Username is required' });
+  }
+
+  try {
+    const filesForUser = await File.find({ to: receiver });
+    console.log(receiver)
+    console.log(await File.find({ }))
+    res.status(200).json(filesForUser);
+  } catch (error) {
+    res.status(500).json({ msg: 'Error fetching entries', error });
+  }
+});
+
+app.get('/download/:filename', async (req, res) => {
+  const { filename } = req.params;
+  const { from, to } = req.body;
+
+  if (!from || !to) {
+    return res.status(400).json({ msg: 'Both "from" and "to" fields are required' });
+  }
+
+  try {
+    const fileEntry = await File.findOne({ filename, sender: from, to: { $in: [to] } });
+    
+    if (!fileEntry) {
+      return res.status(404).json({ msg: 'File not found or access denied' });
+    }
+
+    const filePath = path.join(uploadFolder, filename);
+
+    res.download(filePath, filename, (err) => {
+      if (err) {
+        res.status(500).json({ msg: 'Error downloading file', error: err });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ msg: 'Error accessing file', error });
+  }
+});
+
+
+// Download File
+// app.get('/download/:filename', authenticateJWT, async (req, res) => {
+//   const { filename } = req.params;
+//   const receiver = req.user.email;
+//   const file = await File.findOne({ filename });
+
+//   if (!file) return res.status(404).json({ msg: 'File not found or expired' });
+//   if (!file.pending_receivers.includes(receiver)) {
+//     return res.status(403).json({ msg: 'You do not have permission to download this file' });
+// }
+
+//   // Mark receiver as having downloaded the file
+//   await File.updateOne({ filename }, {
+//     $addToSet: { satisfied_receivers: receiver },
+//     $pull: { pending_receivers: receiver }
+//   });
+
+//   // Delete the file if all receivers have downloaded
+//   // const updatedFile = await File.findOne({ filename });
+//   // if (updatedFile.pending_receivers.length === 0) {
+//   //   fs.unlinkSync(file.file_path);
+//   //   await File.deleteOne({ filename });
+//   // }
+//   console.log(`User ${receiver} downloaded the file ${filename}.`);
+
+//   res.download(file.file_path); 
+// });
 // Logout
-app.post('/logout', authenticateJWT, async (req, res) => {
+app.post('/logout', async (req, res) => {
   const email = req.user.email;
   await Session.updateOne({ email }, { is_online: false });
   res.status(200).json({ msg: 'Logout successful' });

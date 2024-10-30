@@ -11,13 +11,6 @@ const receiveBtn = document.getElementById('receive-btn')
 const fileUpload = document.getElementById('file-upload');
 const fileList = document.getElementById('file-list');
 
-class fileSharing {
-    constructor() {
-        this.uploadBtn = F.G.id("upload-btn")
-        this.receiveBtn = F.G.id("receive-btn")
-    }
-}
-
 // uploadBtn.addEventListener('click', async () => {
 //     const receivers = document.getElementById('receivers').value.split(',');
 //     const files = fileUpload.files;
@@ -107,9 +100,10 @@ class fileSharing {
 //     }
 // });
 
-['keydown', 'click'].forEach(event => {
-    window.addEventListener(event, () => {
-      console.log('Activity detected:', event); // Debug log
-      ipcRenderer.send('user-active');
-    });
-});
+// ['keydown', 'click'].forEach(e => { // Changed 'event' to 'evt'
+//     window.addEventListener(e, () => { 
+//         console.log('Activity detected:', e); // Debug log 
+//         ipcRenderer.send('user-active'); 
+//     }); 
+// });
+

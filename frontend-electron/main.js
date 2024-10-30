@@ -72,13 +72,13 @@ ipcMain.handle('login', async (event, credentials) => {
   try {
     console.log(credentials)
     const response = await axios.post(`${apiBaseUrl}/login`, credentials);
-    
     const token = response.data.accessToken;
     console.log(response.data)
     await keytar.setPassword('ElectronApp', 'auth-token', token);
     await alert("Login Successfull!")
     loginWindow.close();
     createMainWindow();
+    mainWindow.webContents.send('user-logged-in', credentials);
     return { success: true };
   } catch (error) {
     console.error('Login failed:', error);

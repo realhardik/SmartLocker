@@ -4,12 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <script>
+         window.F = {
+            g: (t, r, e) => {
+                return (t || document)["getElement" + r](e)
+            },
+		
+            G: {
+                id: (t, r) => F.g(r, "ById", t),
+                class: (t, r) => Array.from(F.g(r, "sByClassName", t)),
+                tag: (t, r) => F.g(r, "sByTagName", t),
+                query: (t, r, a) => (r || document)["querySelector" + (a ? "All" : "")](t)
+            },
+
+            l: (event, element, callBackfn, fg) => {
+                var f = fg ? "remove" : "add"
+                element[f + "EventListener"](event, callBackfn)
+            }
+        }
+    </script>
 </head>
 <body>
     <div id="upload-section">
         <h2>Upload Files</h2>
-        <input type="text" id="receivers" placeholder="Receivers (comma-separated)">
-        <input type="file" id="file-upload" multiple>
+        <input type="text" id="receivers" required placeholder="Receivers (comma-separated)">
+        <input type="file" id="file-upload" required>
         <button id="upload-btn">Upload</button>
     </div>
 
@@ -20,6 +39,6 @@
     </div>
 
     <button id="logout-btn">Logout</button>
-    <script src="renderer.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
