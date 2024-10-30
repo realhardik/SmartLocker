@@ -11,36 +11,73 @@ const receiveBtn = document.getElementById('receive-btn')
 const fileUpload = document.getElementById('file-upload');
 const fileList = document.getElementById('file-list');
 
-ipcRenderer.on('user-inactive', async () => {
-    await ipcRenderer.invoke('logout')
-    alert('User has been inactive for 10 minutes. \nLog in again.');
-});
-
 class fileSharing {
     constructor() {
-        
+        this.uploadBtn = F.G.id("upload-btn")
+        this.receiveBtn = F.G.id("receive-btn")
     }
 }
-uploadBtn.addEventListener('click', async () => {
-    const receivers = document.getElementById('receivers').value.split(',');
-    const files = fileUpload.files;
-    const formData = new FormData();
+
+// uploadBtn.addEventListener('click', async () => {
+//     const receivers = document.getElementById('receivers').value.split(',');
+//     const files = fileUpload.files;
+//     const formData = new FormData();
     
-    for (let i = 0; i < files.length; i++) {
-        formData.append('files', files[i]);
-    }
-    formData.append('receivers', JSON.stringify(receivers));
+//     for (let i = 0; i < files.length; i++) {
+//         formData.append('files', files[i]);
+//     }
+//     formData.append('receivers', JSON.stringify(receivers));
 
-    try {
-        const response = await axios.post(`${BASE_URL}/upload`, formData, {
-            headers: { 'Authorization': `Bearer ${authToken}` }
-        });
-        alert('Files uploaded successfully!');
-    } catch (error) {
-        alert('File upload failed! ' + error.response.data.msg);
-    }
-});
+//     try {
+//         const response = await axios.post(`${BASE_URL}/upload`, formData, {
+//             headers: { 'Authorization': `Bearer ${authToken}` }
+//         });
+//         alert('Files uploaded successfully!');
+//     } catch (error) {
+//         alert('File upload failed! ' + error.response.data.msg);
+//     }
+// });
 
+
+// // receiveBtn.addEventListener('click', async () => {
+// //     try {
+// //         const response = await axios.post(`${BASE_URL}/receive`, {}, {
+// //             headers: { 'Authorization': `Bearer ${authToken}` }
+// //         });
+
+// //         fileList.innerHTML = ''; // Clear existing list
+// //         const files = response.data.files;
+// //         files.forEach(file => {
+// //             const listItem = document.createElement('li');
+// //             listItem.textContent = file.filename;
+// //             fileList.appendChild(listItem);
+
+// //             // Add PDF viewing functionality
+// //             listItem.addEventListener('click', async () => {
+// //                 try {
+// //                     const fileResponse = await axios.get(`${BASE_URL}/download/${file.filename}`, {
+// //                         headers: { 'Authorization': `Bearer ${authToken}` },
+// //                         responseType: 'blob' // Fetch as a Blob
+// //                     });
+                    
+// //                     // Convert Blob to a base64 data URL and send to main process
+// //                     const reader = new FileReader();
+// //                     reader.onloadend = () => {
+// //                         const pdfDataUrl = reader.result;
+// //                         console.log(pdfDataUrl);
+// //                         ipcRenderer.send('open-pdf-viewer', pdfDataUrl);
+// //                     };
+// //                     reader.readAsDataURL(fileResponse.data);
+                    
+// //                 } catch (error) {
+// //                     alert('Failed to load PDF: ' + error.message);
+// //                 }
+// //             });
+// //         });
+// //     } catch (error) {
+// //         alert('Failed to receive files! ' + error.response.data.msg);
+// //     }
+// // });
 
 // receiveBtn.addEventListener('click', async () => {
 //     try {
@@ -54,27 +91,15 @@ uploadBtn.addEventListener('click', async () => {
 //             const listItem = document.createElement('li');
 //             listItem.textContent = file.filename;
 //             fileList.appendChild(listItem);
-
-//             // Add PDF viewing functionality
+            
+//             // Add download functionality
 //             listItem.addEventListener('click', async () => {
-//                 try {
-//                     const fileResponse = await axios.get(`${BASE_URL}/download/${file.filename}`, {
-//                         headers: { 'Authorization': `Bearer ${authToken}` },
-//                         responseType: 'blob' // Fetch as a Blob
-//                     });
-                    
-//                     // Convert Blob to a base64 data URL and send to main process
-//                     const reader = new FileReader();
-//                     reader.onloadend = () => {
-//                         const pdfDataUrl = reader.result;
-//                         console.log(pdfDataUrl);
-//                         ipcRenderer.send('open-pdf-viewer', pdfDataUrl);
-//                     };
-//                     reader.readAsDataURL(fileResponse.data);
-                    
-//                 } catch (error) {
-//                     alert('Failed to load PDF: ' + error.message);
-//                 }
+//                 const downloadLink = document.createElement('a');
+//                 downloadLink.href = `${BASE_URL}/download/${file.filename}`;
+//                 downloadLink.download = file.filename;
+//                 document.body.appendChild(downloadLink);
+//                 downloadLink.click();
+//                 document.body.removeChild(downloadLink);
 //             });
 //         });
 //     } catch (error) {
@@ -82,36 +107,9 @@ uploadBtn.addEventListener('click', async () => {
 //     }
 // });
 
-receiveBtn.addEventListener('click', async () => {
-    try {
-        const response = await axios.post(`${BASE_URL}/receive`, {}, {
-            headers: { 'Authorization': `Bearer ${authToken}` }
-        });
-
-        fileList.innerHTML = ''; // Clear existing list
-        const files = response.data.files;
-        files.forEach(file => {
-            const listItem = document.createElement('li');
-            listItem.textContent = file.filename;
-            fileList.appendChild(listItem);
-            
-            // Add download functionality
-            listItem.addEventListener('click', async () => {
-                const downloadLink = document.createElement('a');
-                downloadLink.href = `${BASE_URL}/download/${file.filename}`;
-                downloadLink.download = file.filename;
-                document.body.appendChild(downloadLink);
-                downloadLink.click();
-                document.body.removeChild(downloadLink);
-            });
-        });
-    } catch (error) {
-        alert('Failed to receive files! ' + error.response.data.msg);
-    }
-});
-
 ['keydown', 'click'].forEach(event => {
     window.addEventListener(event, () => {
+      console.log('Activity detected:', event); // Debug log
       ipcRenderer.send('user-active');
     });
 });

@@ -1,18 +1,10 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
-const path = require('path');
 const axios = require('axios');
 const keytar = require('keytar');
 
-const INACTIVITY_LIMIT = 1 * 60 * 1e3;
+const INACTIVITY_LIMIT = 10 * 60 * 1e3;
 let mainWindow, loginWindow, inactivityTimeout;
 let apiBaseUrl = 'http://localhost:3000';
-
-function resetInactivityTimeout() {
-  clearTimeout(inactivityTimeout);
-  inactivityTimeout = setTimeout(() => {
-      mainWindow.webContents.send('user-inactive');
-  }, INACTIVITY_LIMIT);
-}
 
 async function alert(title) {
   const response = await dialog.showMessageBox({
@@ -22,6 +14,15 @@ async function alert(title) {
     message: title || ""
   });
   return response.response
+}
+
+function resetInactivityTimeout() {
+  clearTimeout(inactivityTimeout);
+  console.log('Timeout reset');
+  inactivityTimeout = setTimeout(async () => {
+    await logout()
+    alert('User has been inactive for 10 minutes. \nLog in again.');
+  }, INACTIVITY_LIMIT);
 }
 
 function createLoginWindow() {
@@ -45,11 +46,9 @@ function createMainWindow() {
       contextIsolation: false,
     }
   });
-  mainWindow.webContents.on('before-input-event', resetInactivityTimeout);
   resetInactivityTimeout();
   mainWindow.loadFile('app.html');
 }
-
 
 ipcMain.handle('signup', async (event, credentials) => {
   try {
@@ -87,29 +86,14 @@ ipcMain.handle('login', async (event, credentials) => {
   }
 });
 
-function openPdfViewer(pdfDataUrl) {
-  const pdfWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true
-    }
-  });
-
-  // Load the PDF directly as a data URL
-  pdfWindow.loadURL(pdfDataUrl);
-}
-
-// Listen for "open-pdf-viewer" event from renderer to open a PDF viewer window
-ipcMain.on('open-pdf-viewer', (event, pdfDataUrl) => {
-  openPdfViewer(pdfDataUrl);
-});
-
-ipcMain.handle('logout', async (event) => {
+async function logout() {
   await keytar.deletePassword('ElectronApp', 'auth-token');
   mainWindow && mainWindow.close();
   createLoginWindow();
+}
+
+ipcMain.handle('logout', async (event) => {
+  await logout();
   return { success: true };
 });
 
@@ -122,6 +106,8 @@ ipcMain.handle('isAuthorized', async () => {
   return !!token;
 });
 
+
+
 app.whenReady().then(() => {
   createLoginWindow();
   app.on('activate', () => {
@@ -132,6 +118,7 @@ app.whenReady().then(() => {
 });
 
 ipcMain.on('user-active', () => {
+  console.log("Received 'user-active' in main process"); // Debug log
   resetInactivityTimeout();
 });
 
