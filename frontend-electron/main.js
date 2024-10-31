@@ -54,13 +54,8 @@ ipcMain.handle('signup', async (event, credentials) => {
   try {
     console.log("Attempting signup with credentials:", credentials);
     const response = await axios.post(`${apiBaseUrl}/signup`, credentials);
-    console.log(response.data)
-    await alert(response.data.msg)
-    if (response.success) {
-      return { success: true };
-    } else {
-      return { success: false }
-    }
+    console.log(response)
+    return response.data;
     
   } catch (error) {
     console.error("Signup failed:", error.response ? error.response.data : error.message);
@@ -70,16 +65,18 @@ ipcMain.handle('signup', async (event, credentials) => {
 
 ipcMain.handle('login', async (event, credentials) => {
   try {
-    console.log(credentials)
     const response = await axios.post(`${apiBaseUrl}/login`, credentials);
-    const token = response.data.accessToken;
-    console.log(response.data)
-    await keytar.setPassword('ElectronApp', 'auth-token', token);
-    await alert("Login Successfull!")
-    loginWindow.close();
-    createMainWindow();
-    mainWindow.webContents.send('user-logged-in', credentials);
-    return { success: true };
+    const data = response.data;
+    if (data.success) {
+      console.log(data)
+      var token = data.session.token
+      await keytar.setPassword('ElectronApp', 'auth-token', token);
+      await alert("Login Successfull!")
+      loginWindow.close();
+      createMainWindow();
+      mainWindow.webContents.send('user-logged-in', data);
+    }
+    return data
   } catch (error) {
     console.error('Login failed:', error);
     return { success: false, error: 'Login failed' };

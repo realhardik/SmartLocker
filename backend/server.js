@@ -12,175 +12,245 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// JWT secret key
+const h = {
+  BM: (r, e) => {
+    var s = e.length;
+    for (let t = 0; t < s; t++)
+        r[e[t]] = r[e[t]].bind(r)
+  }
+}
+
 const JWT_SECRET = 'your_jwt_secret_key';
 
-// // MongoDB connection
-// mongoose.connect('mongodb://localhost:27017/user_db', {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true
-// }).then(() => console.log('Connected to MongoDB'))
-//   .catch(err => console.error('MongoDB connection error:', err));
-
-
-// Connect to MongoDB Atlas
-// const mongoURI = 'mongodb+srv://<username>:<password>@cluster0.mongodb.net/user_db?retryWrites=true&w=majority';
 const mongoURI = 'mongodb+srv://harshchan02:rlFWyv0f22LD5rHJ@cluster0.irubh1u.mongodb.net/smart_locker?retryWrites=true&w=majority&appName=Cluster0';
 
-mongoose.connect(mongoURI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => {
-  console.log('Connected to MongoDB Atlas');
-}).catch(err => {
-  console.error('MongoDB Atlas connection error:', err);
-});
+const db = new class {
+  constructor() {
+    mongoose.connect(mongoURI).then(() => {
+      console.log('Connected to MongoDB Atlas');
+    }).catch(err => {
+      console.error('MongoDB Atlas connection error:', err);
+    });
+    h.BM(this, ["schemas", "addUser", "search", "newSession"])
+    this.schemas()
+  }
 
+  schemas() {
+    this.userSchema = new mongoose.Schema({
+      created_at: { type: Date, default: Date.now },
+      name: { type: String, required: true },
+      email: { type: String, required: true, unique: true },
+      password: { type: String, required: true }
+    });
+    
+    this.sessionSchema = new mongoose.Schema({
+      login_time: { type: Date, default: Date.now },
+      email: { type: String, required: true },
+      token: { type: String, required: true }
+    });
+    
+    this.chatHistory = new mongoose.Schema({
+      timestamp: { type: Date, default: Date.now },
+      from: String,
+      to: String,
+      type: { type: String, enum: ["file", "text"], default: "text"},
+      content: String
+    })
+    
+    this.fileLog = new mongoose.Schema({
+      timestamp: { type: Date, default: Date.now },
+      from: String,
+      to: String,
+      fPath: String,
+      fName: String,
+      rViews: Boolean,
+      maxViews: Number,
+      expiry_date: Date
+    })
 
-// MongoDB Schemas and Models
-const userSchema = new mongoose.Schema({
-  email: String,
-  password: String,
-});
+    this.Users = mongoose.model('user', this.userSchema)
+    this.Files = mongoose.model('fileLogs', this.fileLog)
+    this.Session = mongoose.model('session', this.sessionSchema)
+    this.chat = mongoose.model('chatHistory', this.chatHistory)
+  }
+  
+  async addUser(name, email, pass) {
+    var exists = await this.search('Users', { email: email }, 'findOne')
+    if (exists.success)
+      return { success: false, msg: "User Already Exists." }
+    try {
+        var hashedPassword = await bcrypt.hash(pass, 10),
+            newUser = await this["Users"].create({ name, email, password: hashedPassword })
+        return { success: true, user: newUser, msg: "User created Successfully." };
+    } catch (err) {
+        console.error("Error adding user: ", err);
+        return { success: false, msg: "Failed to add user." };
+    }
+  }
 
-const sessionSchema = new mongoose.Schema({
-  email: String,
-  last_keepalive: Date,
-  login_time: Date,
-  is_online: Boolean,
-});
+  async newSession(email) {
+    try {
+      var jTn = jwt.sign({ email }, JWT_SECRET, { expiresIn: '15m' }),
+        session = await this["Session"].create({
+                    email: email,
+                    token: jTn
+                  })
+      return { success: true, session: session };
+    } catch (err) {
+      console.log("Error Creating Session: ", err)
+      return { success: false }
+    }
+  }
 
-const chatHistory = new mongoose.Schema({
-  timestamp: { type: Date, default: Date.now },
-  from: String,
-  to: String,
-  content: String
-})
+  async search(collection, query, method) {
+    var model = this[collection]
+        method = method ? ["find", "findOne"].includes(method) ? method : "find" : "find"
+    console.log(this.Users)
+    let result;
+    if (!model) throw new Error("Invalid collection name");
+    try {
+      if (method === "find") {
+          result = await model
+                    .find(query)
+                    .sort({ timestamp: -1 });
+      } else if (method === "findOne") {
+          result = await model
+                    .findOne(query).sort({ timestamp: -1 })
+              // .find(query).sort({ timestamp: -1 }).limit(1);
+      }
+      if ((method === "find" && result.length === 0) || (method === "findOne" && !result)) {
+        console.log("No results found")  
+        return { success: false };
+      }
+      return { success: true, result: result}
+    } catch (err) {
+        console.error("Error searching: ", err);
+        return { success: false };
+    }
+  }
+}
 
-const fileLog = new mongoose.Schema({
-  timestamp: { type: Date, default: Date.now },
-  from: String,
-  to: String,
-  fPath: String,
-  fName: String,
-  expiry_date: Date
-})
-
-const User = mongoose.model('User', userSchema);
-const File = mongoose.model('fileLogs', fileLog);
-const Session = mongoose.model('Session', sessionSchema);
-const chat = mongoose.model('chatHistory', chatHistory);
-
-// User Signup
 app.post('/signup', async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const existingUser = await User.findOne({ email: email });
-    console.log(existingUser)
-    if (existingUser) return res.status(409).json({ success: false, msg: 'User already exists' });
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ email, password: hashedPassword });
-    await newUser.save();
-
-    res.status(201).json({ success: true, msg: 'User created successfully' });
+    var { name, email, password } = req.body,
+        user = await db.addUser(name, email, password)
+      console.log(user)
+    return res.json(user)
   } catch (err) {
     console.log("error signing up: ", err)
+    return res.json({ success: false, msg: "Error signing up."})
   }
 });
 
-// User Login
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
-  const user = await User.findOne({ email: email });
-  var pass = await bcrypt.compare(password, user.password)
-  if (!user || !pass) {
-    return res.status(401).json({ msg: 'Invalid credentials' });
+  const user = await db.search('Users', { email: email }, 'findOne')
+  console.log(user)
+  let pass;
+
+  if (user.success) {
+    pass = await bcrypt.compare(password, user.result.password)
+  }
+  console.log(pass)
+  if (!user.success || !pass) {
+    return res.json({ success: false,msg: 'Invalid credentials.' });
   }
 
-  const accessToken = jwt.sign({ email }, JWT_SECRET, { expiresIn: '15m' });
-  await new Session({
-    email,
-    last_keepalive: new Date(),
-    login_time: new Date(),
-    is_online: true
-  }).save();
-
-  res.status(200).json({ accessToken });
+  var s = await db.newSession(email);
+  console.log(s)
+  if (s.success)
+    return res.status(200).json(s);
+  return res.json(s)
 });
+
+function authenticateJWT(req, res, next) {
+  const token = req.headers['authorization']?.split(' ')[1]; 
+
+  if (token) {
+      jwt.verify(token, JWT_SECRET, (err, user) => {
+          if (err) {
+              return res.sendStatus(403); 
+          }
+          req.user = user; 
+          next(); 
+      });
+  } else {
+      res.sendStatus(401); 
+  }
+}
 
 const uploadFolder = path.join(__dirname, 'uploads');
 const upload = multer();
 
-app.post('/upload', upload.single('file'), async (req, res) => {
-  var { from, to } = req.body; 
-  var file = req.file
-  if (!file || !from || !to) {
-    return res.status(400).json({ msg: 'File, from, and to are required' });
-  }
+// app.post('/upload', upload.single('file'), async (req, res) => {
+//   var { from, to } = req.body; 
+//   var file = req.file
+//   if (!file || !from || !to) {
+//     return res.status(400).json({ msg: 'File, from, and to are required' });
+//   }
 
-  const filePath = path.join(uploadFolder, file.originalname);
-  const fileEntry = {
-    fName: file.originalname,
-    fPath: filePath,
-    from: from,
-    to: to,
-    expiry_date: moment().add(24, 'hours').toDate(),
-  };
-  console.log(fileEntry)
-  try {
-    fs.writeFileSync(filePath, file.buffer);
-    const savedFileEntry = await File.create(fileEntry);
-    res.status(201).json({ msg: 'File uploaded successfully' });
-  } catch (error) {
-    console.log(error)
-    res.status(500).json({ msg: 'Error saving file entry to database' });
-  }
-});
+//   const filePath = path.join(uploadFolder, file.originalname);
+//   const fileEntry = {
+//     fName: file.originalname,
+//     fPath: filePath,
+//     from: from,
+//     to: to,
+//     expiry_date: moment().add(24, 'hours').toDate(),
+//   };
+//   console.log(fileEntry)
+//   try {
+//     fs.writeFileSync(filePath, file.buffer);
+//     const savedFileEntry = await File.create(fileEntry);
+//     res.status(201).json({ msg: 'File uploaded successfully' });
+//   } catch (error) {
+//     console.log(error)
+//     res.status(500).json({ msg: 'Error saving file entry to database' });
+//   }
+// });
 
-app.get('/receiver', async (req, res) => {
-  const { receiver } = req.query; 
+// app.get('/receiver', async (req, res) => {
+//   const { receiver } = req.query; 
 
-  if (!receiver) {
-    return res.status(400).json({ msg: 'Username is required' });
-  }
+//   if (!receiver) {
+//     return res.status(400).json({ msg: 'Username is required' });
+//   }
 
-  try {
-    const filesForUser = await File.find({ to: receiver });
-    console.log(receiver)
-    console.log(await File.find({ }))
-    res.status(200).json(filesForUser);
-  } catch (error) {
-    res.status(500).json({ msg: 'Error fetching entries', error });
-  }
-});
+//   try {
+//     const filesForUser = await File.find({ to: receiver });
+//     console.log(receiver)
+//     console.log(await File.find({ }))
+//     res.status(200).json(filesForUser);
+//   } catch (error) {
+//     res.status(500).json({ msg: 'Error fetching entries', error });
+//   }
+// });
 
-app.get('/download/:filename', async (req, res) => {
-  const { filename } = req.params;
-  const { from, to } = req.body;
+// app.get('/download/:filename', async (req, res) => {
+//   const { filename } = req.params;
+//   const { from, to } = req.body;
 
-  if (!from || !to) {
-    return res.status(400).json({ msg: 'Both "from" and "to" fields are required' });
-  }
+//   if (!from || !to) {
+//     return res.status(400).json({ msg: 'Both "from" and "to" fields are required' });
+//   }
 
-  try {
-    const fileEntry = await File.findOne({ filename, sender: from, to: { $in: [to] } });
+//   try {
+//     const fileEntry = await File.findOne({ filename, sender: from, to: { $in: [to] } });
     
-    if (!fileEntry) {
-      return res.status(404).json({ msg: 'File not found or access denied' });
-    }
+//     if (!fileEntry) {
+//       return res.status(404).json({ msg: 'File not found or access denied' });
+//     }
 
-    const filePath = path.join(uploadFolder, filename);
+//     const filePath = path.join(uploadFolder, filename);
 
-    res.download(filePath, filename, (err) => {
-      if (err) {
-        res.status(500).json({ msg: 'Error downloading file', error: err });
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ msg: 'Error accessing file', error });
-  }
-});
+//     res.download(filePath, filename, (err) => {
+//       if (err) {
+//         res.status(500).json({ msg: 'Error downloading file', error: err });
+//       }
+//     });
+//   } catch (error) {
+//     res.status(500).json({ msg: 'Error accessing file', error });
+//   }
+// });
 
 
 // Download File
@@ -211,40 +281,40 @@ app.get('/download/:filename', async (req, res) => {
 //   res.download(file.file_path); 
 // });
 // Logout
-app.post('/logout', async (req, res) => {
-  const email = req.user.email;
-  await Session.updateOne({ email }, { is_online: false });
-  res.status(200).json({ msg: 'Logout successful' });
-});
+// app.post('/logout', async (req, res) => {
+//   const email = req.user.email;
+//   await Session.updateOne({ email }, { is_online: false });
+//   res.status(200).json({ msg: 'Logout successful' });
+// });
 
 // Periodic Cleanup Tasks
-const checkKeepalive = async () => {
-  const now = new Date();
-  const expiredSessions = await Session.find({
-    is_online: true,
-    last_keepalive: { $lt: new Date(now - 3 * 60 * 1000) }
-  });
+// const checkKeepalive = async () => {
+//   const now = new Date();
+//   const expiredSessions = await Session.find({
+//     is_online: true,
+//     last_keepalive: { $lt: new Date(now - 3 * 60 * 1000) }
+//   });
 
-  for (const session of expiredSessions) {
-    await Session.updateOne({ email: session.email }, { is_online: false });
-    console.log(`User ${session.email} logged out due to inactivity.`);
-  }
-};
+//   for (const session of expiredSessions) {
+//     await Session.updateOne({ email: session.email }, { is_online: false });
+//     console.log(`User ${session.email} logged out due to inactivity.`);
+//   }
+// };
 
-const deleteExpiredFiles = async () => {
-  const now = new Date();
-  const expiredFiles = await File.find({ expiry_date: { $lt: now } });
+// const deleteExpiredFiles = async () => {
+//   const now = new Date();
+//   const expiredFiles = await File.find({ expiry_date: { $lt: now } });
 
-  for (const file of expiredFiles) {
-    if (fs.existsSync(file.file_path)) fs.unlinkSync(file.file_path);
-    await File.deleteOne({ _id: file._id });
-    console.log(`File ${file.filename} deleted due to expiration.`);
-  }
-};
+//   for (const file of expiredFiles) {
+//     if (fs.existsSync(file.file_path)) fs.unlinkSync(file.file_path);
+//     await File.deleteOne({ _id: file._id });
+//     console.log(`File ${file.filename} deleted due to expiration.`);
+//   }
+// };
 
 // Start periodic tasks
 // setInterval(checkKeepalive, 60 * 1000);  // Check every 1 minute
-setInterval(deleteExpiredFiles, 60 * 60 * 1000);  // Check every 1 hour
+// setInterval(deleteExpiredFiles, 60 * 60 * 1000);  // Check every 1 hour
 
 // Start the server
 const PORT = process.env.PORT || 3000;
