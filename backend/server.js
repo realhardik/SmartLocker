@@ -63,8 +63,8 @@ const db = new class {
       to: String,
       fPath: String,
       fName: String,
-      rViews: Boolean,
-      maxViews: Number,
+      rView: { type: Boolean, default: false },
+      maxViews: { type: Number, default: -1 },
       expiry_date: Date
     })
 
@@ -85,6 +85,19 @@ const db = new class {
     } catch (err) {
         console.error("Error adding user: ", err);
         return { success: false, msg: "Failed to add user." };
+    }
+  }
+
+  async addFile(fPath, fBuff, fEntry) {
+    try {
+      fs.writeFileSync(fPath, fBuff);
+      var savedFileEntry = await this.Files.create(fEntry);
+      if (savedFileEntry)
+        return { success: true, file: savedFileEntry, msg: "File saved successfully." }
+      return { success: false, msg: "Failed to save file." }
+    } catch (err) {
+        console.error("Error adding file: ", err);
+        return { success: false, msg: "Cannot save file at the moment." };
     }
   }
 
@@ -182,48 +195,45 @@ function authenticateJWT(req, res, next) {
 const uploadFolder = path.join(__dirname, 'uploads');
 const upload = multer();
 
-// app.post('/upload', upload.single('file'), async (req, res) => {
-//   var { from, to } = req.body; 
-//   var file = req.file
-//   if (!file || !from || !to) {
-//     return res.status(400).json({ msg: 'File, from, and to are required' });
-//   }
+app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => {
+  var { from, to } = req.body; 
+  var file = req.file
+  if (!file || !from || !to) {
+    return res.status(400).json({ msg: 'File, from, and to are required' });
+  }
 
-//   const filePath = path.join(uploadFolder, file.originalname);
-//   const fileEntry = {
-//     fName: file.originalname,
-//     fPath: filePath,
-//     from: from,
-//     to: to,
-//     expiry_date: moment().add(24, 'hours').toDate(),
-//   };
-//   console.log(fileEntry)
-//   try {
-//     fs.writeFileSync(filePath, file.buffer);
-//     const savedFileEntry = await File.create(fileEntry);
-//     res.status(201).json({ msg: 'File uploaded successfully' });
-//   } catch (error) {
-//     console.log(error)
-//     res.status(500).json({ msg: 'Error saving file entry to database' });
-//   }
-// });
+  const filePath = path.join(uploadFolder, file.originalname);
+  const fileEntry = {
+    from: from,
+    to: to,
+    fName: file.originalname,
+    fPath: filePath,
+    expiry_date: moment().add(24, 'hours').toDate(),
+  };
+  console.log(fileEntry)
+  try {
+    var result = await db.addFile(filePath, file.buffer, fileEntry)
+    res.status(201).json(result);
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ msg: 'Error saving file entry to database' });
+  }
+});
 
-// app.get('/receiver', async (req, res) => {
-//   const { receiver } = req.query; 
+app.get('/receiver', authenticateJWT, async (req, res) => {
+  const { receiver } = req.query; 
 
-//   if (!receiver) {
-//     return res.status(400).json({ msg: 'Username is required' });
-//   }
+  if (!receiver) {
+    return res.status(400).json({ msg: 'Username is required' });
+  }
 
-//   try {
-//     const filesForUser = await File.find({ to: receiver });
-//     console.log(receiver)
-//     console.log(await File.find({ }))
-//     res.status(200).json(filesForUser);
-//   } catch (error) {
-//     res.status(500).json({ msg: 'Error fetching entries', error });
-//   }
-// });
+  try {
+    const filesForUser = await db.search('Files', { to: { $in: [receiver] } });
+    res.status(200).json(filesForUser);
+  } catch (error) {
+    res.status(500).json({ msg: 'Error fetching entries', error });
+  }
+});
 
 // app.get('/download/:filename', async (req, res) => {
 //   const { filename } = req.params;

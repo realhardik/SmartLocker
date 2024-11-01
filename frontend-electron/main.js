@@ -74,7 +74,9 @@ ipcMain.handle('login', async (event, credentials) => {
       await alert("Login Successfull!")
       loginWindow.close();
       createMainWindow();
-      mainWindow.webContents.send('user-logged-in', data);
+      mainWindow.once('ready-to-show', () => {
+        mainWindow.webContents.send('user-logged-in', data);
+      });
     }
     return data
   } catch (error) {
@@ -96,14 +98,15 @@ ipcMain.handle('logout', async (event) => {
 
 ipcMain.handle('isAuthorized', async () => {
   const token = await keytar.getPassword('ElectronApp', 'auth-token');
-  if (token) {
-    if (loginWindow) loginWindow.close();
-    createMainWindow();
-  }
-  return !!token;
+  return token;
 });
 
-
+ipcMain.on('create-login-window', () => {
+  if (!loginWindow) {
+    createLoginWindow();
+  }
+  mainWindow && mainWindow.close()
+});
 
 app.whenReady().then(() => {
   createLoginWindow();
@@ -118,6 +121,7 @@ ipcMain.on('user-active', () => {
   console.log("Received 'user-active' in main process"); // Debug log
   resetInactivityTimeout();
 });
+
 
 // app.on('web-contents-created', (event, contents) => {
 //   contents.on('devtools-opened', () => {
