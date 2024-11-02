@@ -23,6 +23,12 @@
                 var f = fg ? "remove" : "add"
                 element[f + "EventListener"](event, callBackfn)
                 console.log("added")
+            },
+
+            BM: (r, e) => {
+                var s = e.length;
+                for (let t = 0; t < s; t++)
+                    r[e[t]] = r[e[t]].bind(r)
             }
         }
     </script>

@@ -118,7 +118,7 @@ app.whenReady().then(() => {
 });
 
 ipcMain.on('user-active', () => {
-  console.log("Received 'user-active' in main process"); // Debug log
+  console.log("Received 'user-active' in main process");
   resetInactivityTimeout();
 });
 

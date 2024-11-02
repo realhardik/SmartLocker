@@ -1,15 +1,6 @@
-const axios = require('axios');
 const { ipcRenderer } = require('electron');
     
 const BASE_URL = 'http://localhost:3000';
-
-// Select DOM elements
-const uploadSection = document.getElementById('upload-section');
-const receiveSection = document.getElementById('receive-section');
-const uploadBtn = document.getElementById('upload-btn');
-const receiveBtn = document.getElementById('receive-btn')
-const fileUpload = document.getElementById('file-upload');
-const fileList = document.getElementById('file-list');
 
 class fileSharing {
     constructor(data) {
@@ -22,8 +13,6 @@ class fileSharing {
         F.l("click", this.uploadBtn, this.upload)
         F.l("click", this.receiveBtn, this.receive)
         F.l("click", F.G.id("logout-btn"), this.logout)
-        console.log(this.user)
-          
     }
 
     async upload(e) {
@@ -126,9 +115,3 @@ new class {
         });
     }
 }
-
-// document.body.addEventListener('click', (e) => { 
-//     console.log('Activity detected:', e);
-//     ipcRenderer.send('user-active'); 
-// }); 
-

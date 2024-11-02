@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf.min.js"></script>
+  <title>Simple PDF Viewer</title>
+  <style>
+    body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+        font-family: Arial, sans-serif;
+    }
+
+    #pdf-container {
+        border: 1px solid #ccc;
+        overflow: auto;
+        width: 80%;
+        max-width: 800px;
+        height: 70vh;
+    }
+
+    .button-group, #zoom-controls, #file-controls {
+        display: flex;
+        align-items: center;
+        margin-top: 10px;
+    }
+
+    .button-group button, #zoom-controls button, #file-controls button, #file-controls input[type="file"] {
+        margin: 0 5px;
+        padding: 5px 10px;
+        border: none;
+        background-color: #007bff;
+        color: #fff;
+        cursor: pointer;
+        border-radius: 4px;
+        font-size: 14px;
+        transition: background-color 0.3s ease;
+    }
+
+    .button-group button:hover, #zoom-controls button:hover, #file-controls button:hover, #file-controls input[type="file"]:hover {
+        background-color: #0056b3;
+    }
+
+    #go-to-page-input, #go-to-page-btn {
+        margin-left: 5px;
+
+    } 
+  </style>
+  <script>
+    window.F = {
+        g: (t, r, e) => {
+            return (t || document)["getElement" + r](e)
+        },
+    
+        G: {
+            id: (t, r) => F.g(r, "ById", t),
+            class: (t, r) => Array.from(F.g(r, "sByClassName", t)),
+            tag: (t, r) => F.g(r, "sByTagName", t),
+            query: (t, r, a) => (r || document)["querySelector" + (a ? "All" : "")](t)
+        },
+
+        l: (event, element, callBackfn, fg) => {
+            var f = fg ? "remove" : "add"
+            element[f + "EventListener"](event, callBackfn)
+        },
+
+        BM: (r, e) => {
+            var s = e.length;
+            for (let t = 0; t < s; t++)
+                r[e[t]] = r[e[t]].bind(r)
+        }
+    }
+  </script>
+</head>
+<body>
+
+  <h1>PDF Viewer</h1>
+  <div id="pdf-container"></div>
+  <div id="page-controls">
+    <button id="prev-page">Previous</button>
+    <span id="page-num">Page 1</span>
+    <button id="next-page">Next</button>
+    <input type="number" id="go-to-page-input" placeholder="Go to Page">
+    <button id="go-to-page-btn">Go</button>
+  </div>
+  <div>
+    <button id="zoom-out">Zoom Out</button>
+    <button id="zoom-in">Zoom In</button>
+  </div>
+  <!-- <input type="file" id="file-input" accept=".pdf"> -->
+  <script src="render.js"></script>
+</body>
+</html>

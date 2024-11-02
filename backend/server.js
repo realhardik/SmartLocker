@@ -64,6 +64,7 @@ const db = new class {
       fPath: String,
       fName: String,
       rView: { type: Boolean, default: false },
+      cViews: { type: Number, default: -1 },
       maxViews: { type: Number, default: -1 },
       expiry_date: Date
     })
