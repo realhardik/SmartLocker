@@ -93,11 +93,14 @@ const db = new class {
     }
   }
 
-  async addFile(fPath, fBuff, fEntry) {
+  async addFile(fEntry) {
     try {
       var savedFileEntry = await this.Files.create(fEntry);
-      if (savedFileEntry)
+      if (savedFileEntry) {
+        console.log("saved entry: ", savedFileEntry)
         return { success: true, file: savedFileEntry, msg: "File saved successfully." }
+      }
+        
       return { success: false, msg: "Failed to save file." }
     } catch (err) {
         console.error("Error adding file: ", err);
@@ -122,9 +125,9 @@ const db = new class {
   async search(collection, query, method) {
     var model = this[collection]
         method = method ? ["find", "findOne"].includes(method) ? method : "find" : "find"
-    console.log(this.Users)
     let result;
     if (!model) throw new Error("Invalid collection name");
+    console.log("searching from: ", query)
     try {
       if (method === "find") {
           result = await model
@@ -200,7 +203,7 @@ const uploadFolder = path.join(__dirname, 'uploads');
 const upload = multer();
 
 app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => {
-  var { from, to } = req.body,
+  const { from, to } = req.body,
       file = req.file,
       eFile = await db.search("Files", { fName: file.originalname })
     
@@ -211,12 +214,12 @@ app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => 
       }
     }
   }
-
+  
   if (!file || !from || !to) {
     return res.status(400).json({ msg: 'File, from, and to are required' });
   }
 
-  var filePath = path.join(uploadFolder, file.originalname)
+  const filePath = path.join(uploadFolder, file.originalname)
   try {
     await fs.promises.writeFile(filePath, file.buffer);
     var filehash = await generateFileHash(filePath),
@@ -257,13 +260,15 @@ app.get('/receiver', authenticateJWT, async (req, res) => {
 
   try {
     const filesForUser = await db.search('Files', { to: { $in: [receiver] } });
+    var temp = await db.search('Files', { to: receiver })
+    console.log("al files for user: ", temp)
     res.status(200).json(filesForUser);
   } catch (error) {
     res.status(500).json({ msg: 'Error fetching entries', error });
   }
 });
 
-app.get('/download/:filename', authenticateJWT, async (req, res) => {
+app.post('/download/:filename', authenticateJWT, async (req, res) => {
   const { filename } = req.params;
   const { from, to } = req.body;
 
@@ -283,10 +288,10 @@ app.get('/download/:filename', authenticateJWT, async (req, res) => {
     }
 
     const filePath = fileEntry.result.fPath;
-    res.download(filePath, filename, (err) => {
+    res.sendFile(filePath, { root: '.' }, (err) => {
       if (err) {
-        console.error('Error downloading file:', err);
-        res.status(500).json({ msg: 'Error downloading file', error: err });
+          console.error('Error loading file:', err);
+          res.status(500).json({ msg: 'Error loading file', error: err });
       }
     });
   } catch (error) {

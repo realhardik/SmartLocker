@@ -3,7 +3,7 @@ const axios = require('axios');
 const keytar = require('keytar');
 
 const INACTIVITY_LIMIT = 10 * 60 * 1e3;
-let mainWindow, loginWindow, inactivityTimeout;
+let mainWindow, loginWindow, renderWindow, inactivityTimeout;
 let apiBaseUrl = 'http://localhost:3000';
 
 async function alert(title) {
@@ -50,8 +50,16 @@ function createMainWindow() {
   mainWindow.loadFile('app.html');
 }
 
-function createRenderPage() {
-  
+function createRenderWindow() {
+  renderWindow = new BrowserWindow({
+    width: 900,
+    height: 850,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+    }
+  });
+  renderWindow.loadFile('render.html')
 }
 
 ipcMain.handle('signup', async (event, credentials) => {
@@ -126,14 +134,15 @@ ipcMain.on('user-active', () => {
   resetInactivityTimeout();
 });
 
-
 ipcMain.handle('render', async (e, d) => {
-  var { from, to } = e,
-    token = await keytar.getPassword('ElectronApp', 'auth-token')
+  var token = await keytar.getPassword('ElectronApp', 'auth-token')
   if (!token) {
     return { success: false, msg: "Failed to authorize. Try to sign in again."}
   }
-  createRenderPage();
+  createRenderWindow();
+  renderWindow.once('ready-to-show', () => {
+    renderWindow.webContents.send('render-file', { ...d, token: token});
+  });
 });
 
 // app.on('web-contents-created', (event, contents) => {

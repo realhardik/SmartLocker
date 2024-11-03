@@ -1,3 +1,6 @@
+const { ipcRenderer } = require("electron/renderer");
+const BASE_URL = "http://localhost:3000"
+
 class oRender {
     constructor(resp) {
         this.pdfContainer = F.G.id('pdf-container'),
@@ -11,7 +14,8 @@ class oRender {
         this.pageNum = 1;
         this.scale = 1.0;
         F.BM(this, ["renderPage", "loadPDF", "prevPage", "nextPage", "hop"])
-        F.BM(this, ["zIn", "zOut"])
+        F.BM(this, ["zIn", "zOut", "init"])
+        console.log("rendering")
         this.init(resp)
     }
 
@@ -31,21 +35,23 @@ class oRender {
         await page.render(renderContext);
     }
 
-    async loadPDF(e, filename) {
+    async loadPDF(e) {
         try {
-            var { from, to, token } = e
-            const response = await fetch(`/download/${filename}`, {
-                method: 'GET',
+            var { from, to, token, fName } = e
+            const response = await fetch(`/download/${fName}`, {
+                method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ from, to })
             });
-    
+
             if (!response.ok) {
                 throw new Error(`Error: ${response.statusText}`);
             }
+
+            console.log(response)
     
             var blob = await response.blob(),
                 url = URL.createObjectURL(blob),
@@ -61,12 +67,13 @@ class oRender {
     }
 
     init(d) {
+        console.log(d)
         F.l('click', this.prevPageBtn, this.prevPage)
         F.l('click', this.nextPageBtn, this.nextPage)
         F.l('click', this.goToPageBtn, this.hop)
         F.l('click', this.zoomInBtn, this.zIn)
         F.l('click', this.zoomOutBtn, this.zOut)
-        this.loadPDF(d.url)
+        this.loadPDF(d)
     }
 
     prevPage() {
@@ -106,5 +113,20 @@ class oRender {
             this.scale -= 0.25;
             renderPage(this.pageNum);
         }
+    }
+}
+
+new class {
+    constructor() {
+        F.BM(this, ["init"])
+        ipcRenderer.on('render-file', (e, data) => {
+            console.log(data)
+            console.log("render")
+            this.init(data)
+        })
+    }
+
+    init(d) {
+        new oRender(d)
     }
 }

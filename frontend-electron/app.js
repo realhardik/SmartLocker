@@ -68,24 +68,27 @@ class fileSharing {
                 files = data.result,
                 fileList = document.getElementById('file-list');
             fileList.innerHTML = '';
+            console.log(files)
             files.forEach(file => {
                 const listItem = document.createElement('li');
                 listItem.textContent = file.fName;
+                fileList.appendChild(listItem);
                 listItem.fCon = {
                     from: file.from,
                     to: file.to,
-                    hash: fileHash
+                    fName: file.fName,
+                    hash: file.fileHash
                 }
-                fileList.appendChild(listItem);
-                F.l('click', listItem, this.oRender)
+                F.l('click', listItem, (e) => { this.oRender(e) })
             })
         } catch (error) {
             console.error('Error fetching files:', error);
         }
     }
 
-    async oRender() {
-
+    async oRender(e) {
+        var f = e.target
+        ipcRenderer.invoke('render', f["fCon"])
     }
 
     async logout(e) {
