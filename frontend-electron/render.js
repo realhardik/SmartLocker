@@ -12,7 +12,7 @@ class oRender {
         this.scale = 1.0;
         F.BM(this, ["renderPage", "loadPDF", "prevPage", "nextPage", "hop"])
         F.BM(this, ["zIn", "zOut"])
-        this.init()
+        this.init(resp)
     }
 
     async renderPage(num) {
@@ -38,12 +38,13 @@ class oRender {
         this.pageNumSpan.textContent = `Page ${this.pageNum} of ${this.pdfDoc.numPages}`;
     }
 
-    init() {
+    init(d) {
         F.l('click', this.prevPageBtn, this.prevPage)
         F.l('click', this.nextPageBtn, this.nextPage)
         F.l('click', this.goToPageBtn, this.hop)
         F.l('click', this.zoomInBtn, this.zIn)
         F.l('click', this.zoomOutBtn, this.zOut)
+        this.loadPDF(d.url)
     }
 
     prevPage() {
@@ -85,7 +86,3 @@ class oRender {
         }
     }
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    
-});

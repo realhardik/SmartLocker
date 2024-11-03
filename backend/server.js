@@ -7,6 +7,7 @@ const multer = require('multer');
 const fs = require('fs');
 const moment = require('moment');
 const path = require('path');
+const crypto = require('crypto');
 
 const app = express();
 app.use(express.json());
@@ -63,10 +64,13 @@ const db = new class {
       to: String,
       fPath: String,
       fName: String,
+      fileHash: String,
       rView: { type: Boolean, default: false },
       cViews: { type: Number, default: -1 },
       maxViews: { type: Number, default: -1 },
-      expiry_date: Date
+      expiry_date: String,
+      expiry_time: String,
+      active: { type: Boolean, default: true }
     })
 
     this.Users = mongoose.model('user', this.userSchema)
@@ -91,7 +95,6 @@ const db = new class {
 
   async addFile(fPath, fBuff, fEntry) {
     try {
-      fs.writeFileSync(fPath, fBuff);
       var savedFileEntry = await this.Files.create(fEntry);
       if (savedFileEntry)
         return { success: true, file: savedFileEntry, msg: "File saved successfully." }
@@ -165,7 +168,7 @@ app.post('/login', async (req, res) => {
   if (user.success) {
     pass = await bcrypt.compare(password, user.result.password)
   }
-  console.log(pass)
+
   if (!user.success || !pass) {
     return res.json({ success: false,msg: 'Invalid credentials.' });
   }
@@ -197,29 +200,53 @@ const uploadFolder = path.join(__dirname, 'uploads');
 const upload = multer();
 
 app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => {
-  var { from, to } = req.body; 
-  var file = req.file
+  var { from, to } = req.body,
+      file = req.file,
+      eFile = await db.search("Files", { fName: file.originalname })
+    
+  if (eFile.success) {
+    for (var f = 0; f<eFile.result.length; f++) {
+      if (eFile.result[f].active) {
+        return res.status(400).json({ msg: 'Given Filename is active currently. Change it to share.' });
+      }
+    }
+  }
+  
   if (!file || !from || !to) {
     return res.status(400).json({ msg: 'File, from, and to are required' });
   }
 
-  const filePath = path.join(uploadFolder, file.originalname);
-  const fileEntry = {
-    from: from,
-    to: to,
-    fName: file.originalname,
-    fPath: filePath,
-    expiry_date: moment().add(24, 'hours').toDate(),
-  };
-  console.log(fileEntry)
+  var filePath = path.join(uploadFolder, file.originalname)
   try {
-    var result = await db.addFile(filePath, file.buffer, fileEntry)
+    await fs.promises.writeFile(filePath, file.buffer);
+    var filehash = await generateFileHash(filePath),
+        fileEntry = {
+          from: from,
+          to: to,
+          fName: file.originalname,
+          fPath: filePath,
+          filehash: filehash,
+          expiry_date: moment().format('DD-MM-YYYY'),
+          expiry_time: moment().format('HH:mm'),
+        },
+        result = await db.addFile(fileEntry)
     res.status(201).json(result);
-  } catch (error) {
-    console.log(error)
+  } catch (err) {
+    console.log(err)
     res.status(500).json({ msg: 'Error saving file entry to database' });
-  }
+  } 
 });
+
+async function generateFileHash(filePath) {
+  return new Promise((resolve, reject) => {
+      const hash = crypto.createHash('sha256');
+      const fileStream = fs.createReadStream(filePath);
+
+      fileStream.on('data', (data) => hash.update(data));
+      fileStream.on('end', () => resolve(hash.digest('hex')));
+      fileStream.on('error', (err) => reject(err));
+  });
+}
 
 app.get('/receiver', authenticateJWT, async (req, res) => {
   const { receiver } = req.query; 
@@ -236,32 +263,32 @@ app.get('/receiver', authenticateJWT, async (req, res) => {
   }
 });
 
-// app.get('/download/:filename', async (req, res) => {
-//   const { filename } = req.params;
-//   const { from, to } = req.body;
+app.get('/download/:filename', authenticateJWT, async (req, res) => {
+  const { filename } = req.params;
+  const { from, to } = req.body;
 
-//   if (!from || !to) {
-//     return res.status(400).json({ msg: 'Both "from" and "to" fields are required' });
-//   }
+  if (!from || !to) {
+    return res.status(400).json({ msg: 'Both "from" and "to" fields are required' });
+  }
 
-//   try {
-//     const fileEntry = await File.findOne({ filename, sender: from, to: { $in: [to] } });
+  try {
+    const fileEntry = await File.findOne({ filename, sender: from, to: { $in: [to] } });
     
-//     if (!fileEntry) {
-//       return res.status(404).json({ msg: 'File not found or access denied' });
-//     }
+    if (!fileEntry) {
+      return res.status(404).json({ msg: 'File not found or access denied' });
+    }
 
-//     const filePath = path.join(uploadFolder, filename);
+    const filePath = path.join(uploadFolder, filename);
 
-//     res.download(filePath, filename, (err) => {
-//       if (err) {
-//         res.status(500).json({ msg: 'Error downloading file', error: err });
-//       }
-//     });
-//   } catch (error) {
-//     res.status(500).json({ msg: 'Error accessing file', error });
-//   }
-// });
+    res.download(filePath, filename, (err) => {
+      if (err) {
+        res.status(500).json({ msg: 'Error downloading file', error: err });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ msg: 'Error accessing file', error });
+  }
+});
 
 
 // Download File
