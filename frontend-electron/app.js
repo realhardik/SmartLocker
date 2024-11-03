@@ -9,6 +9,7 @@ class fileSharing {
         this.receiveBtn = F.G.id("receive-btn")
         this.upload = this.upload.bind(this)
         this.receive = this.receive.bind(this)
+        this.oRender = this.oRender.bind(this)
         this.user = data.session
         F.l("click", this.uploadBtn, this.upload)
         F.l("click", this.receiveBtn, this.receive)
@@ -70,14 +71,20 @@ class fileSharing {
             files.forEach(file => {
                 const listItem = document.createElement('li');
                 listItem.textContent = file.fName;
+                listItem.fCon = {
+                    from: file.from,
+                    to: file.to,
+                    hash: fileHash
+                }
                 fileList.appendChild(listItem);
+                F.l('click', listItem, this.oRender)
             })
         } catch (error) {
             console.error('Error fetching files:', error);
         }
     }
 
-    async fDownload() {
+    async oRender() {
 
     }
 

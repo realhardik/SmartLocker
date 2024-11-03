@@ -31,11 +31,33 @@ class oRender {
         await page.render(renderContext);
     }
 
-    async loadPDF(url) {
-        const loadingTask = pdfjsLib.getDocument(url);
-        this.pdfDoc = await loadingTask.promise;
-        renderPage(this.pageNum);
-        this.pageNumSpan.textContent = `Page ${this.pageNum} of ${this.pdfDoc.numPages}`;
+    async loadPDF(e, filename) {
+        try {
+            var { from, to, token } = e
+            const response = await fetch(`/download/${filename}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ from, to })
+            });
+    
+            if (!response.ok) {
+                throw new Error(`Error: ${response.statusText}`);
+            }
+    
+            var blob = await response.blob(),
+                url = URL.createObjectURL(blob),
+                loadingTask = pdfjsLib.getDocument(url),
+                pdfDoc = await loadingTask.promise;
+
+            this.pdfDoc = pdfDoc;
+            this.renderPage(this.pageNum);
+            this.pageNumSpan.textContent = `Page ${this.pageNum} of ${this.pdfDoc.numPages}`;
+        } catch (error) {
+            console.error('Error loading PDF:', error);
+        }
     }
 
     init(d) {

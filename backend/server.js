@@ -211,7 +211,7 @@ app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => 
       }
     }
   }
-  
+
   if (!file || !from || !to) {
     return res.status(400).json({ msg: 'File, from, and to are required' });
   }
@@ -225,7 +225,7 @@ app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => 
           to: to,
           fName: file.originalname,
           fPath: filePath,
-          filehash: filehash,
+          fileHash: filehash,
           expiry_date: moment().format('DD-MM-YYYY'),
           expiry_time: moment().format('HH:mm'),
         },
@@ -271,21 +271,26 @@ app.get('/download/:filename', authenticateJWT, async (req, res) => {
     return res.status(400).json({ msg: 'Both "from" and "to" fields are required' });
   }
 
+  if (!fileEntry.success || !fileEntry.result) {
+    return res.status(404).json({ msg: 'File not found or access denied' });
+  }
+
   try {
-    const fileEntry = await File.findOne({ filename, sender: from, to: { $in: [to] } });
-    
-    if (!fileEntry) {
+    const fileEntry = await db.search('Files', { fName: filename, from: from, to: { $in: [to] } }, 'findOne');
+
+    if (!fileEntry.success || !fileEntry.result) {
       return res.status(404).json({ msg: 'File not found or access denied' });
     }
 
-    const filePath = path.join(uploadFolder, filename);
-
+    const filePath = fileEntry.result.fPath;
     res.download(filePath, filename, (err) => {
       if (err) {
+        console.error('Error downloading file:', err);
         res.status(500).json({ msg: 'Error downloading file', error: err });
       }
     });
   } catch (error) {
+    console.error('Error accessing file:', error);
     res.status(500).json({ msg: 'Error accessing file', error });
   }
 });
@@ -318,26 +323,6 @@ app.get('/download/:filename', authenticateJWT, async (req, res) => {
 
 //   res.download(file.file_path); 
 // });
-// Logout
-// app.post('/logout', async (req, res) => {
-//   const email = req.user.email;
-//   await Session.updateOne({ email }, { is_online: false });
-//   res.status(200).json({ msg: 'Logout successful' });
-// });
-
-// Periodic Cleanup Tasks
-// const checkKeepalive = async () => {
-//   const now = new Date();
-//   const expiredSessions = await Session.find({
-//     is_online: true,
-//     last_keepalive: { $lt: new Date(now - 3 * 60 * 1000) }
-//   });
-
-//   for (const session of expiredSessions) {
-//     await Session.updateOne({ email: session.email }, { is_online: false });
-//     console.log(`User ${session.email} logged out due to inactivity.`);
-//   }
-// };
 
 // const deleteExpiredFiles = async () => {
 //   const now = new Date();
@@ -350,8 +335,6 @@ app.get('/download/:filename', authenticateJWT, async (req, res) => {
 //   }
 // };
 
-// Start periodic tasks
-// setInterval(checkKeepalive, 60 * 1000);  // Check every 1 minute
 // setInterval(deleteExpiredFiles, 60 * 60 * 1000);  // Check every 1 hour
 
 // Start the server

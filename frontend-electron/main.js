@@ -50,6 +50,10 @@ function createMainWindow() {
   mainWindow.loadFile('app.html');
 }
 
+function createRenderPage() {
+  
+}
+
 ipcMain.handle('signup', async (event, credentials) => {
   try {
     console.log("Attempting signup with credentials:", credentials);
@@ -122,6 +126,15 @@ ipcMain.on('user-active', () => {
   resetInactivityTimeout();
 });
 
+
+ipcMain.handle('render', async (e, d) => {
+  var { from, to } = e,
+    token = await keytar.getPassword('ElectronApp', 'auth-token')
+  if (!token) {
+    return { success: false, msg: "Failed to authorize. Try to sign in again."}
+  }
+  createRenderPage();
+});
 
 // app.on('web-contents-created', (event, contents) => {
 //   contents.on('devtools-opened', () => {
