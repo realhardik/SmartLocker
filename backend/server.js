@@ -276,10 +276,6 @@ app.post('/download/:filename', authenticateJWT, async (req, res) => {
     return res.status(400).json({ msg: 'Both "from" and "to" fields are required' });
   }
 
-  if (!fileEntry.success || !fileEntry.result) {
-    return res.status(404).json({ msg: 'File not found or access denied' });
-  }
-
   try {
     const fileEntry = await db.search('Files', { fName: filename, from: from, to: { $in: [to] } }, 'findOne');
 
@@ -288,46 +284,23 @@ app.post('/download/:filename', authenticateJWT, async (req, res) => {
     }
 
     const filePath = fileEntry.result.fPath;
-    res.sendFile(filePath, { root: '.' }, (err) => {
+    res.download(filePath, filename, (err) => {
       if (err) {
-          console.error('Error loading file:', err);
-          res.status(500).json({ msg: 'Error loading file', error: err });
+        console.error('Error downloading file:', err);
+        res.status(500).json({ msg: 'Error downloading file', error: err });
       }
     });
+    // res.sendFile(filePath, { root: '.' }, (err) => {
+    //   if (err) {
+    //       console.error('Error loading file:', err);
+    //       res.status(500).json({ msg: 'Error loading file', error: err });
+    //   }
+    // });
   } catch (error) {
     console.error('Error accessing file:', error);
     res.status(500).json({ msg: 'Error accessing file', error });
   }
 });
-
-
-// Download File
-// app.get('/download/:filename', authenticateJWT, async (req, res) => {
-//   const { filename } = req.params;
-//   const receiver = req.user.email;
-//   const file = await File.findOne({ filename });
-
-//   if (!file) return res.status(404).json({ msg: 'File not found or expired' });
-//   if (!file.pending_receivers.includes(receiver)) {
-//     return res.status(403).json({ msg: 'You do not have permission to download this file' });
-// }
-
-//   // Mark receiver as having downloaded the file
-//   await File.updateOne({ filename }, {
-//     $addToSet: { satisfied_receivers: receiver },
-//     $pull: { pending_receivers: receiver }
-//   });
-
-//   // Delete the file if all receivers have downloaded
-//   // const updatedFile = await File.findOne({ filename });
-//   // if (updatedFile.pending_receivers.length === 0) {
-//   //   fs.unlinkSync(file.file_path);
-//   //   await File.deleteOne({ filename });
-//   // }
-//   console.log(`User ${receiver} downloaded the file ${filename}.`);
-
-//   res.download(file.file_path); 
-// });
 
 // const deleteExpiredFiles = async () => {
 //   const now = new Date();
