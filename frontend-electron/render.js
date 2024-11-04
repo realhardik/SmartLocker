@@ -20,8 +20,8 @@ class oRender {
     }
 
     async renderPage(num) {
-        const page = await pdfDoc.getPage(num);
-        const viewport = page.getViewport({ scale: scale });
+        const page = await this.pdfDoc.getPage(num);
+        const viewport = page.getViewport({ scale: this.scale });
         const canvas = document.createElement('canvas');
         const canvasContext = canvas.getContext('2d');
         canvas.height = viewport.height;
@@ -38,7 +38,7 @@ class oRender {
     async loadPDF(e) {
         try {
             var { from, to, token, fName } = e
-            const response = await fetch(`/download/${fName}`, {
+            const response = await fetch(`${BASE_URL}/download/${fName}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -79,7 +79,7 @@ class oRender {
     prevPage() {
         if (this.pageNum > 1) {
             this.pageNum--;
-            renderPage(this.pageNum);
+            this.renderPage(this.pageNum);
             this.pageNumSpan.textContent = `Page ${this.pageNum} of ${this.pdfDoc.numPages}`;
         }
     }
@@ -87,7 +87,7 @@ class oRender {
     nextPage() {
         if (this.pageNum < this.pdfDoc.numPages) {
             this.pageNum++;
-            renderPage(this.pageNum);
+            this.renderPage(this.pageNum);
             this.pageNumSpan.textContent = `Page ${this.pageNum} of ${this.pdfDoc.numPages}`;
         }
     }
@@ -96,7 +96,7 @@ class oRender {
         const targetPage = parseInt(this.goToPageInput.value);
         if (targetPage >= 1 && targetPage <= this.pdfDoc.numPages) {
             this.pageNum = targetPage;
-            renderPage(this.pageNum);
+            this.renderPage(this.pageNum);
             this.pageNumSpan.textContent = `Page ${this.pageNum} of ${this.pdfDoc.numPages}`;
         }
     }
@@ -104,14 +104,14 @@ class oRender {
     zIn() {
         if (this.scale < 3) {
             this.scale += 0.25;
-            renderPage(this.pageNum);
+            this.renderPage(this.pageNum);
         }
     }
 
     zOut() {
         if (this.scale > 0.25) {
             this.scale -= 0.25;
-            renderPage(this.pageNum);
+            this.renderPage(this.pageNum);
         }
     }
 }

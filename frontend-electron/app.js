@@ -87,37 +87,36 @@ class fileSharing {
     }
 
     async oRender(e) {
-        var f = e.target,
-            { from, to, fName } = f["fCon"]
-        console.log("file info: ", fName)
-        try {
-            const response = await fetch(`${BASE_URL}/download/${fName}`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.user.token}`
-              },
-              body: JSON.stringify({ from, to })
-            });
-            console.log(response)
-            if (!response.ok) {
-              throw new Error('Failed to download file');
-            }
+        var f = e.target
+        ipcRenderer.invoke('render', f["fCon"])
+        // try {
+        //     const response = await fetch(`${BASE_URL}/download/${fName}`, {
+        //       method: 'POST',
+        //       headers: {
+        //         'Content-Type': 'application/json',
+        //         'Authorization': `Bearer ${this.user.token}`
+        //       },
+        //       body: JSON.stringify({ from, to })
+        //     });
+        //     console.log(response)
+        //     if (!response.ok) {
+        //       throw new Error('Failed to download file');
+        //     }
         
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
+        //     const blob = await response.blob();
+        //     const url = window.URL.createObjectURL(blob);
         
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = fName;
-            document.body.appendChild(link);
-            link.click();
+        //     const link = document.createElement('a');
+        //     link.href = url;
+        //     link.download = fName;
+        //     document.body.appendChild(link);
+        //     link.click();
         
-            window.URL.revokeObjectURL(url);
-            link.remove();
-          } catch (error) {
-            console.error('Download error:', error);
-          }
+        //     window.URL.revokeObjectURL(url);
+        //     link.remove();
+        //   } catch (error) {
+        //     console.error('Download error:', error);
+        //   }
     }
 
     async logout(e) {
