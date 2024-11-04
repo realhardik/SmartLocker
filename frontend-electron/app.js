@@ -23,9 +23,17 @@ class fileSharing {
             to = F.G.id("receivers").value.split(",").map(email => ({ email: email.trim() })),
             file = F.G.id("file-upload").files[0],
             token = this.user.token
+        if (file && file.type === "application/pdf" && file.name.toLowerCase().endsWith(".pdf")) {
             formData.append('from', from);
             formData.append('to', JSON.stringify(to));
             formData.append('file', file);
+        } else {
+            alert("Please upload a PDF file.");
+            F.G.id("file-upload").value = ""
+            return;
+        }
+        
+            
         console.log(to)
         try {
             const response = await fetch(`${BASE_URL}/upload`, {
@@ -37,8 +45,11 @@ class fileSharing {
             });
 
             const data = await response.json();
+            console.log(data)
             if (response.ok) {
-                alert('File uploaded successfully: ' + data.msg);
+                alert(data.msg);
+                F.G.id("receivers").value = ""
+                F.G.id("file-upload").value = ""
             } else {
                 alert('Error: ' + data.msg);
             }
@@ -66,7 +77,7 @@ class fileSharing {
 
             var data = await response.json(),
                 files = data.result,
-                fileList = document.getElementById('file-list');
+                fileList = F.G.id('file-list');
             fileList.innerHTML = '';
             console.log(files)
             files.forEach(file => {
@@ -92,6 +103,9 @@ class fileSharing {
     }
 
     async logout(e) {
+        F.G.id('file-list').innerHTML = ""
+        F.G.id("receivers").value = ""
+        F.G.id("file-upload").value = ""
         ipcRenderer.invoke('logout');
     }
 }
