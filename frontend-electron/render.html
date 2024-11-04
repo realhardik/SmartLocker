@@ -77,7 +77,8 @@
             var s = e.length;
             for (let t = 0; t < s; t++)
                 r[e[t]] = r[e[t]].bind(r)
-        }
+        },
+        has: (t, i) => i.hasOwnProperty(t)
     }
   </script>
 </head>
@@ -96,7 +97,6 @@
     <button id="zoom-out">Zoom Out</button>
     <button id="zoom-in">Zoom In</button>
   </div>
-  <!-- <input type="file" id="file-input" accept=".pdf"> -->
   <script src="render.js"></script>
 </body>
 </html>

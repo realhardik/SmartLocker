@@ -46,13 +46,15 @@ class oRender {
                 },
                 body: JSON.stringify({ from, to })
             });
-
-            if (!response.ok) {
-                throw new Error(`Error: ${response.statusText}`);
+            var temp = await response.json()
+            console.log(response)
+            if ((F.has('success', temp) && !temp.success) || !response.ok) {
+                var msg = temp.msg || "Some Error occured. Please try again later."
+                alert(msg)
+                ipcRenderer.invoke('close-render')
+                return
             }
 
-            console.log(response)
-    
             var blob = await response.blob(),
                 url = URL.createObjectURL(blob),
                 loadingTask = pdfjsLib.getDocument(url),

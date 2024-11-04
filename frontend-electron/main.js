@@ -145,6 +145,10 @@ ipcMain.handle('render', async (e, d) => {
   });
 });
 
+ipcMain.handle('close-render', async (e) => {
+  renderWindow && renderWindow.close()
+});
+
 // app.on('web-contents-created', (event, contents) => {
 //   contents.on('devtools-opened', () => {
 //     if (app.isPackaged) {
