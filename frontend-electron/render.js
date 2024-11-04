@@ -46,14 +46,18 @@ class oRender {
                 },
                 body: JSON.stringify({ from, to })
             });
-            var temp = await response.json()
-            console.log(response)
-            if ((F.has('success', temp) && !temp.success) || !response.ok) {
-                var msg = temp.msg || "Some Error occured. Please try again later."
-                alert(msg)
-                ipcRenderer.invoke('close-render')
-                return
+
+            let temp = response.headers.get("Content-Type");
+            if (temp && temp.includes("application/json")) {
+                temp = await response.json()
+                if ((F.has('success', temp) && !temp.success) || !response.ok) {
+                    var msg = temp.msg || "Some Error occured. Please try again later."
+                    alert(msg)
+                    ipcRenderer.invoke('close-render')
+                    return
+                }
             }
+            
 
             var blob = await response.blob(),
                 url = URL.createObjectURL(blob),
@@ -61,6 +65,7 @@ class oRender {
                 pdfDoc = await loadingTask.promise;
 
             this.pdfDoc = pdfDoc;
+            console.log(pdfDoc)
             this.renderPage(this.pageNum);
             this.pageNumSpan.textContent = `Page ${this.pageNum} of ${this.pdfDoc.numPages}`;
         } catch (error) {

@@ -33,7 +33,6 @@ class fileSharing {
             return;
         }
         
-            
         console.log(to)
         try {
             const response = await fetch(`${BASE_URL}/upload`, {
