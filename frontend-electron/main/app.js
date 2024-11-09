@@ -139,7 +139,6 @@ class chat {
         e.preventDefault()
         var dBoxId = e.target["dataset"].dbox,
             dBox = F.G.id(dBoxId)
-        console.log(dBoxId)
         dBox && F.hide(dBox, !0)
     }
 
@@ -158,6 +157,7 @@ class chat {
             var iField = F.G.id(i),
                 dName = iField["dataset"].name
             inputs[dName] = iField.value
+            iField.value = ""
         })
         this[dFun](inputs, dBox)
     }

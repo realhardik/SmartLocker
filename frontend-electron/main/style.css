@@ -10,6 +10,7 @@
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
+    z-index: 3;
 }
 
 #app>section {
@@ -147,7 +148,6 @@
     font-size: 18px;
 }
 
-
 #sChat::before {
     content: "";
     position: absolute;
@@ -270,6 +270,7 @@
     padding: 20px 25px;
     box-sizing: border-box;
     border-radius: 17px;
+    z-index: 5;
 }
 
 #addChat form, #addChat form div {
@@ -292,4 +293,266 @@ button {
 #addChat button {
     background-color: #0077b6;
     border: solid 1px white;
+}
+
+/* file sharing */
+
+#fileSharing {
+    display: none;
+    pointer-events: none;
+	width: 65vw;
+	background: #161b22;
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+    border: solid 1px rgba(255, 255, 255, 0.4);
+    border-radius: 12px;
+    border-collapse: collapse;
+}
+
+#fileSharing form {
+    display: flex;
+	flex-direction: column;
+	flex-wrap: wrap;
+}
+
+#fileSharing>* {
+	width: 100%;
+	box-sizing: border-box;
+}
+
+#fhTitle {
+	background-color: #1c2128;
+	padding: 20px 50px;
+	text-align: center;
+    border-top: solid 1px rgba(255, 255, 255, 0.4);
+    border-radius: 12px;
+}
+
+#fInput {
+	min-height: 100px;
+}
+
+#f-eDet {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+	font-size: 17px;
+	box-sizing: border-box;
+	width: 100%;
+	border-top: solid 1px #565656;
+}
+
+#algOpt, #othOpt {
+    position: relative;
+	padding: 17px 15px;
+	box-sizing: border-box; 
+	overflow: hidden;
+}
+
+#othOpt {
+    height: 300px;
+}
+
+#gnil {
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+	justify-content: start;
+	align-items: center;
+	padding-bottom: 7px;
+	border-bottom: solid 1px #565656;
+}
+
+#gnil>* {
+	float: left;
+}
+
+#gnil span {
+	display: block;
+	margin-right: 20px;
+	height: 100%;
+}
+
+#nLayers, #max_views {
+	font-size: 17px;
+	padding: 3px 4px;
+	border-radius: 7px;
+}
+
+#cLayers {
+	padding: 10px 0;
+	font-size: 15px;
+	max-height: 300px;
+	overflow: scroll;
+}
+
+.layInfo, #cLayers, #expTitle, #expOpt {
+	width: 100%;
+}
+
+.layInfo {
+	display: flex;
+	flex-direction: row;
+	overflow: hidden;
+	flex-wrap: wrap;
+	margin-bottom: 12px;
+} 
+
+.lNo {
+	margin-right: 5px
+}
+
+.lNo span {
+	width: 19px;
+	height: 100%;
+	text-align: center;
+	align-content: center;
+}
+
+select.inp {
+    background-color: #30363d;
+	background-image:
+		linear-gradient(45deg, transparent 50%, gray 50%),
+		linear-gradient(135deg, gray 50%, transparent 50%),
+		linear-gradient(to right, #ccc, #ccc);
+	background-position: calc(100% - 20px) calc(0.6em + 6px),
+		calc(100% - 15px) calc(0.6em + 6px),
+		calc(100% - 2.5em) 0.3em;
+	background-size:
+		5px 5px,
+		5px 5px,
+		1px 1.5em;
+	background-repeat: no-repeat;
+
+    border: thin solid #444c56;
+	border-radius: 6px;
+	display: inline-block;
+	font: inherit;
+	line-height: 1.5em;
+	padding: 0.3em 3em 0.3em 0.6em;
+	margin: 0;      
+	margin-right: 10px;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+	appearance: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+}
+
+#fileSharing input {
+    background-color: #30363d;
+    border: thin solid #444c56;
+}
+
+#fileSharing input:focus {
+  border-color: #58a6ff;
+  outline: 0;
+}
+
+select:-moz-focusring {
+	color: transparent;
+	text-shadow: 0 0 0 #000;
+}
+
+.passPhrase input {
+	border-radius: 6px;
+	line-height: 1.5em;
+	padding: 0.3em 3em 0.3em 0.6em;
+	width: calc(50px + 7vw);
+	min-width: 107px;
+}
+
+#expTitle {
+	display: flex;
+	padding-bottom: 7px;
+	border-bottom: solid 1px #565656;
+}
+
+#expOpt {
+	padding: 10px 0;
+	/* font-size: 17px; */
+}
+
+#dExp>* {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	margin-bottom: 12px;
+}
+
+#oExpChk {
+	justify-content: start;
+	align-items: center;
+	align-content: center;
+}
+
+#oExpChk span {
+	margin-right: 10px;
+}
+
+#expD input, #expT input {
+	padding: 1px 4px;
+}
+
+#oExp {
+	padding: 10px 0;
+	border-top: thin solid #444c56;
+}
+
+#oExp>* {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	align-content: center;
+}
+
+#fButtons {
+	position: absolute;
+    right: 15px;
+	bottom: 17px;
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-end;
+}
+
+#fileSharing button {
+    background-color: #58a6ff;
+    border: thin solid #444c56;
+    border-radius: 9px;
+    padding: 8px 14px;
+}
+
+#cButton {
+    margin-right: 10px;
+}
+
+.d *, .i *, .c * {
+    pointer-events: none;
+}
+
+@media (max-width: 650px)  {
+	#cLayers {
+		font-size: 13px;
+	}
+
+	#gnil {
+		justify-content: center;
+	}
+
+	.layInfo {
+		justify-content: center;
+		align-items: center;
+		align-content: center;
+	}
+
+	.passPhrase input {
+		width: 100px;
+	}
 }

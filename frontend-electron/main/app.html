@@ -183,7 +183,7 @@
                 </div>
             </div>
             <div id="mChat">
-                <div id="fSharing">
+                <div id="fSharing" class="d" data-dbox="fileSharing">
                     <div>
                         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#fff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M10 14H12M12 14H14M12 14V16M12 14V12" stroke="#fff" stroke-width="1.5" stroke-linecap="round"></path> <path d="M2 6.94975C2 6.06722 2 5.62595 2.06935 5.25839C2.37464 3.64031 3.64031 2.37464 5.25839 2.06935C5.62595 2 6.06722 2 6.94975 2C7.33642 2 7.52976 2 7.71557 2.01738C8.51665 2.09229 9.27652 2.40704 9.89594 2.92051C10.0396 3.03961 10.1763 3.17633 10.4497 3.44975L11 4C11.8158 4.81578 12.2237 5.22367 12.7121 5.49543C12.9804 5.64471 13.2651 5.7626 13.5604 5.84678C14.0979 6 14.6747 6 15.8284 6H16.2021C18.8345 6 20.1506 6 21.0062 6.76946C21.0849 6.84024 21.1598 6.91514 21.2305 6.99383C22 7.84935 22 9.16554 22 11.7979V14C22 17.7712 22 19.6569 20.8284 20.8284C19.6569 22 17.7712 22 14 22H10C6.22876 22 4.34315 22 3.17157 20.8284C2 19.6569 2 17.7712 2 14V6.94975Z" stroke="#fff" stroke-width="1.5"></path> </g></svg>
                     </div>
@@ -215,6 +215,73 @@
             </div>
         </form>
     </div>
+    <div id="fileSharing">
+        <form>
+            <div id="fhTitle">File Sharing</div>
+            <section id="fInput"></section>
+            <section id="f-eDet">
+                <div id="algOpt">
+                    <div id="gnil">
+                        <span>Number of layers of Encryption: </span>
+                        <input type="number" min="1" max="7" value="1" id="nLayers" required>
+                    </div>
+                    <div id="cLayers">
+                        <div class="layInfo">
+                            <div class="lNo">
+                                <span>1)</span>
+                            </div>
+                            <select class="inp">
+                                <option>AES 128</option>
+                                <option>AES 256</option>
+                                <option>AES GCM</option>
+                                <option>ARC 4</option>
+                                <option>Blow fish</option>
+                                <option>Chacha 20 poly</option>
+                                <option>DES 3</option>
+                                <option>RC 4</option>
+                                <option>Salsa 20</option>
+                            </select>
+                            <div class="passPhrase">
+                                <input type="text" class="" maxlength="15" placeholder="Password">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="othOpt">
+                    <div id="expTitle">
+                        <span>Expiry Options</span>
+                    </div>
+                    <div id="expOpt">
+                        <div id="dExp">
+                            <div id="expD">
+                                <span>Expiry Date: </span>
+                                <input type="date" name="expiry_date" id="expiry_date">
+                            </div>
+                            <div id="expT">
+                                <span>Expiry Time: </span>
+                                <input type="time" name="expiry_time" id="expiry_time">
+                            </div>
+                            <div id="oExpChk">
+                                <span>Limit Number of Views: </span>
+                                <input type="checkbox" id="enableMaxViews">
+                            </div>
+                        </div>
+                        <div id="oExp">
+                            <div id="getViews">
+                                <span>Maximum Number of views: </span>
+                                <input type="number" name="max_views" id="max_views" min="1" max="99">
+                            </div>
+                        </div>
+                    </div>
+                    <div id="fButtons">
+                        <button id="cButton" class="c" data-dialog="fileSharing">Cancel</button>
+                        <button id="sButton" type="submit" class="i" data-dialog="fileSharing" data-p="shareFile" data-i='["fileInput", "nLayers", "expiry_date", "expiry_time", "enableMaxViews", "max_views"]'>Share</button>
+                    </div>
+                </div>
+            </section>
+        </form>
+		
+	</div>
     <template id="profile">
         <div>
             <div class="profPic">
@@ -229,6 +296,27 @@
     <template id="message">
         <div>
             <span></span>
+        </div>
+    </template>
+    <template id="encLayers">
+        <div class="layInfo">
+            <div class="lNo">
+                <span>1)</span>
+            </div>
+            <select class="inp">
+                <option>AES 128</option>
+                <option>AES 256</option>
+                <option>AES GCM</option>
+                <option>ARC 4</option>
+                <option>Blow fish</option>
+                <option>Chacha 20 poly</option>
+                <option>DES 3</option>
+                <option>RC 4</option>
+                <option>Salsa 20</option>
+            </select>
+            <div class="passPhrase">
+                <input type="text" class="" maxlength="15" placeholder="Password">
+            </div>
         </div>
     </template>
     <script src="app.js"></script>
