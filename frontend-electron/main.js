@@ -34,7 +34,7 @@ function createLoginWindow() {
       contextIsolation: false
     }
   });
-  loginWindow.loadFile('login.html');
+  loginWindow.loadFile('./login/login.html');
 }
 
 function createMainWindow() {
@@ -47,7 +47,7 @@ function createMainWindow() {
     }
   });
   resetInactivityTimeout();
-  mainWindow.loadFile('app.html');
+  mainWindow.loadFile('./main/app.html');
 }
 
 function createRenderWindow() {
@@ -59,7 +59,7 @@ function createRenderWindow() {
       contextIsolation: false,
     }
   });
-  renderWindow.loadFile('render.html')
+  renderWindow.loadFile('/render/render.html')
 }
 
 ipcMain.handle('signup', async (event, credentials) => {
