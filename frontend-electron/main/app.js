@@ -1,19 +1,18 @@
 const { ipcRenderer } = require('electron');
-    
+const axios = require('axios');
+
 const BASE_URL = 'http://localhost:3000';
 
 class fileSharing {
     constructor(data) {
-        this.uploadSec = F.G.id('upload-section');
-        this.uploadBtn = F.G.id("upload-btn")
-        this.receiveBtn = F.G.id("receive-btn")
-        this.upload = this.upload.bind(this)
-        this.receive = this.receive.bind(this)
-        this.oRender = this.oRender.bind(this)
-        this.user = data.session
-        F.l("click", this.uploadBtn, this.upload)
-        F.l("click", this.receiveBtn, this.receive)
-        F.l("click", F.G.id("logout-btn"), this.logout)
+        // this.uploadSec = F.G.id('upload-section');
+        // this.uploadBtn = F.G.id("upload-btn")
+        // this.receiveBtn = F.G.id("receive-btn")
+        F.BM(this, ["upload", "receive", "oRender", "getToken"])
+        // this.user = data.session
+        // F.l("click", this.uploadBtn, this.upload)
+        // F.l("click", this.receiveBtn, this.receive)
+        // F.l("click", F.G.id("logout-btn"), this.logout)
     }
 
     async upload(e) {
@@ -106,13 +105,116 @@ class fileSharing {
         F.G.id("file-upload").value = ""
         ipcRenderer.invoke('logout');
     }
+
+    async getToken() {
+        var t = await ipcRenderer.invoke('isAuthorized')
+        return t
+    }
+}
+
+class chat {
+    constructor(d) {
+        this.profS = F.G.id("profS"),
+        this.aProfChat = F.G.id("sChat"),
+        this.profTemp = F.G.id("profile").content.firstElementChild.cloneNode(true),
+        this.msgTemp = F.G.id("message").content.firstElementChild.cloneNode(true)
+        this.fSys = new fileSharing
+        this.user = d.session
+        F.BM(this, ["handleInputs", "handleOpts", "addChat", "closeDialog", "openDialog"])
+        F.l('click', F.G.id("oOpt"), this.handleOpts)
+        F.G.class('i').forEach(e => {
+            F.l('click', e, this.handleInputs)
+        })
+        F.G.class('d').forEach(e => {
+            F.l('click', e, this.openDialog)
+        })
+        F.G.class('c').forEach(e => {
+            F.l('click', e, this.closeDialog)
+        })
+        console.log("new chat")
+    }
+
+    openDialog(e) {
+        console.log("open dialog", e)
+        e.preventDefault()
+        var dBoxId = e.target["dataset"].dbox,
+            dBox = F.G.id(dBoxId)
+        console.log(dBoxId)
+        dBox && F.hide(dBox, !0)
+    }
+
+    handleInputs(e) {
+        e.preventDefault()
+        console.log("handle input", e)
+        var aBtn = e.target,
+            dts = aBtn.dataset,
+            dBox = dts.dialog,
+            dFun = dts.p,
+            dInp = JSON.parse(dts.i)
+        let inputs = {}
+        if (!F.Is.arr(dInp))
+            return
+        dInp.forEach(i => {
+            var iField = F.G.id(i),
+                dName = iField["dataset"].name
+            inputs[dName] = iField.value
+        })
+        this[dFun](inputs, dBox)
+    }
+
+    async addChat(i, d) {
+        var uEmail = i.userEmail,
+            token = await this.fSys.getToken(),
+            res = await axios.post(`${BASE_URL}/search`, {
+                collection: 'Users',
+                query: { email: uEmail },
+                method: 'findOne'
+              }, {
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                }
+            }),
+            user = res.data,
+            dBox = F.G.id(d)
+        console.log(user)
+        if (!user.success) {
+            console.log('not found')
+            alert("User not found.")
+            F.hide(dBox)
+            return
+        }
+        
+        user = user.result
+        var temp = this.profTemp.cloneNode(true),
+            nSpan = F.Cr('span')
+            console.log(temp)
+        var nCon = F.G.class('profName', temp)[0]
+        
+        nSpan.innerHTML = user.name
+        nCon.appendChild(nSpan)
+        F.G.id('profS').appendChild(temp)
+        F.hide(dBox)
+    }
+
+    closeDialog(e) {
+        e.preventDefault()
+        var element = e.target,
+            dBoxVar = element["dataset"].dialog,
+            dBox = F.G.id(dBoxVar)
+        F.hide(dBox)
+    }
+
+    handleOpts(e) {
+
+    }
 }
 
 new class {
     constructor () {
         this.auth = this.auth.bind(this)
         this.startInTimer = this.startInTimer.bind(this)
-        // this.auth()
+        this.auth()
     }
 
     async auth() {
@@ -122,8 +224,7 @@ new class {
         } else {
             this.startInTimer()
             ipcRenderer.on('user-logged-in', (event, data) => {
-                console.log('User logged in:', data);
-                new fileSharing(data)
+                new chat(data)
             });
         }
     }

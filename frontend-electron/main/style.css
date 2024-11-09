@@ -76,27 +76,27 @@
     cursor: pointer;
 }
 
-#profPic {
+.profPic {
     display: flex;
 }
 
-#profPic>div {
+.profPic>div {
     width: 45px;
     height: 45px;
 }
 
-#profPic img, #aProfPic img {
+.profPic img, #aProfPic img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     border-radius: 50%;
 }
 
-#profName {
+.profName {
     border-bottom: solid #6c6c6c 0.5px;
 }
 
-#profPic, #profName, #tChat>* {
+.profPic, .profName, #tChat>* {
     justify-content: center;
     align-items: center;
     align-content: center;
@@ -160,7 +160,7 @@
     -moz-background-size: cover;
     -o-background-size: cover;
     background-size: cover;
-    filter: brightness(55%);
+    filter: brightness(40%);
     z-index: 0; 
     pointer-events: none;
 }
@@ -197,7 +197,7 @@
     height: 100%;
 }
 
-#tInput input {
+#tInput input, #addChat input {
     background-color: #3B5B5B;
     color: white;
     width: 100%;
@@ -208,7 +208,7 @@
     transition: border 200ms ease, background-color 200ms ease;
 }
 
-#tInput input:focus {
+#tInput input:focus, #addChat input:focus {
     border: 1px solid #0077b6; 
     background-color: #2E4A4A; 
     transition: border 200ms ease, background-color 200ms ease;
@@ -258,3 +258,38 @@
     background-color: #415a77;
 }
 
+#addChat {
+    display: none;
+    pointer-events: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #132034;
+    color: white;
+    padding: 20px 25px;
+    box-sizing: border-box;
+    border-radius: 17px;
+}
+
+#addChat form, #addChat form div {
+    width: 100%;
+}
+
+#addChat form>div:last-child {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 16px;
+}
+
+button {
+    box-sizing: border-box;
+    padding: 4px 5px;
+    border-radius: 17px;
+}
+
+#addChat button {
+    background-color: #0077b6;
+    border: solid 1px white;
+}

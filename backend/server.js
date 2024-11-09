@@ -178,7 +178,7 @@ app.post('/login', async (req, res) => {
   }
 
   if (!user.success || !pass) {
-    return res.json({ success: false,msg: 'Invalid credentials.' });
+    return res.json({ success: false, msg: 'Invalid credentials.' });
   }
 
   var s = await db.newSession(email);
@@ -325,6 +325,12 @@ app.post('/download/:filename', authenticateJWT, async (req, res) => {
     res.json({ success: false, msg: 'Error accessing file' });
   }
 });
+
+app.post('/search', authenticateJWT, async (req, res) => {
+  var { collection, query, method } = req.body,
+    result = await db.search(collection, query, method)
+    return res.json(result)
+})
 
 // const deleteExpiredFiles = async () => {
 //   const now = new Date();

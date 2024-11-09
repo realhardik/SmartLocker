@@ -29,6 +29,7 @@
 		html, body {
 			overscroll-behavior: none;
 			overflow: hidden;
+            font-family: Roboto;
 		}
 
 		body, html, img, picture, svg, video {
@@ -74,8 +75,49 @@
 		span {
             display: block;
 			overflow: hidden;
+            pointer-events: none;
 		}
 	</style>
+    <script>
+        window.F = {
+            g: (t, r, e) => {
+                return (t || document)["getElement" + r](e)
+            },
+		
+            G: {
+                id: (t, r) => F.g(r, "ById", t),
+                class: (t, r) => Array.from(F.g(r, "sByClassName", t)),
+                tag: (t, r) => F.g(r, "sByTagName", t),
+                query: (t, r, a) => (r || document)["querySelector" + (a ? "All" : "")](t)
+            },
+
+            l: (event, element, callBackfn, fg) => {
+                var f = fg ? "remove" : "add"
+                element[f + "EventListener"](event, callBackfn)
+                console.log("added")
+            },
+
+            BM: (r, e) => {
+                var s = e.length;
+                for (let t = 0; t < s; t++)
+                    r[e[t]] = r[e[t]].bind(r)
+            },
+
+            hide: (e, t) => {
+                e.style.pointerEvents = t ? "all" : "none"
+                e.style.display = t ? "block" : "none"
+            },
+
+            Is: {
+                str: t=> "string" == typeof t,
+                obj: t=> t === Object(t),
+                arr: t=> t.constructor === Array,
+                def: t=> void 0 !== t,
+                und: t=> void 0 === t
+            },
+            Cr: (e) => document.createElement(e)
+        }
+    </script>
 </head>
 <body>
     <main id="app">
@@ -84,7 +126,7 @@
                 <div id="title">
                     <h1>Smart Locker</h1>
                 </div>
-                <div id="addProf">
+                <div id="addProf" class="d" data-dbox="addChat">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#fff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44771 13 8V11H16C16.5523 11 17 11.4477 17 12C17 12.5523 16.5523 13 16 13H13V16C13 16.5523 12.5523 17 12 17C11.4477 17 11 16.5523 11 16V13H8C7.44772 13 7 12.5523 7 12C7 11.4477 7.44771 11 8 11H11V8Z" fill="#fff"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M23 4C23 2.34315 21.6569 1 20 1H4C2.34315 1 1 2.34315 1 4V20C1 21.6569 2.34315 23 4 23H20C21.6569 23 23 21.6569 23 20V4ZM21 4C21 3.44772 20.5523 3 20 3H4C3.44772 3 3 3.44772 3 4V20C3 20.5523 3.44772 21 4 21H20C20.5523 21 21 20.5523 21 20V4Z" fill="#fff"></path> </g></svg>
                 </div>
                 <div id="oOpt">
@@ -93,22 +135,22 @@
             </div>
             <div id="profS">
                 <div>
-                    <div id="profPic">
+                    <div class="profPic">
                         <div>
                             <img src="../static/profiles/profile1.jpg" alt="">
                         </div>
                     </div>
-                    <div id="profName">
+                    <div class="profName">
                         <span>John Locke</span>
                     </div>
                 </div>
                 <div>
-                    <div id="profPic">
+                    <div class="profPic">
                         <div>
                             <img src="../static/profiles/profile1.jpg" alt="">
                         </div>
                     </div>
-                    <div id="profName">
+                    <div class="profName">
                         <span>Jack Shephard</span>
                     </div>
                 </div>
@@ -162,6 +204,33 @@
             </div>
         </section>
     </main>
-    <script src="script.js"></script>
+    <div id="addChat">
+        <form>
+            <div>
+                <input type="text" min="5" max="50" id="newChatId" placeholder="Enter email of the user." data-name="userEmail" required>
+            </div>
+            <div>
+                <button data-dialog="addChat" class="c">Cancel</button>
+                <button id="addUserBtn" type="submit" class="i" data-dialog="addChat" data-p="addChat" data-i='["newChatId"]'>Add</button>
+            </div>
+        </form>
+    </div>
+    <template id="profile">
+        <div>
+            <div class="profPic">
+                <div>
+                    <img src="../static/profiles/profile1.jpg" alt="">
+                </div>
+            </div>
+            <div class="profName">
+            </div>
+        </div>
+    </template>
+    <template id="message">
+        <div>
+            <span></span>
+        </div>
+    </template>
+    <script src="app.js"></script>
 </body>
 </html>
