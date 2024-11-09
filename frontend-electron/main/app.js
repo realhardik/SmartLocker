@@ -33,7 +33,6 @@ class fileSharing {
             return;
         }
         
-        console.log(to)
         try {
             const response = await fetch(`${BASE_URL}/upload`, {
                 method: 'POST',
@@ -113,7 +112,7 @@ new class {
     constructor () {
         this.auth = this.auth.bind(this)
         this.startInTimer = this.startInTimer.bind(this)
-        this.auth()
+        // this.auth()
     }
 
     async auth() {

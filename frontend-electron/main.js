@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const axios = require('axios');
 const keytar = require('keytar');
 
-const INACTIVITY_LIMIT = 1 * 60 * 1e3;
+const INACTIVITY_LIMIT = 10 * 60 * 1e3;
 let mainWindow, loginWindow, renderWindow, inactivityTimeout;
 let apiBaseUrl = 'http://localhost:3000';
 
@@ -29,6 +29,8 @@ function createLoginWindow() {
   loginWindow = new BrowserWindow({
     width: 1200,
     height: 850,
+    minWidth: 565,          
+    minHeight: 500,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
@@ -41,6 +43,8 @@ function createMainWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 850,
+    minWidth: 618,          
+    minHeight: 500,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -59,7 +63,7 @@ function createRenderWindow() {
       contextIsolation: false,
     }
   });
-  renderWindow.loadFile('/render/render.html')
+  renderWindow.loadFile('./render/render.html')
 }
 
 ipcMain.handle('signup', async (event, credentials) => {
