@@ -298,8 +298,8 @@ button {
 /* file sharing */
 
 #fileSharing {
-    display: none;
-    pointer-events: none;
+    /* display: none;
+    pointer-events: none; */
 	width: 65vw;
 	background: #161b22;
     color: white;
@@ -343,17 +343,17 @@ button {
 	box-sizing: border-box;
 	width: 100%;
 	border-top: solid 1px #565656;
+    overflow: scroll;
+    align-items: start;
 }
 
 #algOpt, #othOpt {
     position: relative;
 	padding: 17px 15px;
-	box-sizing: border-box; 
-	overflow: hidden;
 }
 
-#othOpt {
-    height: 300px;
+#fInput {
+    padding: 10px 15px;
 }
 
 #gnil {
@@ -399,6 +399,11 @@ button {
 	overflow: hidden;
 	flex-wrap: wrap;
 	margin-bottom: 12px;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    position: relative;
+    gap: 10px;
 } 
 
 .lNo {
@@ -433,8 +438,7 @@ select.inp {
 	font: inherit;
 	line-height: 1.5em;
 	padding: 0.3em 3em 0.3em 0.6em;
-	margin: 0;      
-	margin-right: 10px;
+	margin: 0;
 	-webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
 	box-sizing: border-box;
@@ -473,7 +477,7 @@ select:-moz-focusring {
 }
 
 #expOpt {
-	padding: 10px 0;
+	padding-top: 10px;
 	/* font-size: 17px; */
 }
 
@@ -513,13 +517,14 @@ select:-moz-focusring {
 }
 
 #fButtons {
-	position: absolute;
-    right: 15px;
-	bottom: 17px;
+	/* position: absolute;*/
+    padding-right: 15px;
+	padding-bottom: 17px; 
 	width: 100%;
 	display: flex;
 	flex-direction: row;
 	justify-content: flex-end;
+    box-sizing: border-box;
 }
 
 #fileSharing button {
@@ -537,14 +542,58 @@ select:-moz-focusring {
     pointer-events: none;
 }
 
-@media (max-width: 650px)  {
-	#cLayers {
-		font-size: 13px;
-	}
+#fInput {
+    display: flex;
+    flex-direction: column;
+}
+
+#fInput>*, #fUplArea>* {
+    width: 100%;
+}
+
+#fInput>div:first-child  {
+    flex-grow: 1;
+    display: flex;
+}
+
+#bUpl label {
+    height: 100%;
+    cursor: pointer;
+    text-transform: uppercase;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+}
+
+#bUpl label * {
+    pointer-events: none;
+}
+
+#bUpl label div {
+    width: 60px;
+    height: 60px;
+}
+
+#bUpl input {
+    display: none;
+}
+
+@media (max-width: 923px)  {
+
+    #cLayers {
+        height: 120px;
+    }
 
 	#gnil {
 		justify-content: center;
 	}
+
+    #algOpt, #othOpt, #fInput {
+        padding: 12px 15px;
+    }
 
 	.layInfo {
 		justify-content: center;
@@ -555,4 +604,10 @@ select:-moz-focusring {
 	.passPhrase input {
 		width: 100px;
 	}
+
+    @media (max-width: 616px) {
+        #cLayers {
+            font-size: 13px;
+        }
+    }
 }

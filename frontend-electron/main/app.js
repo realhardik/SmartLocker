@@ -3,35 +3,49 @@ const axios = require('axios');
 
 const BASE_URL = 'http://localhost:3000';
 
+F.getToken = async () => {
+    var t = await ipcRenderer.invoke('isAuthorized')
+    return t
+}
+
 class fileSharing {
-    constructor(data) {
+    constructor() {
         // this.uploadSec = F.G.id('upload-section');
         // this.uploadBtn = F.G.id("upload-btn")
         // this.receiveBtn = F.G.id("receive-btn")
-        F.BM(this, ["upload", "receive", "oRender", "getToken"])
-        // this.user = data.session
+        F.BM(this, ["upload", "receive", "oRender", "handleUpload", "shareFile"])
+        this.dropArea = F.G.id('dropArea'),
+        this.fInput = F.G.id('fileInput')
         // F.l("click", this.uploadBtn, this.upload)
         // F.l("click", this.receiveBtn, this.receive)
         // F.l("click", F.G.id("logout-btn"), this.logout)
+        var events = ['dragenter', 'dragover', 'dragleave', 'drop']
+        events.forEach(e => {
+            F.l(e, this.dropArea, this.handleUpload)
+        })
+        F.l('change', this.fInput, this.handleUpload)
     }
 
-    async upload(e) {
+    handleUpload(e) {
         e.preventDefault()
-        const formData = new FormData();
-        var from = this.user.email,
-            to = F.G.id("receivers").value.split(",").map(email => ({ email: email.trim() })),
-            file = F.G.id("file-upload").files[0],
-            token = this.user.token
-        if (file && file.type === "application/pdf" && file.name.toLowerCase().endsWith(".pdf")) {
-            formData.append('from', from);
-            formData.append('to', JSON.stringify(to));
-            formData.append('file', file);
-        } else {
-            alert("Please upload a PDF file.");
-            F.G.id("file-upload").value = ""
+        e.stopPropagation()
+        if (e.type !== 'drop' && e.type !== 'change')
+            return
+        const files = e.type === 'drop' ? e.dataTransfer.files : e.target.files;
+
+        if (files.length !== 1) {
+            console.log('Upload a single file.');
             return;
         }
-        
+
+        const file = files[0];
+        if (file.type !== 'application/pdf') {
+            console.log('Please upload a PDF file.');
+            return;
+        }
+    }
+
+    async upload() {
         try {
             const response = await fetch(`${BASE_URL}/upload`, {
                 method: 'POST',
@@ -53,6 +67,24 @@ class fileSharing {
         } catch (error) {
             console.error('Error:', error);
             alert('An error occurred while uploading the file.');
+        }
+    }
+
+    async shareFile(e) {
+        e.preventDefault()
+        const formData = new FormData();
+        var from = this.user.email,
+            to = F.G.id("receivers").value.split(",").map(email => ({ email: email.trim() })),
+            file = F.G.id("file-upload").files[0],
+            token = this.user.token
+        if (file && file.type === "application/pdf" && file.name.toLowerCase().endsWith(".pdf")) {
+            formData.append('from', from);
+            formData.append('to', JSON.stringify(to));
+            formData.append('file', file);
+        } else {
+            alert("Please upload a PDF file.");
+            F.G.id("file-upload").value = ""
+            return;
         }
     }
 
@@ -98,40 +130,20 @@ class fileSharing {
         var f = e.target
         ipcRenderer.invoke('render', f["fCon"])
     }
-
-    async logout(e) {
-        F.G.id('file-list').innerHTML = ""
-        F.G.id("receivers").value = ""
-        F.G.id("file-upload").value = ""
-        ipcRenderer.invoke('logout');
-    }
-
-    async getToken() {
-        var t = await ipcRenderer.invoke('isAuthorized')
-        return t
-    }
 }
 
-class chat {
-    constructor(d) {
-        this.profS = F.G.id("profS"),
-        this.aProfChat = F.G.id("sChat"),
-        this.profTemp = F.G.id("profile").content.firstElementChild.cloneNode(true),
-        this.msgTemp = F.G.id("message").content.firstElementChild.cloneNode(true)
-        this.fSys = new fileSharing
-        this.user = d.session
-        F.BM(this, ["handleInputs", "handleOpts", "addChat", "closeDialog", "openDialog"])
-        F.l('click', F.G.id("oOpt"), this.handleOpts)
-        F.G.class('i').forEach(e => {
-            F.l('click', e, this.handleInputs)
-        })
+class gen {
+    constructor() {
+        F.BM(this, ["closeDialog", "openDialog", "handleInputs", "logout"])
         F.G.class('d').forEach(e => {
             F.l('click', e, this.openDialog)
         })
         F.G.class('c').forEach(e => {
             F.l('click', e, this.closeDialog)
         })
-        console.log("new chat")
+        F.G.class('i').forEach(e => {
+            F.l('click', e, this.handleInputs)
+        })
     }
 
     openDialog(e) {
@@ -140,6 +152,14 @@ class chat {
         var dBoxId = e.target["dataset"].dbox,
             dBox = F.G.id(dBoxId)
         dBox && F.hide(dBox, !0)
+    }
+
+    closeDialog(e) {
+        e.preventDefault()
+        var element = e.target,
+            dBoxVar = element["dataset"].dialog,
+            dBox = F.G.id(dBoxVar)
+        F.hide(dBox)
     }
 
     handleInputs(e) {
@@ -159,12 +179,34 @@ class chat {
             inputs[dName] = iField.value
             iField.value = ""
         })
-        this[dFun](inputs, dBox)
+        // this[dFun](inputs, dBox)
+    }
+
+    async logout(e) {
+        F.G.id('file-list').innerHTML = ""
+        F.G.id("receivers").value = ""
+        F.G.id("file-upload").value = ""
+        ipcRenderer.invoke('logout');
+    }
+
+}
+
+class chat {
+    constructor(d) {
+        this.profS = F.G.id("profS"),
+        this.aProfChat = F.G.id("sChat"),
+        this.profTemp = F.G.id("profile").content.firstElementChild.cloneNode(true),
+        this.msgTemp = F.G.id("message").content.firstElementChild.cloneNode(true)
+        this.fSys = new fileSharing
+        this.user = d.session
+        F.BM(this, ["addChat"])
+        F.l('click', F.G.id("oOpt"), this.handleOpts)
+        console.log("new chat")
     }
 
     async addChat(i, d) {
         var uEmail = i.userEmail,
-            token = await this.fSys.getToken(),
+            token = await F.getToken(),
             res = await axios.post(`${BASE_URL}/search`, {
                 collection: 'Users',
                 query: { email: uEmail },
@@ -177,7 +219,7 @@ class chat {
             }),
             user = res.data,
             dBox = F.G.id(d)
-        console.log(user)
+
         if (!user.success) {
             console.log('not found')
             alert("User not found.")
@@ -197,16 +239,8 @@ class chat {
         F.hide(dBox)
     }
 
-    closeDialog(e) {
-        e.preventDefault()
-        var element = e.target,
-            dBoxVar = element["dataset"].dialog,
-            dBox = F.G.id(dBoxVar)
-        F.hide(dBox)
-    }
-
-    handleOpts(e) {
-
+    openChat(e) {
+        
     }
 }
 

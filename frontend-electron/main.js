@@ -29,7 +29,7 @@ function createLoginWindow() {
   loginWindow = new BrowserWindow({
     width: 1200,
     height: 850,
-    minWidth: 565,          
+    minWidth: 600,
     minHeight: 500,
     webPreferences: {
       nodeIntegration: true,
@@ -41,10 +41,10 @@ function createLoginWindow() {
 
 function createMainWindow() {
   mainWindow = new BrowserWindow({
-    width: 1200,
+    width: 1340,
     height: 850,
-    minWidth: 618,          
-    minHeight: 500,
+    minWidth: 770,
+    minHeight: 660,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
