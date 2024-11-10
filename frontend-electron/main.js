@@ -113,8 +113,30 @@ ipcMain.handle('logout', async (event) => {
 });
 
 ipcMain.handle('isAuthorized', async () => {
-  const token = await keytar.getPassword('ElectronApp', 'auth-token');
-  return token;
+  try {
+    const token = await keytar.getPassword('ElectronApp', 'auth-token');
+    
+    const response = await axios.post(
+      `${apiBaseUrl}/check`,
+      {},
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
+
+    if (response.status === 200) {
+      console.log("Token is authorized");
+      return token;
+    }
+    console.log("Session Expired. Please login again.");
+    mainWindow && mainWindow.close();
+  } catch (error) {
+    console.log("Session Expired. Please login again.");
+    mainWindow && mainWindow.close();
+  }
+    
 });
 
 ipcMain.on('create-login-window', () => {

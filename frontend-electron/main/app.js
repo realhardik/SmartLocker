@@ -133,8 +133,10 @@ class fileSharing {
 }
 
 class gen {
-    constructor() {
+    constructor(data) {
         F.BM(this, ["closeDialog", "openDialog", "handleInputs", "logout"])
+        this.chat = new chat
+        this.fileSharing = new fileSharing
         F.G.class('d').forEach(e => {
             F.l('click', e, this.openDialog)
         })
@@ -168,7 +170,7 @@ class gen {
         var aBtn = e.target,
             dts = aBtn.dataset,
             dBox = dts.dialog,
-            dFun = dts.p,
+            dFun = dts.p.split(";"),
             dInp = JSON.parse(dts.i)
         let inputs = {}
         if (!F.Is.arr(dInp))
@@ -179,7 +181,7 @@ class gen {
             inputs[dName] = iField.value
             iField.value = ""
         })
-        // this[dFun](inputs, dBox)
+        this[dFun[1]][dFun[0]](inputs, dBox)
     }
 
     async logout(e) {
@@ -192,13 +194,11 @@ class gen {
 }
 
 class chat {
-    constructor(d) {
+    constructor() {
         this.profS = F.G.id("profS"),
         this.aProfChat = F.G.id("sChat"),
         this.profTemp = F.G.id("profile").content.firstElementChild.cloneNode(true),
         this.msgTemp = F.G.id("message").content.firstElementChild.cloneNode(true)
-        this.fSys = new fileSharing
-        this.user = d.session
         F.BM(this, ["addChat"])
         F.l('click', F.G.id("oOpt"), this.handleOpts)
         console.log("new chat")
@@ -258,7 +258,7 @@ new class {
         } else {
             this.startInTimer()
             ipcRenderer.on('user-logged-in', (event, data) => {
-                new chat(data)
+                new gen(data)
             });
         }
     }

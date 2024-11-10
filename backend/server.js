@@ -253,6 +253,13 @@ app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => 
   } 
 });
 
+app.post('/check', authenticateJWT, (req, res) => {
+  res.json({
+      success: true,
+      message: "authorized"
+  });
+});
+
 async function generateFileHash(filePath) {
   return new Promise((resolve, reject) => {
       const hash = crypto.createHash('sha256');
