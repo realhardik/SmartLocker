@@ -115,7 +115,23 @@
                 def: t=> void 0 !== t,
                 und: t=> void 0 === t
             },
-            Cr: (e) => document.createElement(e)
+            Cr: (e) => document.createElement(e),
+            class: (e, v, t) => {
+                try {
+                    e.forEach(element => {
+                        t ? element.classList.remove(...v) : element.classList.add(...v)
+                    });
+                } catch (err) {
+                    
+                } 
+            },
+            debounce(func, delay) {
+                let timer;
+                return function (...args) {
+                    clearTimeout(timer);
+                    timer = setTimeout(() => func.apply(this, args), delay);
+                };
+            }
         }
     </script>
 </head>
@@ -202,7 +218,6 @@
                     </div>
                 </div>
             </div>
-            
         </section>
     </main>
     <div id="addChat">
@@ -211,7 +226,7 @@
                 <input type="text" min="5" max="50" id="newChatId" placeholder="Enter email of the user." data-name="userEmail" required>
             </div>
             <div>
-                <button data-dialog="addChat" class="c">Cancel</button>
+                <button data-dialog="addChat" data-i='["newChatId"]' class="c">Cancel</button>
                 <button id="addUserBtn" type="submit" class="i" data-dialog="addChat" data-p="addChat;chat" data-i='["newChatId"]'>Add</button>
             </div>
         </form>
@@ -248,108 +263,13 @@
                     </div>
                 </div>
             </section>
-            <section id="f-eDet">
+            <section id="f-eDet" class="disable">
                 <div id="algOpt">
                     <div id="gnil">
                         <span>Number of layers of Encryption: </span>
                         <input type="number" min="1" max="7" value="1" id="nLayers" required>
                     </div>
                     <div id="cLayers">
-                        <div class="layInfo">
-                            <div class="lNo">
-                                <span>1)</span>
-                            </div>
-                            <select class="inp">
-                                <option>AES 128</option>
-                                <option>AES 256</option>
-                                <option>AES GCM</option>
-                                <option>ARC 4</option>
-                                <option>Blow fish</option>
-                                <option>Chacha 20 poly</option>
-                                <option>DES 3</option>
-                                <option>RC 4</option>
-                                <option>Salsa 20</option>
-                            </select>
-                            <div class="passPhrase">
-                                <input type="text" class="" maxlength="15" placeholder="Password">
-                            </div>
-                        </div>
-                        <div class="layInfo">
-                            <div class="lNo">
-                                <span>1)</span>
-                            </div>
-                            <select class="inp">
-                                <option>AES 128</option>
-                                <option>AES 256</option>
-                                <option>AES GCM</option>
-                                <option>ARC 4</option>
-                                <option>Blow fish</option>
-                                <option>Chacha 20 poly</option>
-                                <option>DES 3</option>
-                                <option>RC 4</option>
-                                <option>Salsa 20</option>
-                            </select>
-                            <div class="passPhrase">
-                                <input type="text" class="" maxlength="15" placeholder="Password">
-                            </div>
-                        </div>
-                        <div class="layInfo">
-                            <div class="lNo">
-                                <span>1)</span>
-                            </div>
-                            <select class="inp">
-                                <option>AES 128</option>
-                                <option>AES 256</option>
-                                <option>AES GCM</option>
-                                <option>ARC 4</option>
-                                <option>Blow fish</option>
-                                <option>Chacha 20 poly</option>
-                                <option>DES 3</option>
-                                <option>RC 4</option>
-                                <option>Salsa 20</option>
-                            </select>
-                            <div class="passPhrase">
-                                <input type="text" class="" maxlength="15" placeholder="Password">
-                            </div>
-                        </div>
-                        <div class="layInfo">
-                            <div class="lNo">
-                                <span>1)</span>
-                            </div>
-                            <select class="inp">
-                                <option>AES 128</option>
-                                <option>AES 256</option>
-                                <option>AES GCM</option>
-                                <option>ARC 4</option>
-                                <option>Blow fish</option>
-                                <option>Chacha 20 poly</option>
-                                <option>DES 3</option>
-                                <option>RC 4</option>
-                                <option>Salsa 20</option>
-                            </select>
-                            <div class="passPhrase">
-                                <input type="text" class="" maxlength="15" placeholder="Password">
-                            </div>
-                        </div>
-                        <div class="layInfo">
-                            <div class="lNo">
-                                <span>1)</span>
-                            </div>
-                            <select class="inp">
-                                <option>AES 128</option>
-                                <option>AES 256</option>
-                                <option>AES GCM</option>
-                                <option>ARC 4</option>
-                                <option>Blow fish</option>
-                                <option>Chacha 20 poly</option>
-                                <option>DES 3</option>
-                                <option>RC 4</option>
-                                <option>Salsa 20</option>
-                            </select>
-                            <div class="passPhrase">
-                                <input type="text" class="" maxlength="15" placeholder="Password">
-                            </div>
-                        </div>
                         <div class="layInfo">
                             <div class="lNo">
                                 <span>1)</span>
@@ -400,8 +320,8 @@
                 </div>
             </section>
             <div id="fButtons">
-                <button id="cButton" class="c" data-dialog="fileSharing">Cancel</button>
-                <button id="sButton" type="submit" class="i" data-dialog="fileSharing" data-p="shareFile;fileSharing" data-i='["fileInput", "nLayers", "expiry_date", "expiry_time", "enableMaxViews", "max_views"]'>Share</button>
+                <button id="cButton" class="c" data-dialog="fileSharing" type="reset" data-i='["fileInput"]'>Cancel</button>
+                <button id="sButton" type="submit" class="i disable" data-dialog="fileSharing" data-p="shareFile;fileSharing" data-i='["fileInput", "nLayers", "expiry_date", "expiry_time", "enableMaxViews", "max_views"]'>Share</button>
             </div>
         </form>
 	</div>

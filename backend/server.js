@@ -110,14 +110,14 @@ const db = new class {
     }
   }
 
-  async newSession(email) {
+  async newSession(email, name) {
     try {
       var jTn = jwt.sign({ email }, JWT_SECRET, { expiresIn: '15m' }),
         session = await this["Session"].create({
                     email: email,
                     token: jTn
                   })
-      return { success: true, session: session };
+      return { success: true, session: { name: name, email: session.email, token: session.token } };
     } catch (err) {
       console.log("Error Creating Session: ", err)
       return { success: false }
@@ -170,19 +170,19 @@ app.post('/signup', async (req, res) => {
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   const user = await db.search('Users', { email: email }, 'findOne')
-  console.log(user)
   let pass;
 
-  if (user.success) {
-    pass = await bcrypt.compare(password, user.result.password)
-  }
-
-  if (!user.success || !pass) {
+  if (!user.success || !user.result || !user.result.password ) {
     return res.json({ success: false, msg: 'Invalid credentials.' });
   }
 
-  var s = await db.newSession(email);
-  console.log(s)
+  pass = await bcrypt.compare(password, user.result.password);
+  if (!pass) {
+    return res.json({ success: false, msg: 'Invalid credentials.' });
+  }
+
+  var s = await db.newSession(email, user.result.name);
+  
   if (s.success)
     return res.status(200).json(s);
   return res.json(s)
@@ -340,8 +340,8 @@ app.post('/search', authenticateJWT, async (req, res) => {
 })
 
 // const deleteExpiredFiles = async () => {
-//   const now = new Date();
-//   const expiredFiles = await File.find({ expiry_date: { $lt: now } });
+//   const now = moment().format('DD-MM-YYYY');
+//   const expiredFiles = await db.search('Files', { expiry_date: { $lt: now } })
 
 //   for (const file of expiredFiles) {
 //     if (fs.existsSync(file.file_path)) fs.unlinkSync(file.file_path);
@@ -350,7 +350,7 @@ app.post('/search', authenticateJWT, async (req, res) => {
 //   }
 // };
 
-// setInterval(deleteExpiredFiles, 60 * 60 * 1000);  // Check every 1 hour
+// setInterval(deleteExpiredFiles, 60 * 60 * 1000);  // every 1 hour
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

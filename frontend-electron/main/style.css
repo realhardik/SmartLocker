@@ -11,6 +11,7 @@
     flex-direction: row;
     flex-wrap: nowrap;
     z-index: 3;
+    transition: filter 200ms ease;
 }
 
 #app>section {
@@ -349,6 +350,7 @@ button {
 	border-top: solid 1px #565656;
     overflow: scroll;
     align-items: start;
+    transition: filter 200ms ease;
 }
 
 #algOpt, #othOpt {
@@ -389,7 +391,7 @@ button {
 #cLayers {
 	padding: 10px 0;
 	font-size: 15px;
-	max-height: 300px;
+	height: 200px;
 	overflow: scroll;
 }
 
@@ -536,6 +538,7 @@ select:-moz-focusring {
     border: thin solid #444c56;
     border-radius: 9px;
     padding: 8px 14px;
+    transition: filter 200ms ease;
 }
 
 #cButton {
@@ -572,7 +575,7 @@ select:-moz-focusring {
     align-content: center;
 }
 
-#bUpl label * {
+#bUpl label *, #fileRem * {
     pointer-events: none;
 }
 
@@ -623,6 +626,16 @@ select:-moz-focusring {
 #fileRem>span:first-child {
     width: 22px;
     height: 22px;
+}
+
+.disable {
+    filter: brightness(35%);
+    pointer-events: none;
+    transition: filter 200ms ease;
+}
+
+main.disable {
+    filter: brightness(80%);
 }
 
 @media (max-width: 923px)  {

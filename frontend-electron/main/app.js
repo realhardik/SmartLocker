@@ -11,7 +11,6 @@ F.getToken = async () => {
 ipcRenderer.on('rec-profile', (event, { email, name }) => {
     localStorage.setItem('email', email);
     localStorage.setItem('name', name);
-    console.log('saved')
 });
 
 
@@ -20,17 +19,25 @@ class fileSharing {
         // this.uploadSec = F.G.id('upload-section');
         // this.uploadBtn = F.G.id("upload-btn")
         // this.receiveBtn = F.G.id("receive-btn")
-        F.BM(this, ["upload", "receive", "oRender", "handleUpload", "shareFile"])
+        F.BM(this, ["upload", "receive", "oRender", "shareFile"])
         this.dropArea = F.G.id('dropArea'),
         this.fInput = F.G.id('fileInput')
-        // F.l("click", this.uploadBtn, this.upload)
-        // F.l("click", this.receiveBtn, this.receive)
-        // F.l("click", F.G.id("logout-btn"), this.logout)
+        this.lTemp = F.G.id('encLayers').content.firstElementChild.cloneNode(true)
+        this.cLayers = F.G.id('cLayers')
+        this.handleLayers = F.debounce(this.handleLayers.bind(this), 200);
         var events = ['dragenter', 'dragover', 'dragleave', 'drop']
         events.forEach(e => {
             F.l(e, this.dropArea, this.handleUpload)
         })
+        F.l('change', F.G.id('nLayers'), this.handleLayers)
         F.l('change', this.fInput, this.handleUpload)
+        F.l('click', F.G.id('fileRem'), () => {
+            this.fInput.value = ""
+            F.G.id('fileUplName').value = ""
+            F.hide(F.G.id('aUpl'))
+            F.hide(F.G.id('bUpl'), !0)
+            F.class([F.G.id('f-eDet'), F.G.id('sButton')], ['disable'])
+        })
     }
 
     handleUpload(e) {
@@ -57,7 +64,28 @@ class fileSharing {
             fNameIF = F.G.id('fileUplName')
         fNameIF.innerHTML = fName
         F.hide(bUpl)
+        F.hide(aUpl, !0, 'flex')
+        F.class([F.G.id('f-eDet'), F.G.id('sButton')], ['disable'], !0)
+    }
 
+    handleLayers(e) {
+        var t = parseInt(e.target.value, 10),
+        p = this.cLayers.children.length;
+        if (t === p) return;
+        if (t < p) {
+            while (this.cLayers.children.length > t) {
+                this.cLayers.lastChild.remove();
+            }
+        } else if (t > p) {
+            for (let i = p; i < t; i++) {
+                const temp = this.lTemp.cloneNode(true);
+                const span = temp.querySelector('.lNo span');
+                if (span) {
+                    span.innerText = `${i + 1})`;
+                }
+                this.cLayers.append(temp);
+            }
+        }
     }
 
     async upload() {
@@ -168,21 +196,29 @@ class gen {
         var dBoxId = e.target["dataset"].dbox,
             dBox = F.G.id(dBoxId)
         dBox && F.hide(dBox, !0)
+        F.class([F.G.id('app')], ["disable"])
     }
 
     closeDialog(e) {
-        e.preventDefault()
         var element = e.target,
-            dBoxVar = element["dataset"].dialog,
+            dts = element["dataset"],
+            dBoxVar = dts.dialog,
             dBox = F.G.id(dBoxVar)
+        if ('i' in dts) {
+            var ifA = JSON.parse(dts.i)
+            ifA.forEach(e => {
+                F.G.id(e).value = ""
+            })
+        }
         F.hide(dBox)
+        F.class([F.G.id('app')], ["disable"], !0)
     }
 
     handleInputs(e) {
         e.preventDefault()
         var aBtn = e.target,
             dts = aBtn.dataset,
-            dBox = dts.dialog,
+            dBox = F.G.id(dts.dialog),
             dFun = dts.p.split(";"),
             dInp = JSON.parse(dts.i)
         let inputs = {}
@@ -196,7 +232,7 @@ class gen {
                 field: iField
             }
         })
-        inputs.clear = () => this.clear(inputs)
+        inputs.clear = (a) => { a ? this.clear(a) : this.clear(inputs) }
         this[dFun[1]][dFun[0]](inputs, dBox)
     }
 
@@ -229,7 +265,7 @@ class chat {
         F.l('click', this.profS, this.openChat)
     }
 
-    async addChat(i, d) {
+    async addChat(i, dBox) {
         var uEmail = i.userEmail.value,
             token = await F.getToken(),
             res = await axios.post(`${BASE_URL}/search`, {
@@ -242,8 +278,7 @@ class chat {
                   'Content-Type': 'application/json'
                 }
             }),
-            user = res.data,
-            dBox = F.G.id(d)
+            user = res.data
 
         if (!user.success) {
             console.log('not found')
@@ -290,7 +325,6 @@ class chat {
     fetchMessages(c) {
         F.hide(F.G.id('sChat'), !0, 'flex')
     }
-
 }
 
 new class {
