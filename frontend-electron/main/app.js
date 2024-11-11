@@ -8,6 +8,13 @@ F.getToken = async () => {
     return t
 }
 
+ipcRenderer.on('rec-profile', (event, { email, name }) => {
+    localStorage.setItem('email', email);
+    localStorage.setItem('name', name);
+    console.log('saved')
+});
+
+
 class fileSharing {
     constructor() {
         // this.uploadSec = F.G.id('upload-section');
@@ -33,7 +40,7 @@ class fileSharing {
             return
         const files = e.type === 'drop' ? e.dataTransfer.files : e.target.files;
 
-        if (files.length !== 1) {
+        if (files.length > 1) {
             console.log('Upload a single file.');
             return;
         }
@@ -43,17 +50,24 @@ class fileSharing {
             console.log('Please upload a PDF file.');
             return;
         }
+
+        var bUpl = F.G.id('bUpl'),
+            aUpl = F.G.id('aUpl'),
+            fName = file.name,
+            fNameIF = F.G.id('fileUplName')
+        fNameIF.innerHTML = fName
+        F.hide(bUpl)
+
     }
 
     async upload() {
         try {
-            const response = await fetch(`${BASE_URL}/upload`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                body: formData
-            });
+            var token = await F.getToken(),
+                response = await axios.post(`${BASE_URL}/upload`, formData, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
 
             const data = await response.json();
             console.log(data)
@@ -148,7 +162,7 @@ class gen {
         })
     }
 
-    openDialog(e) {
+    async openDialog(e) {
         console.log("open dialog", e)
         e.preventDefault()
         var dBoxId = e.target["dataset"].dbox,
@@ -166,7 +180,6 @@ class gen {
 
     handleInputs(e) {
         e.preventDefault()
-        console.log("handle input", e)
         var aBtn = e.target,
             dts = aBtn.dataset,
             dBox = dts.dialog,
@@ -178,9 +191,12 @@ class gen {
         dInp.forEach(i => {
             var iField = F.G.id(i),
                 dName = iField["dataset"].name
-            inputs[dName] = iField.value
-            iField.value = ""
+            inputs[dName] = {
+                value: iField.value,
+                field: iField
+            }
         })
+        inputs.clear = () => this.clear(inputs)
         this[dFun[1]][dFun[0]](inputs, dBox)
     }
 
@@ -191,6 +207,14 @@ class gen {
         ipcRenderer.invoke('logout');
     }
 
+    clear(i) {
+        var entries = Object.entries(i)
+                        .filter(([key, value]) => F.Is.obj(value) &&  typeof value !== 'function')
+                        .map(([key, value]) => value);
+        for (var k=0; k<entries.length; k++) {
+            entries[k].field.value = ""
+        }
+    }
 }
 
 class chat {
@@ -199,13 +223,14 @@ class chat {
         this.aProfChat = F.G.id("sChat"),
         this.profTemp = F.G.id("profile").content.firstElementChild.cloneNode(true),
         this.msgTemp = F.G.id("message").content.firstElementChild.cloneNode(true)
-        F.BM(this, ["addChat"])
+        F.BM(this, ["addChat", "openChat", "fetchMessages"])
         F.l('click', F.G.id("oOpt"), this.handleOpts)
-        console.log("new chat")
+        this.profS = F.G.id('profS')
+        F.l('click', this.profS, this.openChat)
     }
 
     async addChat(i, d) {
-        var uEmail = i.userEmail,
+        var uEmail = i.userEmail.value,
             token = await F.getToken(),
             res = await axios.post(`${BASE_URL}/search`, {
                 collection: 'Users',
@@ -223,7 +248,6 @@ class chat {
         if (!user.success) {
             console.log('not found')
             alert("User not found.")
-            F.hide(dBox)
             return
         }
         
@@ -235,13 +259,38 @@ class chat {
         
         nSpan.innerHTML = user.name
         nCon.appendChild(nSpan)
+        i.clear()
         F.G.id('profS').appendChild(temp)
+        temp.con = {
+            userName: user.name,
+            userEmail: user.email
+        }
         F.hide(dBox)
     }
 
     openChat(e) {
-        
+        e.stopPropagation()
+        var c = e.target,
+            t = 'DIV' === c.tagName;
+        if (!t)
+            return
+        var profPic = F.G.class('profPic', c)[0],
+            profName = F.G.class('profName', c)[0]
+        if (!profPic || !profName) return;
+        var { userName } = c.con,
+            tProf = F.G.id('tChat'),
+            tPic = F.G.query('img', F.G.id('aProfPic')),
+            tName = F.G.query('span', F.G.id('aProfName'))
+        F.hide(F.G.id('sChat'))
+        tProf.con = c.con
+        tName.innerText = userName
+        this.fetchMessages(tProf.con)
     }
+
+    fetchMessages(c) {
+        F.hide(F.G.id('sChat'), !0, 'flex')
+    }
+
 }
 
 new class {
@@ -257,9 +306,8 @@ new class {
             ipcRenderer.send('create-login-window');
         } else {
             this.startInTimer()
-            ipcRenderer.on('user-logged-in', (event, data) => {
-                new gen(data)
-            });
+            ipcRenderer.send('profile');
+            new gen
         }
     }
 

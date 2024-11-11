@@ -77,6 +77,10 @@
     cursor: pointer;
 }
 
+#profS>div * {
+    pointer-events: none;
+}
+
 .profPic {
     display: flex;
 }
@@ -579,6 +583,46 @@ select:-moz-focusring {
 
 #bUpl input {
     display: none;
+}
+
+#aUpl, #aUpl>div, #fileRem {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+}
+
+#aUpl {
+    display: none;
+    flex-direction: row;
+    gap: 15px;
+}
+
+#aUpl>div {
+    height: 100%;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#aUpl>div:first-child {
+    width: 65px;
+}
+
+#aUpl>div:last-child>span {
+    width: 100%;
+    text-align: center;
+}
+
+#fileRem {
+    flex-direction: row;
+    font-size: 14px;
+    width: 100%;
+    cursor: pointer;
+}
+
+#fileRem>span:first-child {
+    width: 22px;
+    height: 22px;
 }
 
 @media (max-width: 923px)  {

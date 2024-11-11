@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, session } = require('electron');
 const axios = require('axios');
 const keytar = require('keytar');
 
@@ -88,11 +88,13 @@ ipcMain.handle('login', async (event, credentials) => {
       var token = data.session.token
       await keytar.setPassword('ElectronApp', 'auth-token', token);
       await alert("Login Successfull!")
+      ipcMain.on('profile', (event) => {
+        const email = data.session.email;
+        const name = data.session.name;
+        event.sender.send('rec-profile', { email, name });
+    });
       loginWindow.close();
       createMainWindow();
-      mainWindow.once('ready-to-show', () => {
-        mainWindow.webContents.send('user-logged-in', data);
-      });
     }
     return data
   } catch (error) {

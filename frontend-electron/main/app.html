@@ -103,9 +103,9 @@
                     r[e[t]] = r[e[t]].bind(r)
             },
 
-            hide: (e, t) => {
+            hide: (e, t, c) => {
                 e.style.pointerEvents = t ? "all" : "none"
-                e.style.display = t ? "block" : "none"
+                e.style.display = t ? (c || "block") : "none"
             },
 
             Is: {
@@ -230,14 +230,18 @@
                         </label>
                         <input type="file" id="fileInput" accept=".pdf" hidden/>
                     </div>
-                    <div id="aUpl" hidden>
+                    <div id="aUpl">
                         <div>
-                            <img src="" alt="">
+                            <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0,0,256,256">
+                                <g fill="#ffffff" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><g transform="scale(5.12,5.12)"><path d="M7,2v46h36v-33.40625l-0.28125,-0.3125l-12,-12l-0.3125,-0.28125zM9,4h20v12h12v30h-32zM31,5.4375l8.5625,8.5625h-8.5625z"></path></g></g>
+                            </svg>
                         </div>
                         <div>
                             <span id="fileUplName"></span>
                             <div id="fileRem">
-                                <img src="" alt="">
+                                <span>
+                                    <svg fill="#fff" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" stroke="#fff" stroke-width="0.00032"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M16 5C9.935 5 5 9.934 5 16c0 6.067 4.935 11 11 11s11-4.933 11-11c0-6.066-4.935-11-11-11zm0 2.75c1.777 0 3.427.569 4.775 1.53L9.279 20.778A8.214 8.214 0 0 1 7.75 16c0-4.549 3.701-8.25 8.25-8.25zm0 16.5a8.2 8.2 0 0 1-4.775-1.53l11.494-11.497A8.205 8.205 0 0 1 24.25 16c0 4.547-3.701 8.25-8.25 8.25z"></path></g></svg>
+                                </span>
                                 <span>Remove current file</span>
                             </div>
                         </div>
