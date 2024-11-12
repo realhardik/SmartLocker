@@ -118,9 +118,7 @@ ipcMain.handle('isAuthorized', async () => {
   try {
     const token = await keytar.getPassword('ElectronApp', 'auth-token');
     
-    const response = await axios.post(
-      `${apiBaseUrl}/check`,
-      {},
+    const response = await axios.post(`${apiBaseUrl}/check`, {},
       {
         headers: {
           'Authorization': `Bearer ${token}`

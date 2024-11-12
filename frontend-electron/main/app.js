@@ -6,6 +6,7 @@ const BASE_URL = 'http://localhost:3000';
 
 F.getToken = async () => {
     var t = await ipcRenderer.invoke('isAuthorized')
+    console.log("got token", t)
     return t
 }
 
@@ -107,11 +108,11 @@ class fileSharing {
     async upload(data, dBox) {
         try {
             const formData = new FormData(),
-                  token = F.getToken(),
-                  rLayers = JSON.parse(data.get('layers')),
+                  token = await F.getToken(),
+                  rLayers = data.layers,
                   layers = Object.values(rLayers).map(item => item.type),
                   pass = Object.values(rLayers).map(item => item.passPhrase)
-            console.log
+
             formData.append('file', this.file)
             formData.append('data', JSON.stringify({
                 layers: layers.length,
@@ -119,30 +120,36 @@ class fileSharing {
                 all_passphrases: pass,
                 filename: this.file?.name || this.file?.originalName
             }));
-            console.log(formData.get('data'))
-            var response = await axios.post('http://localhost:3000/encrypt', formData, {
+
+            var response = await axios.post(`${BASE_URL}/encrypt`, formData, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             })
             console.log(response)
-            
-            // var token = await F.getToken(),
-            //     response = await axios.post(`${BASE_URL}/upload`, formData, {
-            //         headers: {
-            //             'Authorization': `Bearer ${token}`
-            //         }
-            //     });
-
-            // var response2 = await response.json();
-            // console.log(response2)
-            // if (response.ok) {
-            //     alert(response2.msg);
-            //     dBox.close && dBox.close()
-            //     dBox.closeE && dBox.closeE()
-            // } else {
-            //     alert('Error: ' + response2.msg);
+            // if (!response.ok || !response.data.success) {
+            //     alert(response.data.message)
+            //     dBox.close()
+            //     return
             // }
+
+            data['filePath'] =  response.data.encryptedFilePath
+            console.log(data)
+            var response2 = await axios.post(`${BASE_URL}/upload`, data, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+            data = response2.data
+            console.log(data)
+            if (!response2.ok || !data.success) {
+                alert('Error: ' + (data?.msg || "Try again later"));
+            } else {
+                alert(data.msg);
+            }
+            dBox.close && dBox.close()
+            dBox.closeE && dBox.closeE()
         } catch (error) {
             console.error('Error:', error);
             alert('An error occurred while uploading the file.');
@@ -150,8 +157,8 @@ class fileSharing {
     }
 
     async shareFile(i, dBox) {
-        const formData = new FormData();
-        var from = localStorage.email,
+        const formData = {},
+            from = localStorage.email,
             to = F.G.id('tChat')?.con?.email || "xyz@gmail.com",
             file = this.file,
             layers = {}
@@ -163,21 +170,18 @@ class fileSharing {
             }
         }
         if (file && file.type === "application/pdf" && file.name.toLowerCase().endsWith(".pdf")) {
-            formData.append('from', from);
-            formData.append('to', JSON.stringify(to));
-            formData.append('file', file);
-            formData.append('layers', JSON.stringify(layers))
-            formData.append('expiry_date', i.expiry_date.value)
-            formData.append('expiry_time', i.expiry_time.value)
-            formData.get
-            console.log(i)
+            formData['from'] = from
+            formData['to'] = to.split(',').map(e => ({ email: e.trim() }))
+            formData['fileName'] = file.name
+            formData['layers'] = layers
+            formData['expiry_date'] = i.expiry_date.value
+            formData['expiry_time'] = i.expiry_time.value
             if (i.enableMaxViews.value) {
-                formData.append('limit_views', true)
-                formData.append('max_views', i.max_views.value)
+                formData['limit_views'] = true
+                formData['max_views'] = i.max_views.value
             } else {
-                formData.append('limit_views', false)
+                formData['limit_views'] = false
             }
-            console.log('formdaat: ', formData.get('layers'))
             this.upload(formData, dBox)
         } else {
             alert("Please upload a PDF file.");
@@ -286,6 +290,7 @@ class gen {
             dBox = F.G.id(dts.dialog),
             dFun = dts.p.split(";"),
             dInp = JSON.parse(dts.i)
+        F.class([dBox], ["disable"])
         let inputs = {}
         if (!F.Is.arr(dInp))
             return
@@ -361,6 +366,7 @@ class chat {
         nCon.appendChild(nSpan)
         i.clear()
         F.G.id('profS').appendChild(temp)
+        F.class([dBox], ["disable"], !0)
         temp.con = {
             userName: user.name,
             userEmail: user.email

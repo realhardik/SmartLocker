@@ -284,8 +284,7 @@ app.post('/encrypt', authenticateJWT, upload.single('file'), async (req, res) =>
 
 app.post('/upload', authenticateJWT, async (req, res) => {
   console.log("request: ", req.body)
-  const { from, fileName } = req.body,
-      to = JSON.parse(req.body.to),
+  const { from, fileName, to } = req.body,
       eFile = await db.search("Files", { fName: fileName, from: from, to: to, active: true }),
       otherData = req.body
   

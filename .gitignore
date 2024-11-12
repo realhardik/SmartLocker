@@ -1,2 +1,5 @@
 */node_modules
 /.DS_Store
+*/.DS_Store
+/backend/encrypted_files
+/backend/uploads
