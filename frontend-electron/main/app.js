@@ -19,7 +19,7 @@ class fileSharing {
         // this.uploadSec = F.G.id('upload-section');
         // this.uploadBtn = F.G.id("upload-btn")
         // this.receiveBtn = F.G.id("receive-btn")
-        F.BM(this, ["upload", "receive", "oRender", "shareFile"])
+        F.BM(this, ["init", "handleUpload", "receive", "oRender", "shareFile"])
         this.dropArea = F.G.id('dropArea'),
         this.fInput = F.G.id('fileInput')
         this.lTemp = F.G.id('encLayers').content.firstElementChild.cloneNode(true)
@@ -29,6 +29,7 @@ class fileSharing {
         events.forEach(e => {
             F.l(e, this.dropArea, this.handleUpload)
         })
+        this.file = null
         F.l('change', F.G.id('nLayers'), this.handleLayers)
         F.l('change', this.fInput, this.handleUpload)
         F.l('click', F.G.id('fileRem'), () => {
@@ -38,6 +39,20 @@ class fileSharing {
             F.hide(F.G.id('bUpl'), !0)
             F.class([F.G.id('f-eDet'), F.G.id('sButton')], ['disable'])
         })
+    }
+
+    init() {
+        var close = () => {
+            console.log('ran')
+            F.G.id('fileInput').value = ""
+            F.hide(bUpl, !0)
+            F.hide(aUpl)
+            this.cLayers.children.length > 1 
+            ? Array.from(this.cLayers.children).slice(1).forEach(child => child.remove())
+            : true;
+
+        }
+        F.G.id('cButton').closeE = close
     }
 
     handleUpload(e) {
@@ -52,15 +67,15 @@ class fileSharing {
             return;
         }
 
-        const file = files[0];
-        if (file.type !== 'application/pdf') {
+        this.file = files[0];
+        if (this.file.type !== 'application/pdf') {
             console.log('Please upload a PDF file.');
             return;
         }
 
         var bUpl = F.G.id('bUpl'),
             aUpl = F.G.id('aUpl'),
-            fName = file.name,
+            fName = this.file.name,
             fNameIF = F.G.id('fileUplName')
         fNameIF.innerHTML = fName
         F.hide(bUpl)
@@ -88,46 +103,87 @@ class fileSharing {
         }
     }
 
-    async upload() {
+    async upload(data, dBox) {
         try {
-            var token = await F.getToken(),
-                response = await axios.post(`${BASE_URL}/upload`, formData, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+            const formData = new FormData(),
+                  token = F.getToken(),
+                  rLayers = JSON.parse(data.get('layers')),
+                  layers = Object.values(rLayers).map(item => item.type),
+                  pass = Object.values(rLayers).map(item => item.passphrase)
 
-            const data = await response.json();
-            console.log(data)
-            if (response.ok) {
-                alert(data.msg);
-                F.G.id("receivers").value = ""
-                F.G.id("file-upload").value = ""
-            } else {
-                alert('Error: ' + data.msg);
-            }
+            formData.append('file', data.file);
+            formData.append('data', JSON.stringify({
+                layers: layers.length,
+                selected_algos: layers,
+                all_passphrases: pass,
+                filename: data.file?.name || data.file?.originalName
+            }));
+            console.log(formData.get('data'))
+            var response = await axios.post('http://localhost:3000/encrypt', formData, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            console.log(response)
+            
+            // var token = await F.getToken(),
+            //     response = await axios.post(`${BASE_URL}/upload`, formData, {
+            //         headers: {
+            //             'Authorization': `Bearer ${token}`
+            //         }
+            //     });
+
+            // var response2 = await response.json();
+            // console.log(response2)
+            // if (response.ok) {
+            //     alert(response2.msg);
+            //     dBox.close && dBox.close()
+            //     dBox.closeE && dBox.closeE()
+            // } else {
+            //     alert('Error: ' + response2.msg);
+            // }
         } catch (error) {
             console.error('Error:', error);
             alert('An error occurred while uploading the file.');
         }
     }
 
-    async shareFile(e) {
-        e.preventDefault()
+    async shareFile(i, dBox) {
         const formData = new FormData();
-        var from = this.user.email,
-            to = F.G.id("receivers").value.split(",").map(email => ({ email: email.trim() })),
-            file = F.G.id("file-upload").files[0],
-            token = this.user.token
+        var from = localStorage.email,
+            to = F.G.id('tChat')?.con?.email || "xyz@gmail.com",
+            file = this.file,
+            layers = {}
+        for (var l = 0; l<i.nLayers.value; l++) {
+            var temp = this.cLayers.children[l]
+            layers[l] = {
+                type: F.G.class('eType', temp)[0].value.toLowerCase().replace(" ", ""),
+                passPhrase: F.G.class('passPh', temp)[0].value
+            }
+        }
         if (file && file.type === "application/pdf" && file.name.toLowerCase().endsWith(".pdf")) {
             formData.append('from', from);
             formData.append('to', JSON.stringify(to));
             formData.append('file', file);
+            formData.append('layers', JSON.stringify(layers))
+            formData.append('expiry_date', i.expiry_date.value)
+            formData.append('expiry_time', i.expiry_time.value)
+            formData.get
+            console.log(i)
+            if (i.enableMaxViews.value) {
+                formData.append('limit_views', true)
+                formData.append('max_views', i.max_views.value)
+            } else {
+                formData.append('limit_views', false)
+            }
+            console.log('formdaat: ', formData.get('layers'))
+            this.upload(formData, dBox)
         } else {
             alert("Please upload a PDF file.");
-            F.G.id("file-upload").value = ""
+            F.G.id("cButton").close()
             return;
         }
+        // F.G.id("receivers").value.split(",").map(email => ({ email: email.trim() }))
     }
 
     async receive(e) {
@@ -191,25 +247,33 @@ class gen {
     }
 
     async openDialog(e) {
-        console.log("open dialog", e)
         e.preventDefault()
-        var dBoxId = e.target["dataset"].dbox,
+        var dts = e.target["dataset"],
+            dBoxId = dts.dbox,
             dBox = F.G.id(dBoxId)
+        dts.c && this[dts.c].init && this[dts.c].init()
         dBox && F.hide(dBox, !0)
+        dBox.close = () => this.closeDialog(F.G.class('c', dBox)[0]);
         F.class([F.G.id('app')], ["disable"])
     }
 
     closeDialog(e) {
-        var element = e.target,
+        var element = e.target || e,
             dts = element["dataset"],
             dBoxVar = dts.dialog,
             dBox = F.G.id(dBoxVar)
+        console.log("dataset closed: ", dts)
+        console.log('i' in dts)
         if ('i' in dts) {
             var ifA = JSON.parse(dts.i)
+            console.log(ifA)
             ifA.forEach(e => {
                 F.G.id(e).value = ""
             })
         }
+        console.log("closing element: ", element)
+        console.log("closing element: ", element.close)
+        element.closeE && element.closeE()
         F.hide(dBox)
         F.class([F.G.id('app')], ["disable"], !0)
     }
@@ -226,9 +290,9 @@ class gen {
             return
         dInp.forEach(i => {
             var iField = F.G.id(i),
-                dName = iField["dataset"].name
+                dName = iField["dataset"]?.name || i
             inputs[dName] = {
-                value: iField.value,
+                value: iField.type === 'checkbox' ? iField.checked : iField.value,
                 field: iField
             }
         })
@@ -300,7 +364,7 @@ class chat {
             userName: user.name,
             userEmail: user.email
         }
-        F.hide(dBox)
+        dBox.close && dBox.close()
     }
 
     openChat(e) {

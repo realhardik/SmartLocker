@@ -8,9 +8,12 @@ const fs = require('fs');
 const moment = require('moment');
 const path = require('path');
 const crypto = require('crypto');
+const FormData = require('form-data');
+const axios = require('axios');
 
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 const h = {
@@ -24,6 +27,8 @@ const h = {
 const JWT_SECRET = 'your_jwt_secret_key';
 
 const mongoURI = 'mongodb+srv://harshchan02:rlFWyv0f22LD5rHJ@cluster0.irubh1u.mongodb.net/smart_locker?retryWrites=true&w=majority&appName=Cluster0';
+
+const pythonURL = 'http://127.0.0.1:5000'
 
 const db = new class {
   constructor() {
@@ -204,8 +209,66 @@ function authenticateJWT(req, res, next) {
   }
 }
 
+
 const uploadFolder = path.join(__dirname, 'uploads');
-const upload = multer();
+const encryptedPath = path.join(__dirname, 'encrypted_files')
+
+if (!fs.existsSync(uploadFolder)) {
+  fs.mkdirSync(uploadFolder);
+}
+if (!fs.existsSync(encryptedPath)) {
+  fs.mkdirSync(encryptedPath);
+}
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadFolder);
+  },
+  filename: function (req, file, cb) {
+    cb(null, path.basename(file.originalname, path.extname(file.originalname)) + "_" + Date.now());
+  }
+});
+
+const upload = multer({ storage: storage });
+
+app.post('/encrypt', upload.single('pdf'), async (req, res) => {
+  const file = req.file,
+        data = typeof req.body.data === 'string' ? JSON.parse(req.body.data) : req.body.data,
+        tempFilePath = file.path,
+        formData = new FormData()
+
+  if (!file || !data.selected_algos || !data.all_passphrases || !data.filename) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  formData.append('original_pdf', fs.createReadStream(tempFilePath));
+  formData.append('data', JSON.stringify(data));
+
+  try {
+    const response = await axios.post('http://127.0.0.1:5000/encrypt', formData, {
+      headers: {
+        ...formData.getHeaders()
+      },
+      responseType: 'arraybuffer'
+    });
+
+    const encryptedFilePath = path.join(encryptedPath, `${file.filename}_encrypted.zip`)
+
+    fs.writeFileSync(encryptedFilePath, response.data)
+
+    console.log(`Encrypted file saved at: ${encryptedFilePath}`)
+
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename=${file.name}_encrypted_files.zip`);
+    res.send(response.data);
+
+  } catch (error) {
+    console.error("Error encrypting PDF:", error);
+    res.status(500).json({ error: "Failed to encrypt PDF" });
+  } finally {
+    fs.unlinkSync(tempFilePath)
+  }
+});
 
 app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => {
   const { from } = req.body,
