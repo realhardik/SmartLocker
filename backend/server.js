@@ -80,6 +80,11 @@ const db = new class {
       active: { type: Boolean, default: true }
     })
 
+    // to: [{ 
+    //   email: String, 
+    //   views: { type: Number, default: 0 }
+    // }],
+
     this.Users = mongoose.model('user', this.userSchema)
     this.Files = mongoose.model('fileLogs', this.fileLog)
     this.Session = mongoose.model('session', this.sessionSchema)
@@ -209,7 +214,6 @@ function authenticateJWT(req, res, next) {
   }
 }
 
-
 const uploadFolder = path.join(__dirname, 'uploads');
 const encryptedPath = path.join(__dirname, 'encrypted_files')
 
@@ -231,7 +235,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-app.post('/encrypt', upload.single('file'), async (req, res) => {
+app.post('/encrypt', authenticateJWT, upload.single('file'), async (req, res) => {
   const file = req.file,
         data = typeof req.body.data === 'string' ? JSON.parse(req.body.data) : req.body.data,
         tempFilePath = file.path,
@@ -266,22 +270,24 @@ app.post('/encrypt', upload.single('file'), async (req, res) => {
     console.log(`Encrypted file saved at: ${encryptedFilePath}`)
 
     res.json({
+      success: true,
       message: "File encrypted successfully",
       encryptedFilePath: encryptedFilePath
     });
   } catch (error) {
     console.error("Error encrypting PDF:", error);
-    res.status(500).json({ error: "Failed to encrypt PDF" });
+    res.status(500).json({ success: false, message: "Failed to encrypt PDF" });
   } finally {
     fs.unlinkSync(tempFilePath)
   }
-});
+})
 
 app.post('/upload', authenticateJWT, async (req, res) => {
-  const { from } = req.body,
+  console.log("request: ", req.body)
+  const { from, fileName } = req.body,
       to = JSON.parse(req.body.to),
-      file = req.file,
-      eFile = await db.search("Files", { fName: file.originalname, from: from, to: to })
+      eFile = await db.search("Files", { fName: fileName, from: from, to: to, active: true }),
+      otherData = req.body
   
   for (let u of to) {
     const userCheck = await db.search('Users', { email: u.email });
@@ -291,36 +297,31 @@ app.post('/upload', authenticateJWT, async (req, res) => {
   }
   
   if (eFile.success) {
-    for (var f = 0; f<eFile.result.length; f++) {
-      if (eFile.result[f].active) {
-        return res.status(400).json({ success: false, msg: 'Given Filename is active currently. Change it to share.' });
-      }
-    }
+    return res.status(400).json({ success: false, msg: 'Given Filename is active currently. Change it to share.' });
   }
   
-  if (!file || !from || !to) {
+  if (!fileName || !from || !to) {
     return res.status(400).json({ success: false, msg: 'File, from, and to are required' });
   }
 
-  const filePath = path.join(uploadFolder, file.originalname)
   try {
-    await fs.promises.writeFile(filePath, file.buffer);
-    var filehash = await generateFileHash(filePath),
+    var filehash = await generateFileHash(otherData.filePath),
         fileEntry = {
           from: from,
           to: to,
-          fName: file.originalname,
-          fPath: filePath,
+          fName: fileName,
+          fPath: otherData.filePath,
           fileHash: filehash,
-          expiry_date: moment().format('DD-MM-YYYY'),
-          expiry_time: moment().format('HH:mm'),
+          expiry_date: otherData.expiry_date,
+          expiry_time: otherData.expiry_time,
         },
         result = await db.addFile(fileEntry)
+    console.log(fileEntry)
     res.status(201).json(result);
   } catch (err) {
     console.log(err)
     res.status(500).json({ msg: 'Error saving file entry to database' });
-  } 
+  }
 });
 
 app.post('/check', authenticateJWT, (req, res) => {
