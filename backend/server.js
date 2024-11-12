@@ -231,19 +231,26 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-app.post('/encrypt', upload.single('pdf'), async (req, res) => {
+app.post('/encrypt', upload.single('file'), async (req, res) => {
   const file = req.file,
         data = typeof req.body.data === 'string' ? JSON.parse(req.body.data) : req.body.data,
         tempFilePath = file.path,
         formData = new FormData()
-
+  console.log(data)
+  console.log(file)
+// {
+  //   "layers": 1,
+  //   "selected_algos": ["aes128","aes256"],
+  //   "all_passphrases": ["ASDFGHJKL:","QWERTYUIOP"],
+  //   "filename":"0101"
+  // }
   if (!file || !data.selected_algos || !data.all_passphrases || !data.filename) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
   formData.append('original_pdf', fs.createReadStream(tempFilePath));
   formData.append('data', JSON.stringify(data));
-
+  
   try {
     const response = await axios.post('http://127.0.0.1:5000/encrypt', formData, {
       headers: {
@@ -258,10 +265,10 @@ app.post('/encrypt', upload.single('pdf'), async (req, res) => {
 
     console.log(`Encrypted file saved at: ${encryptedFilePath}`)
 
-    res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', `attachment; filename=${file.name}_encrypted_files.zip`);
-    res.send(response.data);
-
+    res.json({
+      message: "File encrypted successfully",
+      encryptedFilePath: encryptedFilePath
+    });
   } catch (error) {
     console.error("Error encrypting PDF:", error);
     res.status(500).json({ error: "Failed to encrypt PDF" });
@@ -270,7 +277,7 @@ app.post('/encrypt', upload.single('pdf'), async (req, res) => {
   }
 });
 
-app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => {
+app.post('/upload', authenticateJWT, async (req, res) => {
   const { from } = req.body,
       to = JSON.parse(req.body.to),
       file = req.file,

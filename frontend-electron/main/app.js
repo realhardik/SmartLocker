@@ -1,5 +1,6 @@
 const { ipcRenderer } = require('electron');
 const axios = require('axios');
+const fs = require('fs');
 
 const BASE_URL = 'http://localhost:3000';
 
@@ -109,14 +110,14 @@ class fileSharing {
                   token = F.getToken(),
                   rLayers = JSON.parse(data.get('layers')),
                   layers = Object.values(rLayers).map(item => item.type),
-                  pass = Object.values(rLayers).map(item => item.passphrase)
-
-            formData.append('file', data.file);
+                  pass = Object.values(rLayers).map(item => item.passPhrase)
+            console.log
+            formData.append('file', this.file)
             formData.append('data', JSON.stringify({
                 layers: layers.length,
                 selected_algos: layers,
                 all_passphrases: pass,
-                filename: data.file?.name || data.file?.originalName
+                filename: this.file?.name || this.file?.originalName
             }));
             console.log(formData.get('data'))
             var response = await axios.post('http://localhost:3000/encrypt', formData, {
