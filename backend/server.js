@@ -240,8 +240,6 @@ app.post('/encrypt', authenticateJWT, upload.single('file'), async (req, res) =>
         data = typeof req.body.data === 'string' ? JSON.parse(req.body.data) : req.body.data,
         tempFilePath = file.path,
         formData = new FormData()
-  console.log(data)
-  console.log(file)
 // {
   //   "layers": 1,
   //   "selected_algos": ["aes128","aes256"],
@@ -249,7 +247,7 @@ app.post('/encrypt', authenticateJWT, upload.single('file'), async (req, res) =>
   //   "filename":"0101"
   // }
   if (!file || !data.selected_algos || !data.all_passphrases || !data.filename) {
-    return res.status(400).json({ error: "Missing required fields" });
+    return res.status(201).json({ success:false, msg: "Missing required fields." });
   }
 
   formData.append('original_pdf', fs.createReadStream(tempFilePath));
@@ -269,7 +267,7 @@ app.post('/encrypt', authenticateJWT, upload.single('file'), async (req, res) =>
 
     console.log(`Encrypted file saved at: ${encryptedFilePath}`)
 
-    res.json({
+    res.status(201).json({
       success: true,
       message: "File encrypted successfully",
       encryptedFilePath: encryptedFilePath
@@ -291,16 +289,16 @@ app.post('/upload', authenticateJWT, async (req, res) => {
   for (let u of to) {
     const userCheck = await db.search('Users', { email: u.email });
     if (!userCheck.success) {
-      return res.status(400).json({ success: false, msg: `Given user ${u.email} does not exist.` });
+      return res.status(201).json({ success: false, msg: `Given user ${u.email} does not exist.` });
     }
   }
   
   if (eFile.success) {
-    return res.status(400).json({ success: false, msg: 'Given Filename is active currently. Change it to share.' });
+    return res.status(201).json({ success: false, msg: 'Given Filename is active currently. Change it to share.' });
   }
   
   if (!fileName || !from || !to) {
-    return res.status(400).json({ success: false, msg: 'File, from, and to are required' });
+    return res.status(201).json({ success: false, msg: 'File, from, and to are required' });
   }
 
   try {

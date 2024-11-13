@@ -44,6 +44,17 @@ class fileSharing {
     }
 
     init() {
+        var today = new Date(),
+            year = today.getFullYear(),
+            month = String(today.getMonth() + 1).padStart(2, '0'),
+            day = String(today.getDate()).padStart(2, '0'),
+            date = `${year}-${month}-${day}`,
+            hours = String(today.getHours()).padStart(2, '0'),
+            minutes = String(today.getMinutes() + 10).padStart(2, '0'),
+            minTime = `${hours}:${minutes}`;
+
+        F.G.id('expiry_date').setAttribute('min', date);
+        F.G.id('expiry_time').setAttribute('min', minTime);
         var close = () => {
             console.log('ran')
             F.G.id('fileInput').value = ""
@@ -52,7 +63,6 @@ class fileSharing {
             this.cLayers.children.length > 1 
             ? Array.from(this.cLayers.children).slice(1).forEach(child => child.remove())
             : true;
-
         }
         F.G.id('cButton').closeE = close
     }
@@ -126,12 +136,12 @@ class fileSharing {
                     'Authorization': `Bearer ${token}`
                 }
             })
-            console.log(response)
-            // if (!response.ok || !response.data.success) {
-            //     alert(response.data.message)
-            //     dBox.close()
-            //     return
-            // }
+
+            if (!response.data.success) {
+                alert("Error: ", response.data.message)
+                F.class([F.G.id('app')], ["disable"], !0)
+                return
+            }
 
             data['filePath'] =  response.data.encryptedFilePath
             console.log(data)
@@ -142,17 +152,25 @@ class fileSharing {
                 });
 
             data = response2.data
-            console.log(data)
-            if (!response2.ok || !data.success) {
+            if (!data.success) {
                 alert('Error: ' + (data?.msg || "Try again later"));
+                F.class([F.G.id('app')], ["disable"], !0)
+                return
             } else {
                 alert(data.msg);
             }
+            F.class([F.G.id('app')], ["disable"], !0)
             dBox.close && dBox.close()
             dBox.closeE && dBox.closeE()
         } catch (error) {
-            console.error('Error:', error);
-            alert('An error occurred while uploading the file.');
+            dBox.closeE && dBox.closeE()
+            if (error.response) {
+                console.error('Error:', error.response.data);
+                alert('Error: ' + (error.response.data?.msg || "Try again later"));
+            } else {
+                console.error('Error:', error);
+                alert('An error occurred while uploading the file.');
+            }
         }
     }
 
@@ -185,7 +203,7 @@ class fileSharing {
             this.upload(formData, dBox)
         } else {
             alert("Please upload a PDF file.");
-            F.G.id("cButton").close()
+            dBox.closeE && dBox.closeE()
             return;
         }
         // F.G.id("receivers").value.split(",").map(email => ({ email: email.trim() }))
@@ -289,7 +307,18 @@ class gen {
             dts = aBtn.dataset,
             dBox = F.G.id(dts.dialog),
             dFun = dts.p.split(";"),
-            dInp = JSON.parse(dts.i)
+            dInp = JSON.parse(dts.i),
+            vBox = dBox.tag === "FORM" ? dBox : (F.G.query('form', dBox) || dBox),
+            validity = vBox.checkValidity()
+
+        if (!validity) {
+            vBox.reportValidity()
+            return
+        }
+        var v2 = this.checkValidity(vBox)
+        if (!v2) {
+            return
+        }
         F.class([dBox], ["disable"])
         let inputs = {}
         if (!F.Is.arr(dInp))
@@ -304,6 +333,37 @@ class gen {
         })
         inputs.clear = (a) => { a ? this.clear(a) : this.clear(inputs) }
         this[dFun[1]][dFun[0]](inputs, dBox)
+    }
+
+    checkValidity(f) {
+        let inFields = Array.from(F.G.query('input', f, "all")),
+            today = new Date(),
+            year = today.getFullYear(),
+            month = String(today.getMonth() + 1).padStart(2, '0'),
+            day = String(today.getDate()).padStart(2, '0'),
+            date = `${year}-${month}-${day}`,
+            sDate = (F.G.query('input[type="date"]', f).value || !1);
+        console.log(sDate)
+        console.log(inFields)
+        for (var i = 0; i<inFields.length; i++) {
+            var type = inFields[i].type
+            if (type === "date") {
+                if (inFields[i].value < date) {
+                    alert('Please enter a future date.')
+                    return false
+                }
+            } else if (type === "time" && sDate === date) {
+                console.log("checking time")
+                var hours = String(today.getHours() + 1).padStart(2, '0'),
+                    minutes = String(today.getMinutes()).padStart(2, '0'),
+                    minTime = `${hours}:${minutes}`
+                if (inFields[i].value < minTime) {
+                    alert("Access duration must be at least 1 hour.")
+                    return false
+                }
+            }
+        }
+        return true
     }
 
     async logout(e) {
@@ -395,6 +455,10 @@ class chat {
 
     fetchMessages(c) {
         F.hide(F.G.id('sChat'), !0, 'flex')
+    }
+
+    handleOpts() {
+
     }
 }
 

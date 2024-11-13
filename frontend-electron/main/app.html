@@ -223,7 +223,7 @@
     <div id="addChat">
         <form>
             <div>
-                <input type="text" min="5" max="50" id="newChatId" name="userEmail" placeholder="Enter email of the user." data-name="userEmail" required>
+                <input type="text" min="5" max="50" id="newChatId" name="userEmail" pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{2,7}$" placeholder="Enter email of the user." data-name="userEmail" required>
             </div>
             <div>
                 <button data-dialog="addChat" data-i='["newChatId"]' class="c">Cancel</button>
@@ -280,14 +280,14 @@
                                 <option>AES GCM</option>
                                 <option>ARC 4</option>
                                 <option>Blowfish</option>
-                                <option>Chacha 20 poly 1305</option>
+                                <option>Chacha 20 poly</option>
                                 <option>DES 3</option>
                                 <option>RC 4</option>
                                 <option>Salsa 20</option>
                                 <option>xChacha 20</option>
                             </select>
                             <div class="passPhrase">
-                                <input type="text" class="passPh" maxlength="15" placeholder="Password" required>
+                                <input type="text" class="passPh" maxlength="15" pattern="^[a-zA-Z0-9]+$" title="Only alphanumeric characters are allowed" placeholder="Password" required>
                             </div>
                         </div>
                     </div>
@@ -300,7 +300,7 @@
                         <div id="dExp">
                             <div id="expD">
                                 <span>Expiry Date: </span>
-                                <input type="date" required name="expiry_date" id="expiry_date">
+                                <input type="date" required name="expiry_date" min="<?php echo date('Y-m-d'); ?>" id="expiry_date">
                             </div>
                             <div id="expT">
                                 <span>Expiry Time: </span>
@@ -353,7 +353,7 @@
                 <option>AES GCM</option>
                 <option>ARC 4</option>
                 <option>Blowfish</option>
-                <option>Chacha 20 poly 1305</option>
+                <option>Chacha 20 poly</option>
                 <option>DES 3</option>
                 <option>RC 4</option>
                 <option>Salsa 20</option>

@@ -339,6 +339,7 @@ button {
 
 #fInput {
 	min-height: 100px;
+    border-bottom: solid 1px #565656;
 }
 
 #f-eDet {
@@ -347,7 +348,6 @@ button {
 	font-size: 17px;
 	box-sizing: border-box;
 	width: 100%;
-	border-top: solid 1px #565656;
     overflow: scroll;
     align-items: start;
     transition: filter 200ms ease;
@@ -471,9 +471,9 @@ select:-moz-focusring {
 .passPhrase input {
 	border-radius: 6px;
 	line-height: 1.5em;
-	padding: 0.3em 3em 0.3em 0.6em;
+	padding: 0.3em 0.3em 0.3em 0.4em;
 	width: calc(50px + 7vw);
-	min-width: 107px;
+	min-width: 100px;
 }
 
 #expTitle {
@@ -512,6 +512,15 @@ select:-moz-focusring {
 #oExp {
 	padding: 10px 0;
 	border-top: thin solid #444c56;
+    opacity: 0.1;
+    pointer-events: none;
+    transition: opacity 400ms ease;
+}
+
+#expOpt:has(input[type="checkbox"]:checked) #oExp {
+    opacity: 1;
+    pointer-events: all;
+    transition: opacity 400ms ease;
 }
 
 #oExp>* {
