@@ -27,6 +27,7 @@
 }
 
 #chat {
+    position: relative;
     width: 80%;
     display: flex;
     flex-direction: column;
@@ -303,8 +304,8 @@ button {
 /* file sharing */
 
 #fileSharing {
-    /* display: none;
-    pointer-events: none; */
+    display: none;
+    pointer-events: none;
 	width: 65vw;
 	background: #161b22;
     color: white;
@@ -645,6 +646,60 @@ select:-moz-focusring {
 
 main.disable {
     filter: brightness(80%);
+}
+
+/* receive files */
+
+#receiveFiles {
+    position: absolute;
+    top: 85px;
+    z-index: 5;
+    box-sizing: border-box;
+    border: solid 1px rgba(255, 255, 255, 0.4);
+    border-radius: 12px;
+    border-collapse: collapse;
+    background: #161b22;
+    color: white;
+    width: 100%;
+    height: calc(100% - 85px);
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+tr {
+    text-align: center;
+}
+
+thead {
+    border-bottom: solid 1px white;
+    pointer-events: none;
+    -webkit-user-select: none; 
+    -moz-user-select: none;     
+    -ms-user-select: none;      
+    user-select: none;
+}
+
+th {
+    padding: 12px 3px;
+    background-color: #1c2128;
+}
+
+td {
+    padding: 2px 3px;
+    max-width: 150px;
+    word-wrap: break-word;
+    white-space: normal;
+}
+
+tbody tr:first-child td {
+    padding-top: 12px;
+}
+
+tbody tr:nth-child(even) {
+    background-color: rgba(36, 45, 62, 0.6); 
 }
 
 @media (max-width: 923px)  {

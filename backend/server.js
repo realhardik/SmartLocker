@@ -41,7 +41,6 @@ const db = new class {
     }).catch(err => {
       console.error('MongoDB Atlas connection error:', err);
     });
-    
   }
 
   schemas() {
@@ -376,7 +375,7 @@ async function generateFileHash(filePath) {
   });
 }
 
-app.get('/receiver', authenticateJWT, async (req, res) => {
+app.post('/receiver', authenticateJWT, async (req, res) => {
   const { receiver } = req.query; 
 
   if (!receiver) {
@@ -390,6 +389,40 @@ app.get('/receiver', authenticateJWT, async (req, res) => {
     res.status(500).json({ success: false, msg: 'Error fetching entries', error });
   }
 });
+
+app.get('/decrypt', authenticateJWT, upload.single('encrypted_zip'), async (req, res) => {
+  var otherData = req.body.data
+  if (!req.file || !otherData.selected_algos || !otherData.all_passphrases || !otherData.filename) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  const formData = new FormData();
+  formData.append('encrypted_files.zip', fs.createReadStream(req.file.path));
+  formData.append('data', JSON.stringify({
+    selected_algos: JSON.parse(selected_algos),
+    all_passphrases: JSON.parse(all_passphrases),
+    filename: filename
+  }));
+
+  try {
+    const response = await axios.post('http://127.0.0.1:5000/decrypt', formData, {
+      headers: {
+        ...formData.getHeaders()
+      },
+      responseType: 'arraybuffer'
+    });
+
+    fs.unlinkSync(req.file.path);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=${filename}_decrypted_file.pdf`);
+    res.send(response.data);
+
+  } catch (error) {
+    console.error("Error decrypting PDF:", error);
+    res.status(500).json({ error: "Failed to decrypt PDF" });
+  }
+})
 
 app.post('/download/:filename', authenticateJWT, async (req, res) => {
   const { filename } = req.params;
@@ -468,3 +501,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
