@@ -18,9 +18,6 @@ ipcRenderer.on('rec-profile', (event, { email, name }) => {
 
 class fileSharing {
     constructor() {
-        // this.uploadSec = F.G.id('upload-section');
-        // this.uploadBtn = F.G.id("upload-btn")
-        // this.receiveBtn = F.G.id("receive-btn")
         F.BM(this, ["init", "handleUpload", "receive", "oRender", "shareFile"])
         this.dropArea = F.G.id('dropArea'),
         this.fInput = F.G.id('fileInput')
@@ -48,16 +45,13 @@ class fileSharing {
             year = today.getFullYear(),
             month = String(today.getMonth() + 1).padStart(2, '0'),
             day = String(today.getDate()).padStart(2, '0'),
-            date = `${year}-${month}-${day}`,
-            hours = String(today.getHours()).padStart(2, '0'),
-            minutes = String(today.getMinutes() + 10).padStart(2, '0'),
-            minTime = `${hours}:${minutes}`;
+            date = `${year}-${month}-${day}`
 
         F.G.id('expiry_date').setAttribute('min', date);
-        F.G.id('expiry_time').setAttribute('min', minTime);
         var close = () => {
             console.log('ran')
             F.G.id('fileInput').value = ""
+            F.class([F.G.id('app')], ["disable"], !0)
             F.hide(bUpl, !0)
             F.hide(aUpl)
             this.cLayers.children.length > 1 
@@ -315,10 +309,12 @@ class gen {
             vBox.reportValidity()
             return
         }
+        
         var v2 = this.checkValidity(vBox)
         if (!v2) {
             return
         }
+
         F.class([dBox], ["disable"])
         let inputs = {}
         if (!F.Is.arr(dInp))
@@ -343,8 +339,7 @@ class gen {
             day = String(today.getDate()).padStart(2, '0'),
             date = `${year}-${month}-${day}`,
             sDate = (F.G.query('input[type="date"]', f).value || !1);
-        console.log(sDate)
-        console.log(inFields)
+
         for (var i = 0; i<inFields.length; i++) {
             var type = inFields[i].type
             if (type === "date") {

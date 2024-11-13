@@ -32,13 +32,16 @@ const pythonURL = 'http://127.0.0.1:5000'
 
 const db = new class {
   constructor() {
+    h.BM(this, ["schemas", "addUser", "search", "newSession", "addFile", "remove"])
     mongoose.connect(mongoURI).then(() => {
       console.log('Connected to MongoDB Atlas');
+      this.schemas()
+      deleteExpiredFiles()
+      setInterval(deleteExpiredFiles, 2 * 60 * 1000);
     }).catch(err => {
       console.error('MongoDB Atlas connection error:', err);
     });
-    h.BM(this, ["schemas", "addUser", "search", "newSession"])
-    this.schemas()
+    
   }
 
   schemas() {
@@ -135,31 +138,58 @@ const db = new class {
   }
 
   async search(collection, query, method, update = null, options = {}) {
+    var model = this[collection];
+    method = method ? ["find", "findOne", "findOneAndUpdate", "updateMany"].includes(method) ? method : "find" : "find";
+    let result;
+    
+    if (!model) throw new Error("Invalid collection name");
+    console.log("searching from: ", query);
+
+    try {
+        if (method === "find") {
+            result = await model.find(query).sort({ timestamp: -1 });
+        } else if (method === "findOne") {
+            result = await model.findOne(query).sort({ timestamp: -1 });
+        } else if (method === "findOneAndUpdate") {
+            result = await model.findOneAndUpdate(query, update, { ...options, new: true });
+            console.log("updated: ", result);
+        } else if (method === "updateMany") {
+            result = await model.updateMany(query, update, options);
+            console.log("updated many: ", result);
+        }
+
+        if ((method === "find" && result.length === 0) || (method !== "find" && !result)) {
+            console.log("No results found");
+            return { success: false };
+        }
+        
+        return { success: true, result: result };
+    } catch (err) {
+        console.error("Error searching: ", err);
+        return { success: false };
+    }
+  }
+
+  async remove(collection, query, method) {
     var model = this[collection]
-        method = method ? ["find", "findOne", "findOneAndUpdate"].includes(method) ? method : "find" : "find"
+        method = ["single", "multiple"].includes(method) ? method : "multiple";
     let result;
     if (!model) throw new Error("Invalid collection name");
-    console.log("searching from: ", query)
+    console.log("removing from: ", query)
     try {
-      if (method === "find") {
-          result = await model
-                    .find(query)
-                    .sort({ timestamp: -1 });
-      } else if (method === "findOne") {
-          result = await model
-                    .findOne(query).sort({ timestamp: -1 })
-              // .find(query).sort({ timestamp: -1 }).limit(1);
-      } else if (method === "findOneAndUpdate") {
-          result = await model.findOneAndUpdate(query, update, { ...options, new: true });
-          console.log("updated: ", result)
+      if (method === "single") {
+          result = await model.deleteOne(query);
+      } else if (method === "multiple") {
+          result = await model.deleteMany(query);
       }
-      if ((method === "find" && result.length === 0) || (method !== "find" && !result)) {
-        console.log("No results found")  
-        return { success: false };
+
+      if ((method === "multiple" && result.deletedCount === 0) || (method !== "multiple" && result.deletedCount !== 1)) {
+          console.log("No results found");
+          return { success: false };
       }
       return { success: true, result: result}
     } catch (err) {
-        console.error("Error searching: ", err);
+        console.error("Error removing: ", err);
         return { success: false };
     }
   }
@@ -281,17 +311,24 @@ app.post('/encrypt', authenticateJWT, upload.single('file'), async (req, res) =>
 })
 
 app.post('/upload', authenticateJWT, async (req, res) => {
-  console.log("request: ", req.body)
   const { from, fileName, to } = req.body,
-      eFile = await db.search("Files", { fName: fileName, from: from, to: to, active: true }),
+      sTo = to.map(user => user.email),
+      eFile = await db.search("Files", { fName: fileName, from: from, to: { $elemMatch: { email: { $in: sTo } } }, active: true }),
       otherData = req.body
-  
+
   for (let u of to) {
     const userCheck = await db.search('Users', { email: u.email });
     if (!userCheck.success) {
       return res.status(201).json({ success: false, msg: `Given user ${u.email} does not exist.` });
     }
   }
+
+  // const userCheck = await db.search('Users', { email: { $in: userEmails } });
+
+  // if (userCheck.success && userCheck.result.length !== userEmails.length) {
+  //   const missingEmails = userEmails.filter(email => !userCheck.result.some(u => u.email === email));
+  //   return res.status(400).json({ success: false, msg: `Given user(s) ${missingEmails.join(', ')} do not exist.` });
+  // }
   
   if (eFile.success) {
     return res.status(201).json({ success: false, msg: 'Given Filename is active currently. Change it to share.' });
@@ -407,18 +444,25 @@ app.post('/search', authenticateJWT, async (req, res) => {
     return res.json(result)
 })
 
-// const deleteExpiredFiles = async () => {
-//   const now = moment().format('DD-MM-YYYY');
-//   const expiredFiles = await db.search('Files', { expiry_date: { $lt: now } })
-
-//   for (const file of expiredFiles) {
-//     if (fs.existsSync(file.file_path)) fs.unlinkSync(file.file_path);
-//     await File.deleteOne({ _id: file._id });
-//     console.log(`File ${file.filename} deleted due to expiration.`);
-//   }
-// };
-
-// setInterval(deleteExpiredFiles, 60 * 60 * 1000);  // every 1 hour
+const deleteExpiredFiles = async () => {
+  const date = moment().format('DD-MM-YYYY'),
+        time = moment().format('HH:mm'),
+        expiredFiles = await db.search('Files', {
+            $or: [
+              { expiry_date: { $lt: date } },
+              { 
+                expiry_date: date,
+                expiry_time: { $lt: time }
+              }
+            ]
+          }, 'updateMany', {  active: false }
+        )
+  console.log("Expired files update result:", expiredFiles);
+  // for (const file of expiredFiles) {
+    // if (fs.existsSync(file.fPath)) fs.unlinkSync(file.fPath);
+    // console.log(`File ${file.fName} deleted due to expiration.`);
+  // }
+};
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
