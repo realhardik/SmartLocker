@@ -1,20 +1,25 @@
-const express = require('express');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const multer = require('multer');
-const fs = require('fs');
-const moment = require('moment');
-const path = require('path');
-const crypto = require('crypto');
-const FormData = require('form-data');
-const axios = require('axios');
+const express = require('express')
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs')
+const mongoose = require('mongoose')
+const cors = require('cors')
+const multer = require('multer')
+const fs = require('fs')
+const moment = require('moment')
+const path = require('path')
+const crypto = require('crypto')
+const FormData = require('form-data')
+const axios = require('axios')
+const http = require('http')
+const { Server } = require('socket.io')
 
-const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+const app = express()
+const server = http.createServer(app)
+const io = new Server(server, { cors: { origin: "*" } })
+
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+app.use(cors())
 
 const h = {
   BM: (r, e) => {
@@ -53,25 +58,39 @@ const db = new class {
     
     this.sessionSchema = new mongoose.Schema({
       login_time: { type: Date, default: Date.now },
-      email: { type: String, required: true },
+      user: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
       token: { type: String, required: true }
     });
+
+    this.chatSchema = new mongoose.Schema({
+      user: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+      otherUser: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+      lastMessage: {
+        content: String,
+        timestamp: Date,
+        from: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+      },
+      unreadCount: { type: Number, default: 0 }
+    });
     
-    this.chatHistory = new mongoose.Schema({
+    this.chatLogs = new mongoose.Schema({
       timestamp: { type: Date, default: Date.now },
-      from: String,
-      to: String,
-      type: { type: String, enum: ["file", "text"], default: "text"},
+      chatId: { type: mongoose.Schema.Types.ObjectId, ref: 'chat' },
+      from: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+      to: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+      type: { type: String, enum: ['file', 'text'], default: 'text' },
       content: String
-    })
+    });
     
     this.fileLog = new mongoose.Schema({
       timestamp: { type: Date, default: Date.now },
-      from: String,
-      to: [{ 
-        email: String, 
-        views: { type: Number, default: 0 }
-      }],
+      from: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+      to: [
+        {
+          user: { type: mongoose.Schema.Types.ObjectId, ref: 'user' }, 
+          views: { type: Number, default: 0 },
+        },
+      ],
       fPath: String,
       fName: String,
       fileHash: String,
@@ -79,18 +98,14 @@ const db = new class {
       maxViews: { type: Number, default: 2 },
       expiry_date: String,
       expiry_time: String,
-      active: { type: Boolean, default: true }
-    })
-
-    // to: [{ 
-    //   email: String, 
-    //   views: { type: Number, default: 0 }
-    // }],
+      active: { type: Boolean, default: true },
+    });
 
     this.Users = mongoose.model('user', this.userSchema)
     this.Files = mongoose.model('fileLogs', this.fileLog)
     this.Session = mongoose.model('session', this.sessionSchema)
-    this.chat = mongoose.model('chatHistory', this.chatHistory)
+    this.chatLog = mongoose.model('chatLogs', this.chatLogs)
+    this.chat = mongoose.model('chat', this.chatSchema)
   }
   
   async addUser(name, email, pass) {
@@ -122,14 +137,19 @@ const db = new class {
     }
   }
 
-  async newSession(email, name) {
+  async newSession(email) {
     try {
-      var jTn = jwt.sign({ email }, JWT_SECRET, { expiresIn: '15m' }),
+      var user = await this.search('Users', { email: email }, 'findOne')
+      console.log(user)
+      if (!user.success || !user.result)
+        return { success: false }
+      var jTn = jwt.sign({ user }, JWT_SECRET, { expiresIn: '15m' }),
         session = await this["Session"].create({
-                    email: email,
+                    user: user.result._id,
                     token: jTn
                   })
-      return { success: true, session: { name: name, email: session.email, token: session.token } };
+      console.log(session)
+      return { success: true, session: { user: user.result, token: session.token } };
     } catch (err) {
       console.log("Error Creating Session: ", err)
       return { success: false }
@@ -159,7 +179,7 @@ const db = new class {
 
         if ((method === "find" && result.length === 0) || (method !== "find" && !result)) {
             console.log("No results found");
-            return { success: false };
+            return { success: false, result: result };
         }
         
         return { success: true, result: result };
@@ -198,7 +218,6 @@ app.post('/signup', async (req, res) => {
   try {
     var { name, email, password } = req.body,
         user = await db.addUser(name, email, password)
-      console.log(user)
     return res.json(user)
   } catch (err) {
     console.log("error signing up: ", err)
@@ -220,7 +239,7 @@ app.post('/login', async (req, res) => {
     return res.json({ success: false, msg: 'Invalid credentials.' });
   }
 
-  var s = await db.newSession(email, user.result.name);
+  var s = await db.newSession(email);
   
   if (s.success)
     return res.status(200).json(s);
@@ -310,17 +329,18 @@ app.post('/encrypt', authenticateJWT, upload.single('file'), async (req, res) =>
 })
 
 app.post('/upload', authenticateJWT, async (req, res) => {
-  const { from, fileName, to } = req.body,
-      sTo = to.map(user => user.email),
-      eFile = await db.search("Files", { fName: fileName, from: from, to: { $elemMatch: { email: { $in: sTo } } }, active: true }),
+  const from = req.user._id,
+      { fileName, to } = req.body,
+      sTo = to.map(e => e.user),
+      eFile = await db.search("Files", { fName: fileName, from: from, to: { $elemMatch: { user: { $in: sTo } } }, active: true }),
       otherData = req.body
 
-  for (let u of to) {
-    const userCheck = await db.search('Users', { email: u.email });
-    if (!userCheck.success) {
-      return res.status(201).json({ success: false, msg: `Given user ${u.email} does not exist.` });
-    }
-  }
+  // for (let u of to) {
+  //   const userCheck = await db.search('Users', { _id: u.user });
+  //   if (!userCheck.success) {
+  //     return res.status(201).json({ success: false, msg: `Given user does not exist.` });
+  //   }
+  // }
 
   // const userCheck = await db.search('Users', { email: { $in: userEmails } });
 
@@ -359,6 +379,7 @@ app.post('/upload', authenticateJWT, async (req, res) => {
 
 app.post('/check', authenticateJWT, (req, res) => {
   res.json({
+      user: req.user,
       success: true,
       message: "authorized"
   });
@@ -376,14 +397,14 @@ async function generateFileHash(filePath) {
 }
 
 app.post('/receiver', authenticateJWT, async (req, res) => {
-  const { receiver } = req.query; 
+  const recipient = req.user._id
 
-  if (!receiver) {
+  if (!recipient) {
     return res.status(400).json({ success: false, msg: 'Username is required' });
   }
 
   try {
-    const filesForUser = await db.search('Files', { to: { $elemMatch: { email: receiver } } });
+    const filesForUser = await db.search('Files', { to: { $elemMatch: { user: recipient } } });
     res.status(200).json(filesForUser);
   } catch (error) {
     res.status(500).json({ success: false, msg: 'Error fetching entries', error });
@@ -423,6 +444,36 @@ app.get('/decrypt', authenticateJWT, upload.single('encrypted_zip'), async (req,
     res.status(500).json({ error: "Failed to decrypt PDF" });
   }
 })
+
+app.get('/chat/:userId', authenticateJWT, async (req, res) => {
+  try {
+    var recepient = req.user._id,
+        userExists = await db.search('Users', { _id: recepient })
+    if (!userExists.success) {
+      return res.status(401).json({ success: false, msg: "Couldn't find user. Try again later." })
+    }
+    var iUarr = await db.search('chat', {
+      $or: [
+        { from: recepient },
+        { to: recepient }
+      ]
+    });
+
+    if (!iUarr && !iUarr.hasOwnProperty('result'))
+      return res.status(401).json({ success: false, msg: 'Error fetching chats. Try again later' })
+
+    return res.status(201).json({ success: true, result: iUarr })
+  } catch(err) {
+    res.status(401).json({ success: false, msg: "Unexpected Error occured. Please try again later." });
+  }
+});
+
+app.get('/chatLog/:userId', authenticateJWT, async (req, res) => {
+  const chatWithUserId = req.params.userId;
+  const userId = req.user._id;
+
+  res.json({ success: true, messages });
+});
 
 app.post('/download/:filename', authenticateJWT, async (req, res) => {
   const { filename } = req.params;

@@ -112,7 +112,8 @@ class fileSharing {
     async upload(data, dBox) {
         try {
             const formData = new FormData(),
-                  token = await F.getToken(),
+                  tokenReq = await F.getToken(),
+                  token = tokenReq.token,
                   rLayers = data.layers,
                   layers = Object.values(rLayers).map(item => item.type),
                   pass = Object.values(rLayers).map(item => item.passPhrase)
@@ -138,6 +139,7 @@ class fileSharing {
             }
 
             data['filePath'] =  response.data.encryptedFilePath
+            data["from"] = tokenReq.user._id
             console.log(data)
             var response2 = await axios.post(`${BASE_URL}/upload`, data, {
                     headers: {
@@ -170,7 +172,6 @@ class fileSharing {
 
     async shareFile(i, dBox) {
         const formData = {},
-            from = localStorage.email,
             to = F.G.id('tChat')?.con?.email || "xyz@gmail.com",
             file = this.file,
             layers = {}
@@ -182,8 +183,7 @@ class fileSharing {
             }
         }
         if (file && file.type === "application/pdf" && file.name.toLowerCase().endsWith(".pdf")) {
-            formData['from'] = from
-            formData['to'] = to.split(',').map(e => ({ email: e.trim() }))
+            formData['to'] = to.split(',').map(e => ({ user: e.trim() }))
             formData['fileName'] = file.name
             formData['layers'] = layers
             formData['expiry_date'] = i.expiry_date.value
@@ -279,8 +279,6 @@ class gen {
             dts = element["dataset"],
             dBoxVar = dts.dialog,
             dBox = F.G.id(dBoxVar)
-        console.log("dataset closed: ", dts)
-        console.log('i' in dts)
         if ('i' in dts) {
             var ifA = JSON.parse(dts.i)
             console.log(ifA)
@@ -288,8 +286,6 @@ class gen {
                 F.G.id(e).value = ""
             })
         }
-        console.log("closing element: ", element)
-        console.log("closing element: ", element.close)
         element.closeE && element.closeE()
         F.hide(dBox)
         F.class([F.G.id('app')], ["disable"], !0)
@@ -338,7 +334,7 @@ class gen {
             month = String(today.getMonth() + 1).padStart(2, '0'),
             day = String(today.getDate()).padStart(2, '0'),
             date = `${year}-${month}-${day}`,
-            sDate = (F.G.query('input[type="date"]', f).value || !1);
+            sDate = (F.G.query('input[type="date"]', f)?.value || !1);
 
         for (var i = 0; i<inFields.length; i++) {
             var type = inFields[i].type
@@ -348,7 +344,6 @@ class gen {
                     return false
                 }
             } else if (type === "time" && sDate === date) {
-                console.log("checking time")
                 var hours = String(today.getHours() + 1).padStart(2, '0'),
                     minutes = String(today.getMinutes()).padStart(2, '0'),
                     minTime = `${hours}:${minutes}`
@@ -392,7 +387,8 @@ class chat {
 
     async addChat(i, dBox) {
         var uEmail = i.userEmail.value,
-            token = await F.getToken(),
+            tokenReq = await F.getToken(),
+            token = tokenReq.token,
             res = await axios.post(`${BASE_URL}/search`, {
                 collection: 'Users',
                 query: { email: uEmail },

@@ -128,7 +128,7 @@ ipcMain.handle('isAuthorized', async () => {
 
     if (response.status === 200) {
       console.log("Token is authorized");
-      return token;
+      return { token: token, user: response.user };
     }
     console.log("Session Expired. Please login again.");
     mainWindow && mainWindow.close();
