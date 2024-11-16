@@ -139,8 +139,6 @@ class fileSharing {
             }
 
             data['filePath'] =  response.data.encryptedFilePath
-            data["from"] = tokenReq.user._id
-            console.log(data)
             var response2 = await axios.post(`${BASE_URL}/upload`, data, {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -156,10 +154,7 @@ class fileSharing {
                 alert(data.msg);
             }
             F.class([F.G.id('app')], ["disable"], !0)
-            dBox.close && dBox.close()
-            dBox.closeE && dBox.closeE()
         } catch (error) {
-            dBox.closeE && dBox.closeE()
             if (error.response) {
                 console.error('Error:', error.response.data);
                 alert('Error: ' + (error.response.data?.msg || "Try again later"));
@@ -167,14 +162,20 @@ class fileSharing {
                 console.error('Error:', error);
                 alert('An error occurred while uploading the file.');
             }
+        } finally {
+            dBox.close && dBox.close()
+            dBox.closeE && dBox.closeE()
         }
     }
 
     async shareFile(i, dBox) {
         const formData = {},
-            to = F.G.id('tChat')?.con?.email || "xyz@gmail.com",
+            rTo = F.G.id('tChat')?.con?.email || "xyz341@gmail.com",
+            eTo = rTo.split(',').map(e => e.trim()),
             file = this.file,
-            layers = {}
+            layers = {},
+            tokenReq = await F.getToken()
+        let to;
         for (var l = 0; l<i.nLayers.value; l++) {
             var temp = this.cLayers.children[l]
             layers[l] = {
@@ -182,8 +183,29 @@ class fileSharing {
                 passPhrase: F.G.class('passPh', temp)[0].value
             }
         }
+        try {
+            const userCheck = await axios.post(`${BASE_URL}/search`, {
+                collection: "Users",
+                query: { email: { $in: eTo } },
+                method: "find"
+            }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } });
+            if (!userCheck.success)
+                return (alert("Given user does not exist."), false)
+            if (userCheck.data.success && userCheck.data.result.length !== eTo.length) {
+              const missingEmails = eTo.filter(email => !userCheck.result.some(u => u.email === email));
+              alert(`Given user(s) ${missingEmails.join(', ')} do not exist.`)
+              return
+            }
+
+            to = userCheck.data.result.map(user => ({user: user._id}));
+        } catch (err) {
+            dBox.close && dBox.close()
+            dBox.closeE && dBox.closeE()
+            alert("Unexpected error occured. Try again later")
+            return
+        }
         if (file && file.type === "application/pdf" && file.name.toLowerCase().endsWith(".pdf")) {
-            formData['to'] = to.split(',').map(e => ({ user: e.trim() }))
+            formData['to'] = to
             formData['fileName'] = file.name
             formData['layers'] = layers
             formData['expiry_date'] = i.expiry_date.value
@@ -197,6 +219,7 @@ class fileSharing {
             this.upload(formData, dBox)
         } else {
             alert("Please upload a PDF file.");
+            F.class([F.G.id('app'), dBox], ["disable"], !0)
             dBox.closeE && dBox.closeE()
             return;
         }
@@ -288,7 +311,7 @@ class gen {
         }
         element.closeE && element.closeE()
         F.hide(dBox)
-        F.class([F.G.id('app')], ["disable"], !0)
+        F.class([F.G.id('app'), dBox], ["disable"], !0)
     }
 
     handleInputs(e) {

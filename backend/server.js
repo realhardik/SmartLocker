@@ -38,7 +38,7 @@ const pythonURL = 'http://127.0.0.1:5000'
 const db = new class {
   constructor() {
     h.BM(this, ["schemas", "addUser", "search", "newSession", "addFile", "remove"])
-    mongoose.connect(mongoURI).then(() => {
+    mongoose.connect(mongoURI).then(async () => {
       console.log('Connected to MongoDB Atlas');
       this.schemas()
       deleteExpiredFiles()
@@ -101,11 +101,31 @@ const db = new class {
       active: { type: Boolean, default: true },
     });
 
+    this.otpSchema = new mongoose.Schema({
+      email: { type: String, required: true },
+      otp: { type: String, required: true },
+      createdAt: { type: Date, default: Date.now, index: { expires: '5m' } }, // Expire after 5 minutes
+    });
+    
+
     this.Users = mongoose.model('user', this.userSchema)
     this.Files = mongoose.model('fileLogs', this.fileLog)
     this.Session = mongoose.model('session', this.sessionSchema)
     this.chatLog = mongoose.model('chatLogs', this.chatLogs)
     this.chat = mongoose.model('chat', this.chatSchema)
+    this.otp = mongoose.model('otpCollection', this.otpSchema)
+  }
+
+  async add(collection, reqFields) {
+    var model = this[collection]
+    if (!model) throw new Error("Invalid collection name");
+    try {
+      var newEntry = await model.create(reqFields)
+      return { success: true, result: newEntry };
+    } catch(err) {
+      console.error("Server Error: ", err)
+      return { success: false }
+    }
   }
   
   async addUser(name, email, pass) {
@@ -126,7 +146,6 @@ const db = new class {
     try {
       var savedFileEntry = await this.Files.create(fEntry);
       if (savedFileEntry) {
-        console.log("saved entry: ", savedFileEntry)
         return { success: true, file: savedFileEntry, msg: "File shared successfully." }
       }
         
@@ -139,16 +158,15 @@ const db = new class {
 
   async newSession(email) {
     try {
-      var user = await this.search('Users', { email: email }, 'findOne')
-      console.log(user)
+      const user = await this.search('Users', { email: email }, 'findOne')
+      console.log("user ins ession: ", user)
       if (!user.success || !user.result)
         return { success: false }
-      var jTn = jwt.sign({ user }, JWT_SECRET, { expiresIn: '15m' }),
+      var jTn = jwt.sign({ data: user.result }, JWT_SECRET, { expiresIn: '15m' }),
         session = await this["Session"].create({
                     user: user.result._id,
                     token: jTn
                   })
-      console.log(session)
       return { success: true, session: { user: user.result, token: session.token } };
     } catch (err) {
       console.log("Error Creating Session: ", err)
@@ -162,7 +180,6 @@ const db = new class {
     let result;
     
     if (!model) throw new Error("Invalid collection name");
-    console.log("searching from: ", query);
 
     try {
         if (method === "find") {
@@ -171,10 +188,8 @@ const db = new class {
             result = await model.findOne(query).sort({ timestamp: -1 });
         } else if (method === "findOneAndUpdate") {
             result = await model.findOneAndUpdate(query, update, { ...options, new: true });
-            console.log("updated: ", result);
         } else if (method === "updateMany") {
             result = await model.updateMany(query, update, options);
-            console.log("updated many: ", result);
         }
 
         if ((method === "find" && result.length === 0) || (method !== "find" && !result)) {
@@ -194,7 +209,6 @@ const db = new class {
         method = ["single", "multiple"].includes(method) ? method : "multiple";
     let result;
     if (!model) throw new Error("Invalid collection name");
-    console.log("removing from: ", query)
     try {
       if (method === "single") {
           result = await model.deleteOne(query);
@@ -329,30 +343,16 @@ app.post('/encrypt', authenticateJWT, upload.single('file'), async (req, res) =>
 })
 
 app.post('/upload', authenticateJWT, async (req, res) => {
-  const from = req.user._id,
+  const from = req.user.data._id,
       { fileName, to } = req.body,
       sTo = to.map(e => e.user),
       eFile = await db.search("Files", { fName: fileName, from: from, to: { $elemMatch: { user: { $in: sTo } } }, active: true }),
       otherData = req.body
-
-  // for (let u of to) {
-  //   const userCheck = await db.search('Users', { _id: u.user });
-  //   if (!userCheck.success) {
-  //     return res.status(201).json({ success: false, msg: `Given user does not exist.` });
-  //   }
-  // }
-
-  // const userCheck = await db.search('Users', { email: { $in: userEmails } });
-
-  // if (userCheck.success && userCheck.result.length !== userEmails.length) {
-  //   const missingEmails = userEmails.filter(email => !userCheck.result.some(u => u.email === email));
-  //   return res.status(400).json({ success: false, msg: `Given user(s) ${missingEmails.join(', ')} do not exist.` });
-  // }
-  
+      
   if (eFile.success) {
     return res.status(201).json({ success: false, msg: 'Given Filename is active currently. Change it to share.' });
   }
-  
+
   if (!fileName || !from || !to) {
     return res.status(201).json({ success: false, msg: 'File, from, and to are required' });
   }
@@ -369,7 +369,7 @@ app.post('/upload', authenticateJWT, async (req, res) => {
           expiry_time: otherData.expiry_time,
         },
         result = await db.addFile(fileEntry)
-    console.log(fileEntry)
+    console.log("new file: ", fileEntry)
     res.status(201).json(result);
   } catch (err) {
     console.log(err)
@@ -379,7 +379,7 @@ app.post('/upload', authenticateJWT, async (req, res) => {
 
 app.post('/check', authenticateJWT, (req, res) => {
   res.json({
-      user: req.user,
+      user: req.user.data,
       success: true,
       message: "authorized"
   });
@@ -397,7 +397,7 @@ async function generateFileHash(filePath) {
 }
 
 app.post('/receiver', authenticateJWT, async (req, res) => {
-  const recipient = req.user._id
+  const recipient = req.user.data._id
 
   if (!recipient) {
     return res.status(400).json({ success: false, msg: 'Username is required' });
@@ -447,7 +447,7 @@ app.get('/decrypt', authenticateJWT, upload.single('encrypted_zip'), async (req,
 
 app.get('/chat/:userId', authenticateJWT, async (req, res) => {
   try {
-    var recepient = req.user._id,
+    var recepient = req.user.data._id,
         userExists = await db.search('Users', { _id: recepient })
     if (!userExists.success) {
       return res.status(401).json({ success: false, msg: "Couldn't find user. Try again later." })
@@ -470,7 +470,7 @@ app.get('/chat/:userId', authenticateJWT, async (req, res) => {
 
 app.get('/chatLog/:userId', authenticateJWT, async (req, res) => {
   const chatWithUserId = req.params.userId;
-  const userId = req.user._id;
+  const userId = req.user.data._id;
 
   res.json({ success: true, messages });
 });
@@ -528,6 +528,73 @@ app.post('/search', authenticateJWT, async (req, res) => {
     return res.json(result)
 })
 
+app.post('/forgotPassword', async (req, res) => {
+  const { email } = req.body,
+    chkE = await db.search('Users', { email: email }, 'findOne')
+
+  if (!chkE.success || !chkE.result)
+    return res.status(401).json({ success: false, msg: "Couldn't find the user." })
+
+  const nodemailer = require('nodemailer'),
+        otpGen = require('otp-generator');
+        
+  let otp = otpGen.generate(6, { specialChars: false }),
+      transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+              user: 'johnwickxh@gmail.com', 
+              pass: 'syky zwhr arud hpnt'
+          }
+      })
+
+  try {
+    var hashedOTP = await bcrypt.hash(otp, 10)
+    await db.add('otp', { email: email, otp: hashedOTP })
+    let mailOptions = {
+        from: '"Smart Locker noreply" <noreply@gmail.com>',
+        to: email,
+        subject: 'Forgot Password - OTP',
+        text: `Your OTP for resetting password: ${otp}`,
+        html: `<h5>Your OTP for verification is: <b>${otp}</b></h5>`
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.error(error);
+            return res.status(500).json({ success: false, msg: "Failed to send OTP." });
+        }
+        res.status(200).json({ success: true, msg: "OTP sent to email." });
+    });
+  } catch (err) {
+    console.error('Server error:', err);
+    res.status(500).json({ success: false, msg: "Server error." });
+  }
+})
+
+app.get('/forgotPassword/:otp', async (req, res) => {
+  const { otp } = req.params;
+  const { email } = req.query;
+
+  try {
+    var storedOtp = await db.search('otp', { email: email }, 'findOne')
+    
+    if (!storedOtp) {
+      return res.status(400).json({ success: false, msg: "OTP has expired or is invalid." });
+    }
+
+    var checkOTP = await bcrypt.compare(otp, storedOtp.result.otp)
+    
+    if (!checkOTP) {
+      return res.status(401).json({ success: false, msg: "Invalid OTP." });
+    }
+    await db.remove('otp', { email: email }, 'multiple')
+    res.status(200).json({ success: true, msg: "OTP verified successfully." });
+  } catch (err) {
+    console.error('Server error:', err);
+    res.status(500).json({ success: false, msg: "Server error." });
+  }
+})
+
 const deleteExpiredFiles = async () => {
   const date = moment().format('DD-MM-YYYY'),
         time = moment().format('HH:mm'),
@@ -541,7 +608,6 @@ const deleteExpiredFiles = async () => {
             ]
           }, 'updateMany', {  active: false }
         )
-  console.log("Expired files update result:", expiredFiles);
   // for (const file of expiredFiles) {
     // if (fs.existsSync(file.fPath)) fs.unlinkSync(file.fPath);
     // console.log(`File ${file.fName} deleted due to expiration.`);
@@ -552,4 +618,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
