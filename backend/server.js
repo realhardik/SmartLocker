@@ -94,10 +94,9 @@ const db = new class {
       fPath: String,
       fName: String,
       fileHash: String,
-      rView: { type: Boolean, default: true },
+      rView: { type: Boolean, default: false },
       maxViews: { type: Number, default: 2 },
-      expiry_date: String,
-      expiry_time: String,
+      expiry: { type: Date },
       active: { type: Boolean, default: true },
     });
 
@@ -348,7 +347,6 @@ app.post('/upload', authenticateJWT, async (req, res) => {
       sTo = to.map(e => e.user),
       eFile = await db.search("Files", { fName: fileName, from: from, to: { $elemMatch: { user: { $in: sTo } } }, active: true }),
       otherData = req.body
-      
   if (eFile.success) {
     return res.status(201).json({ success: false, msg: 'Given Filename is active currently. Change it to share.' });
   }
@@ -365,8 +363,9 @@ app.post('/upload', authenticateJWT, async (req, res) => {
           fName: fileName,
           fPath: otherData.filePath,
           fileHash: filehash,
-          expiry_date: otherData.expiry_date,
-          expiry_time: otherData.expiry_time,
+          expiry: otherData.expiry,
+          rView: otherData.limit_views,
+          maxViews: otherData.max_views || -1
         },
         result = await db.addFile(fileEntry)
     console.log("new file: ", fileEntry)
@@ -412,18 +411,15 @@ app.post('/receiver', authenticateJWT, async (req, res) => {
 });
 
 app.get('/decrypt', authenticateJWT, upload.single('encrypted_zip'), async (req, res) => {
-  var otherData = req.body.data
+  var otherData = JSON.parse(req.body.data)
+  console.log(otherData)
   if (!req.file || !otherData.selected_algos || !otherData.all_passphrases || !otherData.filename) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
   const formData = new FormData();
   formData.append('encrypted_files.zip', fs.createReadStream(req.file.path));
-  formData.append('data', JSON.stringify({
-    selected_algos: JSON.parse(selected_algos),
-    all_passphrases: JSON.parse(all_passphrases),
-    filename: filename
-  }));
+  formData.append('data', JSON.stringify(otherData));
 
   try {
     const response = await axios.post('http://127.0.0.1:5000/decrypt', formData, {
@@ -436,7 +432,7 @@ app.get('/decrypt', authenticateJWT, upload.single('encrypted_zip'), async (req,
     fs.unlinkSync(req.file.path);
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=${filename}_decrypted_file.pdf`);
+    res.setHeader('Content-Disposition', `attachment; filename=${otherData.fileName}_decrypted_file.pdf`);
     res.send(response.data);
 
   } catch (error) {
@@ -555,7 +551,7 @@ app.post('/forgotPassword', async (req, res) => {
         to: email,
         subject: 'Forgot Password - OTP',
         text: `Your OTP for resetting password: ${otp}`,
-        html: `<h5>Your OTP for verification is: <b>${otp}</b></h5>`
+        html: `<h2>Your OTP for verification is: <b>${otp}</b></h2>\n<h4>OTP is valid for 5 minutes.</h4>`
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
@@ -596,18 +592,14 @@ app.get('/forgotPassword/:otp', async (req, res) => {
 })
 
 const deleteExpiredFiles = async () => {
-  const date = moment().format('DD-MM-YYYY'),
-        time = moment().format('HH:mm'),
-        expiredFiles = await db.search('Files', {
-            $or: [
-              { expiry_date: { $lt: date } },
-              { 
-                expiry_date: date,
-                expiry_time: { $lt: time }
-              }
-            ]
-          }, 'updateMany', {  active: false }
+  const date = new Date(),
+        today = date.toISOString(),
+        expiredFiles = await db.search('Files', { expiry: { $lt: today } }, 
+          'updateMany', {  active: false }
         )
+    var files = await db.search('Files', {})
+    console.log("files fn: ", files)
+    console.log("exp files fn: ", expiredFiles)
   // for (const file of expiredFiles) {
     // if (fs.existsSync(file.fPath)) fs.unlinkSync(file.fPath);
     // console.log(`File ${file.fName} deleted due to expiration.`);

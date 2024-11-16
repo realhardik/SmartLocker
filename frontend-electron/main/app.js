@@ -49,9 +49,8 @@ class fileSharing {
 
         F.G.id('expiry_date').setAttribute('min', date);
         var close = () => {
-            console.log('ran')
             F.G.id('fileInput').value = ""
-            F.class([F.G.id('app')], ["disable"], !0)
+            F.class([F.G.id('app'), F.G.id('fileSharing')], ["disable"], !0)
             F.hide(bUpl, !0)
             F.hide(aUpl)
             this.cLayers.children.length > 1 
@@ -170,12 +169,13 @@ class fileSharing {
 
     async shareFile(i, dBox) {
         const formData = {},
-            rTo = F.G.id('tChat')?.con?.email || "xyz341@gmail.com",
+            rTo = F.G.id('tChat')?.con?.email || "xyz@gmail.com",
             eTo = rTo.split(',').map(e => e.trim()),
             file = this.file,
             layers = {},
             tokenReq = await F.getToken()
         let to;
+        
         for (var l = 0; l<i.nLayers.value; l++) {
             var temp = this.cLayers.children[l]
             layers[l] = {
@@ -183,15 +183,21 @@ class fileSharing {
                 passPhrase: F.G.class('passPh', temp)[0].value
             }
         }
+
         try {
             const userCheck = await axios.post(`${BASE_URL}/search`, {
                 collection: "Users",
                 query: { email: { $in: eTo } },
                 method: "find"
             }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } });
-            if (!userCheck.success)
+
+            if (!userCheck.data.success) {
+                dBox.closeE && dBox.closeE()
                 return (alert("Given user does not exist."), false)
+            }
+                
             if (userCheck.data.success && userCheck.data.result.length !== eTo.length) {
+              dBox.closeE && dBox.closeE()
               const missingEmails = eTo.filter(email => !userCheck.result.some(u => u.email === email));
               alert(`Given user(s) ${missingEmails.join(', ')} do not exist.`)
               return
@@ -208,8 +214,14 @@ class fileSharing {
             formData['to'] = to
             formData['fileName'] = file.name
             formData['layers'] = layers
-            formData['expiry_date'] = i.expiry_date.value
-            formData['expiry_time'] = i.expiry_time.value
+            const userInputDateTime = `${i.expiry_date.value}T${i.expiry_time.value}:00`;
+            const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const dateInUserTimeZone = new Date(
+                new Date(userInputDateTime).toLocaleString("en-US", { timeZone: userTimeZone })
+              );
+            const dateInUTC = new Date(dateInUserTimeZone.toISOString());
+            
+            formData['expiry'] = dateInUTC.toISOString()
             if (i.enableMaxViews.value) {
                 formData['limit_views'] = true
                 formData['max_views'] = i.max_views.value
