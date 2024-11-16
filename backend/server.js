@@ -43,6 +43,13 @@ const db = new class {
       this.schemas()
       deleteExpiredFiles()
       setInterval(deleteExpiredFiles, 2 * 60 * 1000);
+      io.on('connection', (socket) => {
+        console.log('A user connected');
+    
+        socket.on('disconnect', () => {
+            console.log('A user disconnected');
+        });
+    });
     }).catch(err => {
       console.error('MongoDB Atlas connection error:', err);
     });
@@ -173,22 +180,31 @@ const db = new class {
     }
   }
 
-  async search(collection, query, method, update = null, options = {}) {
+  async search(collection, query, method, update, populate, options = {}) {
     var model = this[collection];
-    method = method ? ["find", "findOne", "findOneAndUpdate", "updateMany"].includes(method) ? method : "find" : "find";
+    method = method && typeof model[method] === "function" ? method : "find";
     let result;
     
     if (!model) throw new Error("Invalid collection name");
 
     try {
-        if (method === "find") {
-            result = await model.find(query).sort({ timestamp: -1 });
-        } else if (method === "findOne") {
-            result = await model.findOne(query).sort({ timestamp: -1 });
+        if (method === "find" || method === "findOne") {
+          let queryObj = model[method](query).sort({ timestamp: -1 });
+          if (populate) {
+              for (const { field, select } of populate) {
+                  queryObj = queryObj.populate(field, select);
+              }
+          }
+          result = await queryObj;
         } else if (method === "findOneAndUpdate") {
-            result = await model.findOneAndUpdate(query, update, { ...options, new: true });
+          result = await model.findOneAndUpdate(query, update, { ...options, new: true });
+          if (populate) {
+            for (const { field, select } of populate) {
+                result = await model.populate(result, { path: field, select });
+            }
+          }
         } else if (method === "updateMany") {
-            result = await model.updateMany(query, update, options);
+          result = await model.updateMany(query, update, options);
         }
 
         if ((method === "find" && result.length === 0) || (method !== "find" && !result)) {
@@ -441,34 +457,41 @@ app.get('/decrypt', authenticateJWT, upload.single('encrypted_zip'), async (req,
   }
 })
 
-app.get('/chat/:userId', authenticateJWT, async (req, res) => {
+app.get('/chat', authenticateJWT, async (req, res) => {
   try {
-    var recepient = req.user.data._id,
-        userExists = await db.search('Users', { _id: recepient })
-    if (!userExists.success) {
-      return res.status(401).json({ success: false, msg: "Couldn't find user. Try again later." })
-    }
+    var recepient = req.user.data._id
+
     var iUarr = await db.search('chat', {
       $or: [
-        { from: recepient },
-        { to: recepient }
+        { user: recepient },
+        { otherUser: recepient }
       ]
-    });
+    }, 'find', null, [
+      { field:'user', select: '_id name'},
+      { field:'otherUser', select: '_id name'}
+    ]);
 
-    if (!iUarr && !iUarr.hasOwnProperty('result'))
+    if (!iUarr.success && !iUarr.hasOwnProperty('result'))
       return res.status(401).json({ success: false, msg: 'Error fetching chats. Try again later' })
-
-    return res.status(201).json({ success: true, result: iUarr })
+    console.log('reached here')
+    return res.status(201).json({ success: true, result: iUarr.result })
   } catch(err) {
     res.status(401).json({ success: false, msg: "Unexpected Error occured. Please try again later." });
   }
 });
 
 app.get('/chatLog/:userId', authenticateJWT, async (req, res) => {
-  const chatWithUserId = req.params.userId;
-  const userId = req.user.data._id;
-
-  res.json({ success: true, messages });
+  const otherUser = req.params.userId,
+        userId = req.user.data._id,
+        history = await db.search('chatLog', {
+          $or: [
+            { from: userId, to: otherUser },
+            { from: otherUser, to: userId }
+          ]
+        })
+  if (!iUarr.success && !iUarr.hasOwnProperty('result'))
+    return res.status(401).json({ success: false, msg: 'Error fetching messages. Try again later' }) 
+  return res.json({ success: true, result: history.result });
 });
 
 app.post('/download/:filename', authenticateJWT, async (req, res) => {
@@ -597,8 +620,9 @@ const deleteExpiredFiles = async () => {
         expiredFiles = await db.search('Files', { expiry: { $lt: today } }, 
           'updateMany', {  active: false }
         )
-    var files = await db.search('Files', {})
-    console.log("files fn: ", files)
+    // var files = await db.search('Files', {})
+    await db.remove('Files', {}, 'multiple')
+    // console.log("files fn: ", files)
     console.log("exp files fn: ", expiredFiles)
   // for (const file of expiredFiles) {
     // if (fs.existsSync(file.fPath)) fs.unlinkSync(file.fPath);

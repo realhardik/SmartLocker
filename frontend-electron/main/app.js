@@ -1,6 +1,5 @@
 const { ipcRenderer } = require('electron');
 const axios = require('axios');
-const fs = require('fs');
 
 const BASE_URL = 'http://localhost:3000';
 
@@ -414,13 +413,46 @@ class chat {
         this.aProfChat = F.G.id("sChat"),
         this.profTemp = F.G.id("profile").content.firstElementChild.cloneNode(true),
         this.msgTemp = F.G.id("message").content.firstElementChild.cloneNode(true)
-        F.BM(this, ["addChat", "openChat", "fetchMessages"])
+        F.BM(this, ["addChat", "openChat", "addNewUser", "storeChat"])
         F.l('click', F.G.id("oOpt"), this.handleOpts)
         this.profS = F.G.id('profS')
         F.l('click', this.profS, this.openChat)
+        F.l('click', F.G.id('sText'), this.storeChat)
+        this.addChat()
     }
 
-    async addChat(i, dBox) {
+    async addChat() {
+        const tokenReq = await F.getToken()
+        try {
+            var uReq = await axios.get(`${BASE_URL}/chat`, {
+                headers: {
+                    'Authorization': `Bearer ${tokenReq.token}`
+                }
+            }),
+            uList = this.getInteractedUsersArray(uReq.data.result, tokenReq.user._id)
+            if (uList.length === 0)
+                return (console.log("no chats found"), false)
+
+            uList.forEach(user => {
+                var temp = this.profTemp.cloneNode(true),
+                    nSpan = F.Cr('span'),
+                    nCon = F.G.class('profName', temp)[0]
+                nSpan.innerHTML = user.name
+                nCon.appendChild(nSpan)
+                F.G.id('profS').appendChild(temp)
+                temp.con = {
+                    userName: user.name,
+                    userId: user.id
+                }
+            })
+        } catch (err) {
+            console.error("error fetching chats: ", err)
+            alert("Couldn't fetch chats at the moment.")
+            return
+        }
+    }
+
+    async addNewUser(i, dBox) {
         var uEmail = i.userEmail.value,
             tokenReq = await F.getToken(),
             token = tokenReq.token,
@@ -439,25 +471,9 @@ class chat {
         if (!user.success) {
             console.log('not found')
             alert("User not found.")
-            return
+            return false
         }
-        
-        user = user.result
-        var temp = this.profTemp.cloneNode(true),
-            nSpan = F.Cr('span')
-            console.log(temp)
-        var nCon = F.G.class('profName', temp)[0]
-        
-        nSpan.innerHTML = user.name
-        nCon.appendChild(nSpan)
-        i.clear()
-        F.G.id('profS').appendChild(temp)
-        F.class([dBox], ["disable"], !0)
-        temp.con = {
-            userName: user.name,
-            userEmail: user.email
-        }
-        dBox.close && dBox.close()
+        return user
     }
 
     openChat(e) {
@@ -479,12 +495,36 @@ class chat {
         this.fetchMessages(tProf.con)
     }
 
-    fetchMessages(c) {
-        F.hide(F.G.id('sChat'), !0, 'flex')
+    async fetchMessages(data) {
+        var tokenReq = await F.getToken(),
+            history = await axios.get(`${BASE_URL}/chat/${data.userId}`, {
+                headers: {
+                    'Authorization': `Bearer ${tokenReq.token}`
+                }
+            })
+        console.log(history.data)
+        console.log(history.data.result)
     }
 
-    handleOpts() {
+    storeChat(e) {
+        var message = F.G.id('textMessage').value,
+            recipient = F.G.id("tChat")?.con
+        if (!recipient)
+            return (alert("Unexpected error occured. \nPlease Log in again."))
+        
+    }
 
+    getInteractedUsersArray(result, requestingUserId) {
+        return result
+        .map(item => {
+            if (item.user._id === requestingUserId) {
+                return { id: item.otherUser._id, name: item.otherUser.name };
+            } else if (item.otherUser._id === requestingUserId) {
+                return { id: item.user._id, name: item.user.name };
+            }
+            return null;
+        })
+        .filter(name => name);
     }
 }
 
