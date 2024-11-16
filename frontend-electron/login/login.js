@@ -8,8 +8,20 @@ class login {
         F.l("click", this.regBtn, async (e) => { e.preventDefault(); this.signUp() })
         this.sToReg = F.G.id('register');
         this.sToLog = F.G.id('login');
-        F.l("click", this.sToReg, async (e) => { e.preventDefault();  F.G.id('container').classList.add("active") })
-        F.l("click", this.sToLog, async (e) => { e.preventDefault();  F.G.id('container').classList.remove("active") })
+        F.l("click", this.sToReg, async (e) => { e.preventDefault();
+            F.G.id('container').classList.add("active")
+        })
+        F.l("click", this.sToLog, async (e) => { e.preventDefault();
+            F.G.id('container').classList.remove("active") 
+        })
+        F.l("click", F.G.id('forgotPasswordLink'), async (e) => { 
+            e.preventDefault();
+            F.G.id('container').classList.add("active-forgot-password") 
+        })
+        F.l("click", F.G.id('backToSignIn'), async (e) => { 
+            e.preventDefault();
+            F.G.id('container').classList.remove("active-forgot-password") 
+        })
     }
 
     async login() {

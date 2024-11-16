@@ -51,6 +51,16 @@
                 <button id="sBtn">Sign Up</button>
             </form>
         </div>
+        <div class="form-container forgotpassword" id="forgot-password">
+            <form>
+                <h1>Forgot Password</h1>
+                <span>or use your email for registration</span>
+                <input type="text" placeholder="Name">
+                <input type="email" placeholder="Email">
+                <button>Send Verification Code</button>
+                <button type="button" id="backToSignIn">Back to Sign In</button>
+            </form>
+        </div>
         <div class="form-container sign-in">
             <form>
                 <h1>Sign In</h1>
@@ -63,7 +73,7 @@
                 <span>or use your email password</span>
                 <input type="email" id="lEmail" placeholder="Email">
                 <input type="password" id="lPass" placeholder="Password">
-                <a href="#">Forget Your Password?</a>
+                <a href="#" id="forgotPasswordLink">Forget Your Password?</a>
                 <button id="lBtn">Sign In</button>
             </form>
         </div>
@@ -75,7 +85,7 @@
                     <button class="hidden" id="login">Sign In</button>
                 </div>
                 <div class="toggle-panel toggle-right">
-                    <h1>Smart Locker</h1>
+                    <h1>Hello, Friend!</h1>
                     <p>Register with your personal details to use all of site features</p>
                     <button class="hidden" id="register">Sign Up</button>
                 </div>
@@ -84,5 +94,4 @@
     </div>
     <script src="login.js"></script>
 </body>
-
 </html>
