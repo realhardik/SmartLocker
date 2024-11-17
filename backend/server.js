@@ -5,7 +5,6 @@ const mongoose = require('mongoose')
 const cors = require('cors')
 const multer = require('multer')
 const fs = require('fs')
-const moment = require('moment')
 const path = require('path')
 const crypto = require('crypto')
 const FormData = require('form-data')
@@ -15,7 +14,7 @@ const { Server } = require('socket.io')
 
 const app = express()
 const server = http.createServer(app)
-const io = new Server(server, { cors: { origin: "*" } })
+const io = new Server(server)
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
@@ -28,6 +27,26 @@ const h = {
         r[e[t]] = r[e[t]].bind(r)
   }
 }
+
+io.on('connection', (socket) => {
+  console.log('Socket connected:', socket.id);
+
+  socket.on('joinRoom', (roomId) => {
+    socket.join(roomId);
+
+    console.log(`Socket ${socket.id} joined room: ${roomId}`);
+  });
+
+  socket.on('chatMessage', ({ roomId, senderId, message }) => {
+    console.log(`Message in room ${roomId} from ${senderId}: ${message}`);
+    
+    socket.to(roomId).emit('newMessage', { senderId, message });
+  });
+
+  socket.on('disconnect', () => {
+      console.log('Socket disconnected:', socket.id);
+  });
+});
 
 const JWT_SECRET = 'your_jwt_secret_key';
 
@@ -43,13 +62,6 @@ const db = new class {
       this.schemas()
       deleteExpiredFiles()
       setInterval(deleteExpiredFiles, 2 * 60 * 1000);
-      io.on('connection', (socket) => {
-        console.log('A user connected');
-    
-        socket.on('disconnect', () => {
-            console.log('A user disconnected');
-        });
-    });
     }).catch(err => {
       console.error('MongoDB Atlas connection error:', err);
     });
@@ -631,6 +643,6 @@ const deleteExpiredFiles = async () => {
 };
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+server.listen(PORT, () => {
+  console.log('Server running on http://localhost:3000');
 });

@@ -116,6 +116,10 @@
                 und: t=> void 0 === t
             },
             Cr: (e) => document.createElement(e),
+            generateRoomId: (user1, user2) => {
+                const sortedIds = [user1, user2].sort();
+                return sortedIds.join('_');
+            },
             class: (e, v, t) => {
                 try {
                     e.forEach(element => {

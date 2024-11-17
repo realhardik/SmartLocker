@@ -126,8 +126,6 @@ ipcMain.handle('isAuthorized', async () => {
       }
     );
 
-    console.log(response)
-
     if (response.status === 200) {
       console.log("Token is authorized");
       return { token: token, user: response.data.user };

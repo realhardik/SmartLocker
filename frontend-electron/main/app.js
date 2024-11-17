@@ -1,5 +1,7 @@
 const { ipcRenderer } = require('electron');
 const axios = require('axios');
+const io = require("socket.io-client");
+const socket = io("http://localhost:3000");
 
 const BASE_URL = 'http://localhost:3000';
 
@@ -9,11 +11,18 @@ F.getToken = async () => {
     return t
 }
 
+socket.on('connect', () => {
+    console.log('Connected to the server with ID:', socket.id);
+  });
+  
+  socket.on('disconnect', () => {
+    console.log('Disconnected from server');
+});
+
 ipcRenderer.on('rec-profile', (event, { email, name }) => {
     localStorage.setItem('email', email);
     localStorage.setItem('name', name);
 });
-
 
 class fileSharing {
     constructor() {
@@ -413,23 +422,28 @@ class chat {
         this.aProfChat = F.G.id("sChat"),
         this.profTemp = F.G.id("profile").content.firstElementChild.cloneNode(true),
         this.msgTemp = F.G.id("message").content.firstElementChild.cloneNode(true)
-        F.BM(this, ["addChat", "openChat", "addNewUser", "storeChat"])
+        this.activeProfile = F.G.id('tChat')
+        this.joinedRooms = new Set()
+        F.BM(this, ["addChat", "openChat", "addNewUser", "sendMessage"])
+        this.joinRoom = F.debounce(this.joinRoom.bind(this), 200);
         F.l('click', F.G.id("oOpt"), this.handleOpts)
         this.profS = F.G.id('profS')
         F.l('click', this.profS, this.openChat)
-        F.l('click', F.G.id('sText'), this.storeChat)
+        F.l('input', F.G.id('textMessage'), this.joinRoom)
+        F.l('click', F.G.id('sText'), this.sendMessage)
         this.addChat()
     }
 
     async addChat() {
-        const tokenReq = await F.getToken()
+        this.userData = await F.getToken()
+        this.token = this.userData.token
         try {
             var uReq = await axios.get(`${BASE_URL}/chat`, {
                 headers: {
-                    'Authorization': `Bearer ${tokenReq.token}`
+                    'Authorization': `Bearer ${this.token}`
                 }
             }),
-            uList = this.getInteractedUsersArray(uReq.data.result, tokenReq.user._id)
+            uList = this.getInteractedUsersArray(uReq.data.result, this.userData.user._id)
             if (uList.length === 0)
                 return (console.log("no chats found"), false)
 
@@ -442,8 +456,10 @@ class chat {
                 F.G.id('profS').appendChild(temp)
                 temp.con = {
                     userName: user.name,
-                    userId: user.id
+                    userId: user.id,
+                    conversationId: F.generateRoomId(user.id, this.userData.user._id)
                 }
+                console.log(F.generateRoomId(user.id, this.userData.user._id))
             })
         } catch (err) {
             console.error("error fetching chats: ", err)
@@ -486,32 +502,41 @@ class chat {
             profName = F.G.class('profName', c)[0]
         if (!profPic || !profName) return;
         var { userName } = c.con,
-            tProf = F.G.id('tChat'),
             tPic = F.G.query('img', F.G.id('aProfPic')),
             tName = F.G.query('span', F.G.id('aProfName'))
         F.hide(F.G.id('sChat'))
-        tProf.con = c.con
+        this.activeProfile.con = c.con
         tName.innerText = userName
-        this.fetchMessages(tProf.con)
+        this.fetchMessages(this.activeProfile.con)
     }
 
     async fetchMessages(data) {
-        var tokenReq = await F.getToken(),
-            history = await axios.get(`${BASE_URL}/chat/${data.userId}`, {
-                headers: {
-                    'Authorization': `Bearer ${tokenReq.token}`
-                }
-            })
-        console.log(history.data)
-        console.log(history.data.result)
+        // var tokenReq = await F.getToken(),
+        //     history = await axios.get(`${BASE_URL}/chat/${data.userId}`, {
+        //         headers: {
+        //             'Authorization': `Bearer ${tokenReq.token}`
+        //         }
+        //     })
+        F.hide(F.G.id('sChat'), !0)
     }
 
-    storeChat(e) {
-        var message = F.G.id('textMessage').value,
-            recipient = F.G.id("tChat")?.con
-        if (!recipient)
-            return (alert("Unexpected error occured. \nPlease Log in again."))
-        
+    joinRoom() {
+        var activeProfile = this.activeProfile?.con
+        if (!activeProfile)
+            return (alert("Unexpected error occured while connecting to the server.\nPlease log in again."))
+        if (this.joinedRooms.has(activeProfile.conversationId)) 
+            return
+        socket.emit('joinRoom', activeProfile.conversationId);
+        this.joinedRooms.add(activeProfile.conversationId)
+    }
+
+    sendMessage(e) {
+        var message = F.G.id('textMessage').value
+        socket.emit('chatMessage', { 
+            roomId: this.activeProfile.conversationId, 
+            senderId: this.userData.user._id, 
+            message 
+        });
     }
 
     getInteractedUsersArray(result, requestingUserId) {
