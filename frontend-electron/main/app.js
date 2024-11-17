@@ -467,7 +467,6 @@ class chat {
             return
         }
     }
-
     async addNewUser(i, dBox) {
         var uEmail = i.userEmail.value,
             tokenReq = await F.getToken(),
