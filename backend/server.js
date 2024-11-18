@@ -11,6 +11,8 @@ const FormData = require('form-data')
 const axios = require('axios')
 const http = require('http')
 const { Server } = require('socket.io')
+const nodemailer = require('nodemailer')
+const otpGen = require('otp-generator')
 
 const app = express()
 const server = http.createServer(app)
@@ -20,13 +22,51 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(cors())
 
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+      user: 'johnwickxh@gmail.com', 
+      pass: 'syky zwhr arud hpnt'
+  }
+})
+
 const h = {
   BM: (r, e) => {
     var s = e.length;
     for (let t = 0; t < s; t++)
         r[e[t]] = r[e[t]].bind(r)
-  }
+  },
+  sendMail: async (data) => {
+    try {
+      let mailOptions = {
+        from: '"Smart Locker noreply" <noreply@gmail.com>',
+        to: data.to,
+        subject: data.subject,
+        text: data.text,
+        html: data.html
+      };
+  
+      const result = await new Promise((resolve, reject) => {
+        transporter.sendMail(mailOptions, (error, info) => {
+          if (error) {
+            console.error("Email sending error:", error);
+            reject({ success: false, msg: "Failed to send OTP." });
+          } else {
+            console.log("Email sent successfully:", info);
+            resolve({ success: true, msg: "Email sent.", info });
+          }
+        });
+      });
+  
+      return result;
+    } catch (err) {
+      console.error("Error in sendMail:", err);
+      return { success: false, msg: "Couldn't send email at the moment. Try again later." };
+    }
+  }  
 }
+
+
 
 io.on('connection', (socket) => {
   console.log('Socket connected:', socket.id);
@@ -120,6 +160,7 @@ const db = new class {
     });
 
     this.otpSchema = new mongoose.Schema({
+      timestamp: { type: Date, default: Date.now },
       email: { type: String, required: true },
       otp: { type: String, required: true },
       createdAt: { type: Date, default: Date.now, index: { expires: '5m' } }, // Expire after 5 minutes
@@ -565,37 +606,23 @@ app.post('/forgotPassword', async (req, res) => {
 
   if (!chkE.success || !chkE.result)
     return res.status(401).json({ success: false, msg: "Couldn't find the user." })
-
-  const nodemailer = require('nodemailer'),
-        otpGen = require('otp-generator');
         
-  let otp = otpGen.generate(6, { specialChars: false }),
-      transporter = nodemailer.createTransport({
-          service: 'gmail',
-          auth: {
-              user: 'johnwickxh@gmail.com', 
-              pass: 'syky zwhr arud hpnt'
-          }
-      })
+  let otp = otpGen.generate(6, { specialChars: false })
 
   try {
     var hashedOTP = await bcrypt.hash(otp, 10)
+    
+    var sendotp = await h.sendMail({
+      to: email,
+      subject: 'Forgot Password - OTP',
+      text: `Your OTP for resetting password: ${otp}`,
+      html: `<h2>Your OTP for verification is: <b>${otp}</b></h2>\n<h4>OTP is valid for 5 minutes.</h4>`
+    })
+    if (!sendotp.success) {
+      alert(sendotp.msg || "Couldn't send otp at the moment. \nTry again later.")
+    }
     await db.add('otp', { email: email, otp: hashedOTP })
-    let mailOptions = {
-        from: '"Smart Locker noreply" <noreply@gmail.com>',
-        to: email,
-        subject: 'Forgot Password - OTP',
-        text: `Your OTP for resetting password: ${otp}`,
-        html: `<h2>Your OTP for verification is: <b>${otp}</b></h2>\n<h4>OTP is valid for 5 minutes.</h4>`
-    };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            console.error(error);
-            return res.status(500).json({ success: false, msg: "Failed to send OTP." });
-        }
-        res.status(200).json({ success: true, msg: "OTP sent to email." });
-    });
+    res.status(200).json(sendotp);
   } catch (err) {
     console.error('Server error:', err);
     res.status(500).json({ success: false, msg: "Server error." });
@@ -633,7 +660,7 @@ const deleteExpiredFiles = async () => {
           'updateMany', {  active: false }
         )
     // var files = await db.search('Files', {})
-    await db.remove('Files', {}, 'multiple')
+    // await db.remove('Files', {}, 'multiple')
     // console.log("files fn: ", files)
     console.log("exp files fn: ", expiredFiles)
   // for (const file of expiredFiles) {
