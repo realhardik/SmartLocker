@@ -13,9 +13,9 @@ F.getToken = async () => {
 
 socket.on('connect', () => {
     console.log('Connected to the server with ID:', socket.id);
-  });
-  
-  socket.on('disconnect', () => {
+});
+
+socket.on('disconnect', () => {
     console.log('Disconnected from server');
 });
 
@@ -431,6 +431,11 @@ class chat {
         F.l('click', this.profS, this.openChat)
         F.l('input', F.G.id('textMessage'), this.joinRoom)
         F.l('click', F.G.id('sText'), this.sendMessage)
+        socket.on('newMessage', async ({ senderId, message }) => {
+            if (this.activeProfile.open && this.activeProfile.con.userId === senderId) {
+                // await axios.post('/search')
+            }
+        });
         this.addChat()
     }
 
@@ -495,6 +500,7 @@ class chat {
         e.stopPropagation()
         var c = e.target,
             t = 'DIV' === c.tagName;
+        this.activeProfile.open = !0
         if (!t)
             return
         var profPic = F.G.class('profPic', c)[0],
@@ -531,10 +537,13 @@ class chat {
 
     sendMessage(e) {
         var message = F.G.id('textMessage').value
+        var activeProfile = this.activeProfile?.con
+        if (!activeProfile)
+            return (alert("Unexpected error occured while connecting to the server.\nPlease log in again."))
         socket.emit('chatMessage', { 
-            roomId: this.activeProfile.conversationId, 
+            roomId: activeProfile.conversationId, 
             senderId: this.userData.user._id, 
-            message 
+            message: message
         });
     }
 
