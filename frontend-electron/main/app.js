@@ -438,7 +438,11 @@ class chat {
             // }
         });
         socket.on('addNewUser', (user) => {
-            this.createChat(user)
+            this.createChat({
+                name: user.recipientName,
+                id: user.recipientId,
+                chatId: user.chatId
+            })
         })
         socket.on('NoNewUser', (msg) => {
             alert(msg)
@@ -508,7 +512,8 @@ class chat {
         socket.emit('addNewChat', {
             roomId: F.generateRoomId(user.result._id, this.userData.user._id),
             senderId: this.userData.user._id,
-            recipientId: user.result._id
+            recipientId: user.result._id,
+            recipientName: user.result.name
         });
         dBox.close && dBox.close()
     }

@@ -293,14 +293,14 @@ io.on('connection', (socket) => {
     console.log(`Socket ${socket.id} joined room: ${roomId}`);
   });
 
-  socket.on('addNewChat', async ({ roomId, senderId, recipientId }) => {
+  socket.on('addNewChat', async ({ roomId, senderId, recipientId, recipientName }) => {
     var response = await db.add('chat', {
         chatId: roomId,
         user: senderId,
         otherUser: recipientId
       })
     if (response.success) {
-      socket.emit('addNewUser', response.result)
+      socket.emit('addNewUser', { recipientName: recipientName, ...response.result._doc })
     } else {
       socket.emit('NoNewUser', "Error adding new user.")
     }
@@ -697,9 +697,9 @@ const deleteExpiredFiles = async () => {
           'updateMany', {  active: false }
         )
     // var files = await db.search('Files', {})
-    var files = await db.search('chat', {})
+    // var files = await db.search('chat', {})
     
-    console.log("files fn: ", files)
+    // console.log("files fn: ", files)
     // await db.remove('chat', {}, 'multiple')
     console.log("exp files fn: ", expiredFiles)
   // for (const file of expiredFiles) {
