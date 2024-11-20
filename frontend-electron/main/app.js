@@ -431,10 +431,10 @@ class chat {
         F.l('click', this.profS, this.openChat)
         F.l('input', F.G.id('textMessage'), this.joinRoom)
         F.l('click', F.G.id('sText'), this.sendMessage)
-        socket.on('newMessage', async ({ senderId, anc }) => {
-            console.log(anc)
-            // if (this.activeProfile.open && this.activeProfile.con.userId === senderId) {
-            //     socket.emit('markAsRead', message)
+        socket.on('newMessage', async (rMessage) => {
+            console.log(rMessage)
+            // if (this.activeProfile.open && this.activeProfile.con.userId === rMessage.senderId) {
+            //     socket.emit('markAsRead', rMessage)
             // }
         });
         socket.on('addNewUser', (user) => {
@@ -544,7 +544,7 @@ class chat {
         //             'Authorization': `Bearer ${tokenReq.token}`
         //         }
         //     })
-        F.hide(F.G.id('sChat'), !0)
+        F.hide(F.G.id('sChat'), !0, "flex")
     }
 
     joinRoom() {
@@ -562,7 +562,7 @@ class chat {
         var activeProfile = this.activeProfile?.con
         if (!activeProfile)
             return (alert("Unexpected error occured while connecting to the server.\nPlease log in again."))
-        socket.emit('chatMessage', {
+        socket.emit('sendMessage', {
             roomId: activeProfile.conversationId, 
             senderId: this.userData.user._id,
             recipientId: activeProfile.userId,

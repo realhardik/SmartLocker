@@ -114,9 +114,9 @@ const db = new class {
     
     this.chatLogs = new mongoose.Schema({
       timestamp: { type: Date, default: Date.now },
-      chatId: { type: mongoose.Schema.Types.ObjectId, ref: 'chat' },
-      from: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
-      to: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+      chatId: { type: String, ref: 'chat' },
+      from: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
+      to: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
       type: { type: String, enum: ['file', 'text'], default: 'text' },
       content: String,
       read: { type: Boolean, default: false }
@@ -124,10 +124,10 @@ const db = new class {
     
     this.fileLog = new mongoose.Schema({
       timestamp: { type: Date, default: Date.now },
-      from: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+      from: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
       to: [
         {
-          user: { type: mongoose.Schema.Types.ObjectId, ref: 'user' }, 
+          user: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true }, 
           views: { type: Number, default: 0 },
         },
       ],
@@ -298,34 +298,30 @@ io.on('connection', (socket) => {
         chatId: roomId,
         user: senderId,
         otherUser: recipientId
-      })
+    })
     if (response.success) {
       socket.emit('addNewUser', { recipientName: recipientName, ...response.result._doc })
     } else {
       socket.emit('NoNewUser', "Error adding new user.")
     }
-    
   })
 
-  socket.on('chatMessage', async ({ roomId, senderId, recepientId, type, message }) => {
+  socket.on('sendMessage', async ({ roomId, senderId, recipientId, type, message }) => {
     console.log(`Message in room ${roomId} from ${senderId}: ${message}`);
     
     var anc = await db.add('chatLog', {
         chatId: roomId,
         from: senderId,
-        to: recepientId,
+        to: recipientId,
         type:  type || "text",
         content: message
-      })
-    console.log(anc)
+    })
 
-    socket.to(roomId).emit('newMessage', { senderId, anc });
+    socket.to(roomId).emit('newMessage', { ...anc.result._doc });
   });
 
-  socket.on('markAsRead', ({ message }) => {
-
-    
-    socket.to(roomId).emit('newMessage', { senderId, message });
+  socket.on('markAsRead', async ({ message }) => {
+    await db.search('chatLog', { _id: message._id }, 'findOneAndUpdate', { read: true })
   });
 
   socket.on('disconnect', () => {
