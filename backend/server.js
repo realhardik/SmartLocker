@@ -13,6 +13,7 @@ const http = require('http')
 const { Server } = require('socket.io')
 const nodemailer = require('nodemailer')
 const otpGen = require('otp-generator')
+const { type } = require('os')
 
 const app = express()
 const server = http.createServer(app)
@@ -66,28 +67,6 @@ const h = {
   }  
 }
 
-
-
-io.on('connection', (socket) => {
-  console.log('Socket connected:', socket.id);
-
-  socket.on('joinRoom', (roomId) => {
-    socket.join(roomId);
-
-    console.log(`Socket ${socket.id} joined room: ${roomId}`);
-  });
-
-  socket.on('chatMessage', ({ roomId, senderId, message }) => {
-    console.log(`Message in room ${roomId} from ${senderId}: ${message}`);
-    
-    socket.to(roomId).emit('newMessage', { senderId, message });
-  });
-
-  socket.on('disconnect', () => {
-      console.log('Socket disconnected:', socket.id);
-  });
-});
-
 const JWT_SECRET = 'your_jwt_secret_key';
 
 const mongoURI = 'mongodb+srv://harshchan02:rlFWyv0f22LD5rHJ@cluster0.irubh1u.mongodb.net/smart_locker?retryWrites=true&w=majority&appName=Cluster0';
@@ -116,14 +95,15 @@ const db = new class {
     });
     
     this.sessionSchema = new mongoose.Schema({
-      login_time: { type: Date, default: Date.now },
+      timestamp: { type: Date, default: Date.now },
       user: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
       token: { type: String, required: true }
     });
 
     this.chatSchema = new mongoose.Schema({
-      user: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
-      otherUser: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+      chatId: { type: String, unique: true },
+      user: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
+      otherUser: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
       lastMessage: {
         content: String,
         timestamp: Date,
@@ -138,7 +118,8 @@ const db = new class {
       from: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
       to: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
       type: { type: String, enum: ['file', 'text'], default: 'text' },
-      content: String
+      content: String,
+      read: { type: Boolean, default: false }
     });
     
     this.fileLog = new mongoose.Schema({
@@ -166,7 +147,6 @@ const db = new class {
       createdAt: { type: Date, default: Date.now, index: { expires: '5m' } }, // Expire after 5 minutes
     });
     
-
     this.Users = mongoose.model('user', this.userSchema)
     this.Files = mongoose.model('fileLogs', this.fileLog)
     this.Session = mongoose.model('session', this.sessionSchema)
@@ -243,12 +223,20 @@ const db = new class {
     try {
         if (method === "find" || method === "findOne") {
           let queryObj = model[method](query).sort({ timestamp: -1 });
+
+          let originalResults = await queryObj.clone(); 
+
           if (populate) {
               for (const { field, select } of populate) {
                   queryObj = queryObj.populate(field, select);
               }
           }
           result = await queryObj;
+          // populate &&  (result = {
+          //     original: originalResults,
+          //     populated: result
+          //   })
+
         } else if (method === "findOneAndUpdate") {
           result = await model.findOneAndUpdate(query, update, { ...options, new: true });
           if (populate) {
@@ -295,6 +283,55 @@ const db = new class {
     }
   }
 }
+
+io.on('connection', (socket) => {
+  console.log('Socket connected:', socket.id);
+
+  socket.on('joinRoom', (roomId) => {
+    socket.join(roomId);
+
+    console.log(`Socket ${socket.id} joined room: ${roomId}`);
+  });
+
+  socket.on('addNewChat', async ({ roomId, senderId, recipientId }) => {
+    var response = await db.add('chat', {
+        chatId: roomId,
+        user: senderId,
+        otherUser: recipientId
+      })
+    if (response.success) {
+      socket.emit('addNewUser', response.result)
+    } else {
+      socket.emit('NoNewUser', "Error adding new user.")
+    }
+    
+  })
+
+  socket.on('chatMessage', async ({ roomId, senderId, recepientId, type, message }) => {
+    console.log(`Message in room ${roomId} from ${senderId}: ${message}`);
+    
+    var anc = await db.add('chatLog', {
+        chatId: roomId,
+        from: senderId,
+        to: recepientId,
+        type:  type || "text",
+        content: message
+      })
+    console.log(anc)
+
+    socket.to(roomId).emit('newMessage', { senderId, anc });
+  });
+
+  socket.on('markAsRead', ({ message }) => {
+
+    
+    socket.to(roomId).emit('newMessage', { senderId, message });
+  });
+
+  socket.on('disconnect', () => {
+      console.log('Socket disconnected:', socket.id);
+  });
+});
 
 app.post('/signup', async (req, res) => {
   try {
@@ -523,10 +560,10 @@ app.get('/chat', authenticateJWT, async (req, res) => {
       { field:'user', select: '_id name'},
       { field:'otherUser', select: '_id name'}
     ]);
-
+  
     if (!iUarr.success && !iUarr.hasOwnProperty('result'))
       return res.status(401).json({ success: false, msg: 'Error fetching chats. Try again later' })
-    console.log('reached here')
+    console.log('reached chat retriev: ', iUarr.result)
     return res.status(201).json({ success: true, result: iUarr.result })
   } catch(err) {
     res.status(401).json({ success: false, msg: "Unexpected Error occured. Please try again later." });
@@ -660,8 +697,10 @@ const deleteExpiredFiles = async () => {
           'updateMany', {  active: false }
         )
     // var files = await db.search('Files', {})
-    // await db.remove('Files', {}, 'multiple')
-    // console.log("files fn: ", files)
+    var files = await db.search('chat', {})
+    
+    console.log("files fn: ", files)
+    // await db.remove('chat', {}, 'multiple')
     console.log("exp files fn: ", expiredFiles)
   // for (const file of expiredFiles) {
     // if (fs.existsSync(file.fPath)) fs.unlinkSync(file.fPath);

@@ -424,18 +424,25 @@ class chat {
         this.msgTemp = F.G.id("message").content.firstElementChild.cloneNode(true)
         this.activeProfile = F.G.id('tChat')
         this.joinedRooms = new Set()
-        F.BM(this, ["addChat", "openChat", "addNewUser", "sendMessage"])
+        F.BM(this, ["addChat", "openChat", "addNewUser", "sendMessage", "createChat"])
         this.joinRoom = F.debounce(this.joinRoom.bind(this), 200);
         F.l('click', F.G.id("oOpt"), this.handleOpts)
         this.profS = F.G.id('profS')
         F.l('click', this.profS, this.openChat)
         F.l('input', F.G.id('textMessage'), this.joinRoom)
         F.l('click', F.G.id('sText'), this.sendMessage)
-        socket.on('newMessage', async ({ senderId, message }) => {
-            if (this.activeProfile.open && this.activeProfile.con.userId === senderId) {
-                // await axios.post('/search')
-            }
+        socket.on('newMessage', async ({ senderId, anc }) => {
+            console.log(anc)
+            // if (this.activeProfile.open && this.activeProfile.con.userId === senderId) {
+            //     socket.emit('markAsRead', message)
+            // }
         });
+        socket.on('addNewUser', (user) => {
+            this.createChat(user)
+        })
+        socket.on('NoNewUser', (msg) => {
+            alert(msg)
+        })
         this.addChat()
     }
 
@@ -453,18 +460,7 @@ class chat {
                 return (console.log("no chats found"), false)
 
             uList.forEach(user => {
-                var temp = this.profTemp.cloneNode(true),
-                    nSpan = F.Cr('span'),
-                    nCon = F.G.class('profName', temp)[0]
-                nSpan.innerHTML = user.name
-                nCon.appendChild(nSpan)
-                F.G.id('profS').appendChild(temp)
-                temp.con = {
-                    userName: user.name,
-                    userId: user.id,
-                    conversationId: F.generateRoomId(user.id, this.userData.user._id)
-                }
-                console.log(F.generateRoomId(user.id, this.userData.user._id))
+                this.createChat(user)
             })
         } catch (err) {
             console.error("error fetching chats: ", err)
@@ -472,8 +468,24 @@ class chat {
             return
         }
     }
+
+    createChat(data) {
+        console.log(data)
+        var temp = this.profTemp.cloneNode(true),
+            nSpan = F.Cr('span'),
+            nCon = F.G.class('profName', temp)[0]
+        nSpan.innerHTML = data.name
+        nCon.appendChild(nSpan)
+        F.G.id('profS').appendChild(temp)
+        temp.con = {
+            userName: data.name,
+            userId: data.id,
+            conversationId: data.chatId
+        }
+    }
+
     async addNewUser(i, dBox) {
-        var uEmail = i.userEmail.value,
+        const uEmail = i.userEmail.value,
             tokenReq = await F.getToken(),
             token = tokenReq.token,
             res = await axios.post(`${BASE_URL}/search`, {
@@ -493,7 +505,12 @@ class chat {
             alert("User not found.")
             return false
         }
-        return user
+        socket.emit('addNewChat', {
+            roomId: F.generateRoomId(user.result._id, this.userData.user._id),
+            senderId: this.userData.user._id,
+            recipientId: user.result._id
+        });
+        dBox.close && dBox.close()
     }
 
     openChat(e) {
@@ -540,9 +557,10 @@ class chat {
         var activeProfile = this.activeProfile?.con
         if (!activeProfile)
             return (alert("Unexpected error occured while connecting to the server.\nPlease log in again."))
-        socket.emit('chatMessage', { 
+        socket.emit('chatMessage', {
             roomId: activeProfile.conversationId, 
-            senderId: this.userData.user._id, 
+            senderId: this.userData.user._id,
+            recipientId: activeProfile.userId,
             message: message
         });
     }
@@ -551,9 +569,9 @@ class chat {
         return result
         .map(item => {
             if (item.user._id === requestingUserId) {
-                return { id: item.otherUser._id, name: item.otherUser.name };
+                return { id: item.otherUser._id, name: item.otherUser.name, chatId: item.chatId };
             } else if (item.otherUser._id === requestingUserId) {
-                return { id: item.user._id, name: item.user.name };
+                return { id: item.user._id, name: item.user.name, chatId: item.chatId };
             }
             return null;
         })
