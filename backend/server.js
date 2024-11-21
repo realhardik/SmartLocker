@@ -109,12 +109,12 @@ const db = new class {
         timestamp: Date,
         from: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
       },
-      unreadCount: { type: Number, default: 0 }
+      unreadCount: { type: Number, default: 0 },
+      type: { type: String, enum: ["solo", "group"], default: "solo" }
     });
     
     this.chatLogs = new mongoose.Schema({
       timestamp: { type: Date, default: Date.now },
-      chatId: { type: String, ref: 'chat' },
       from: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
       to: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
       type: { type: String, enum: ['file', 'text'], default: 'text' },
@@ -293,9 +293,8 @@ io.on('connection', (socket) => {
     console.log(`Socket ${socket.id} joined room: ${roomId}`);
   });
 
-  socket.on('addNewChat', async ({ roomId, senderId, recipientId, recipientName }) => {
+  socket.on('addNewChat', async ({ senderId, recipientId, recipientName }) => {
     var response = await db.add('chat', {
-        chatId: roomId,
         user: senderId,
         otherUser: recipientId
     })
@@ -310,7 +309,6 @@ io.on('connection', (socket) => {
     console.log(`Message in room ${roomId} from ${senderId}: ${message}`);
     
     var anc = await db.add('chatLog', {
-        chatId: roomId,
         from: senderId,
         to: recipientId,
         type:  type || "text",

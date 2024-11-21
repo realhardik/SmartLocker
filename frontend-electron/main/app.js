@@ -453,6 +453,7 @@ class chat {
     async addChat() {
         this.userData = await F.getToken()
         this.token = this.userData.token
+        socket.emit('joinRoom', this.userData.user._id);
         try {
             var uReq = await axios.get(`${BASE_URL}/chat`, {
                 headers: {
@@ -510,7 +511,6 @@ class chat {
             return false
         }
         socket.emit('addNewChat', {
-            roomId: F.generateRoomId(user.result._id, this.userData.user._id),
             senderId: this.userData.user._id,
             recipientId: user.result._id,
             recipientName: user.result.name
