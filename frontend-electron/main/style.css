@@ -46,18 +46,28 @@ nav>section:first-child {
 }
 
 #profileAccess, nav>section:first-child .button {
-    background-color: rgba(73, 88, 119, .35);
-    padding: 9px 12px;
+    background: rgba(73, 88, 119, .35);
+    padding: 8px 12px;
     display: flex;
     justify-content: center;
     align-items: center;
     align-content: center;
     border-radius: 35px;
-    min-width: 70px
+    min-width: 90px;
+    transition: background 400ms ease;
 }
 
 nav>section:first-child .button, #moreProfOpt, #search, #logout {
     cursor: pointer;
+}
+
+nav>section:first-child .button * {
+    pointer-events: none;
+}
+
+nav>section:first-child .button.active {
+    background: linear-gradient(to right, #3DA0F0 0%, #2F7AB8 55%, #235C8A 100%) !important;
+    pointer-events: none !important;
 }
 
 #search, #logout {
@@ -110,6 +120,7 @@ nav>section:first-child .button, #moreProfOpt, #search, #logout {
 
 #dashboard, #chatSection {
     display: flex;
+    transition: opacity 400ms ease;
 }
 
 #dashboard {
@@ -127,7 +138,7 @@ nav>section:first-child .button, #moreProfOpt, #search, #logout {
 #oProfiles {
     width: 20%;
     min-width: 250px;
-    border-right: solid white 1px;
+    border-right: solid #9FACB6 0.4px;
     display: flex;
     flex-direction: column;
 }
@@ -148,7 +159,7 @@ nav>section:first-child .button, #moreProfOpt, #search, #logout {
     display: grid;
     grid-template-columns: 60% 15% 15%;
     grid-column-gap: 5%;
-    padding: 25px 15px;
+    padding: 20px 15px;
     box-sizing: border-box;
     border-bottom: solid #9FACB6 0.5px;
     flex-shrink: 0;
@@ -161,7 +172,7 @@ nav>section:first-child .button, #moreProfOpt, #search, #logout {
 }
 
 #oOpt, #addProf {
-    height: 25px;
+    height: 32px;
     cursor: pointer;
 }
 

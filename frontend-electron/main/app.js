@@ -304,6 +304,24 @@ class gen {
         F.G.class('i').forEach(e => {
             F.l('click', e, this.handleInputs)
         })
+        F.l('click', F.G.id('nav'), this.handleNav)
+    }
+
+    async openTabs(e) {
+
+    }
+
+    async handleNav(e) {
+        e.stopPropagation()
+        var target = e.target,
+            { tab, search, profile, logout } = target.dataset
+        if (tab) {
+            var s = tab === 'dashboard' ? 'chatSection' : 'dashboard'
+            F.G.id(s)["style"].opacity = '0'
+            F.G.id(tab).style.opacity = '1'
+            // target.classList.add('active')
+            // (target === )
+        }
     }
 
     async openDialog(e) {
@@ -546,7 +564,7 @@ class chat {
         //     })
         F.hide(F.G.id('sChat'), !0, "flex")
     }
-    
+
     joinRoom() {
         var activeProfile = this.activeProfile?.con
         if (!activeProfile)
