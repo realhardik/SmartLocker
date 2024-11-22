@@ -546,7 +546,7 @@ class chat {
         //     })
         F.hide(F.G.id('sChat'), !0, "flex")
     }
-
+    
     joinRoom() {
         var activeProfile = this.activeProfile?.con
         if (!activeProfile)
