@@ -1,9 +1,6 @@
 #app {
-    position: absolute;
-    top: 0;
-    left: 0;
+    position: relative;
     width: 100%;
-    height: 100%;
     background-color: #0d1117;
     color: whitesmoke;
     font-family: Roboto;
@@ -11,11 +8,120 @@
     flex-direction: row;
     flex-wrap: nowrap;
     z-index: 3;
+    flex-grow: 1;
     transition: filter 200ms ease;
 }
 
-#app>section {
+nav {
+    position: relative;
+    width: 100%;
+    background-color: #0e1319;
+    border-bottom: solid 0.6px white;
+    color: white;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    z-index: 99;
+}
+
+nav>section {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
     height: 100%;
+    gap: 10px;
+}
+
+nav>section:first-child {
+    align-items: stretch;
+    gap: 25px;
+}
+
+#profileAccess {
+    flex-direction: row;
+    gap: 12px;
+}
+
+#profileAccess, nav>section:first-child .button {
+    background-color: rgba(73, 88, 119, .35);
+    padding: 9px 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    border-radius: 35px;
+    min-width: 70px
+}
+
+nav>section:first-child .button, #moreProfOpt, #search, #logout {
+    cursor: pointer;
+}
+
+#search, #logout {
+    width: 50px;
+    height: 50px;
+    background-color: rgba(73, 88, 119, .35);
+    padding: 10px 10px;
+    border-radius: 50%;
+}
+
+#dcLogo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 50px;
+}
+
+#dcLogo, #dcLogo img {
+    width: 60px;
+}
+
+#dcLogo img {
+    height: 45px;
+}
+
+#userProfTN {
+    width: 40px;
+    height: 40px;
+}
+
+#userProfTN img {
+    border-radius: 50%;
+}
+
+#moreProfOpt {
+    width: 20px;
+    height: 20px;
+}
+
+#app>section {
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#app>section, #chatSection>section {
+    height: 100%;
+}
+
+#dashboard, #chatSection {
+    display: flex;
+}
+
+#dashboard {
+    background-color: #0D1225;
+    z-index: 4;
+}
+
+#chatSection {
+    background-color: #0D1225;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    z-index: 5;
 }
 
 #oProfiles {
