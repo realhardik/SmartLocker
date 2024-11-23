@@ -292,7 +292,7 @@ class fileSharing {
 
 class gen {
     constructor(data) {
-        F.BM(this, ["closeDialog", "openDialog", "handleInputs", "logout"])
+        F.BM(this, ["closeDialog", "openDialog", "handleInputs", "handleNav", "logout"])
         this.chat = new chat
         this.fileSharing = new fileSharing
         F.G.class('d').forEach(e => {
@@ -316,11 +316,16 @@ class gen {
         var target = e.target,
             { tab, search, profile, logout } = target.dataset
         if (tab) {
-            var s = tab === 'dashboard' ? 'chatSection' : 'dashboard'
+            var s = tab === 'dashboard' ? 'chatSection' : 'dashboard',
+                tabButtons = Array.from(F.G.query('[data-tab]', document, "all"))
             F.G.id(s)["style"].opacity = '0'
+            F.G.id(s)["style"].pointerEvents = 'none'
             F.G.id(tab).style.opacity = '1'
-            // target.classList.add('active')
-            // (target === )
+            F.G.id(tab).style.pointerEvents = "all"
+            target.classList.add('active')
+            tabButtons.forEach(e => e !== target && e.classList.remove('active'));
+        } else if (logout) {
+            this.logout()
         }
     }
 
@@ -417,10 +422,7 @@ class gen {
         return true
     }
 
-    async logout(e) {
-        F.G.id('file-list').innerHTML = ""
-        F.G.id("receivers").value = ""
-        F.G.id("file-upload").value = ""
+    async logout() {
         ipcRenderer.invoke('logout');
     }
 
@@ -443,11 +445,9 @@ class chat {
         this.activeProfile = F.G.id('tChat')
         this.joinedRooms = new Set()
         F.BM(this, ["addChat", "openChat", "addNewUser", "sendMessage", "createChat"])
-        this.joinRoom = F.debounce(this.joinRoom.bind(this), 200);
         F.l('click', F.G.id("oOpt"), this.handleOpts)
         this.profS = F.G.id('profS')
         F.l('click', this.profS, this.openChat)
-        F.l('input', F.G.id('textMessage'), this.joinRoom)
         F.l('click', F.G.id('sText'), this.sendMessage)
         socket.on('newMessage', async (rMessage) => {
             console.log(rMessage)
@@ -471,7 +471,6 @@ class chat {
     async addChat() {
         this.userData = await F.getToken()
         this.token = this.userData.token
-        socket.emit('joinRoom', this.userData.user._id);
         try {
             var uReq = await axios.get(`${BASE_URL}/chat`, {
                 headers: {
@@ -502,8 +501,7 @@ class chat {
         F.G.id('profS').appendChild(temp)
         temp.con = {
             userName: data.name,
-            userId: data.id,
-            conversationId: data.chatId
+            userId: data.id
         }
     }
 
@@ -565,23 +563,12 @@ class chat {
         F.hide(F.G.id('sChat'), !0, "flex")
     }
 
-    joinRoom() {
-        var activeProfile = this.activeProfile?.con
-        if (!activeProfile)
-            return (alert("Unexpected error occured while connecting to the server.\nPlease log in again."))
-        if (this.joinedRooms.has(activeProfile.conversationId)) 
-            return
-        socket.emit('joinRoom', activeProfile.conversationId);
-        this.joinedRooms.add(activeProfile.conversationId)
-    }
-
     sendMessage(e) {
         var message = F.G.id('textMessage').value
         var activeProfile = this.activeProfile?.con
         if (!activeProfile)
             return (alert("Unexpected error occured while connecting to the server.\nPlease log in again."))
         socket.emit('sendMessage', {
-            roomId: activeProfile.conversationId, 
             senderId: this.userData.user._id,
             recipientId: activeProfile.userId,
             message: message
@@ -591,12 +578,7 @@ class chat {
     getInteractedUsersArray(result, requestingUserId) {
         return result
         .map(item => {
-            if (item.user._id === requestingUserId) {
-                return { id: item.otherUser._id, name: item.otherUser.name, chatId: item.chatId };
-            } else if (item.otherUser._id === requestingUserId) {
-                return { id: item.user._id, name: item.user.name, chatId: item.chatId };
-            }
-            return null;
+            return { id: item.receiver._id, name: item.receiver.name };
         })
         .filter(name => name);
     }
@@ -616,6 +598,7 @@ new class {
         } else {
             this.startInTimer()
             ipcRenderer.send('profile');
+            socket.emit('joinRoom', isAuthorized.user._id);
             new gen
         }
     }

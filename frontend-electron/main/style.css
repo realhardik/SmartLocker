@@ -37,7 +37,7 @@ nav>section {
 
 nav>section:first-child {
     align-items: stretch;
-    gap: 25px;
+    gap: 20px;
 }
 
 #profileAccess {
@@ -54,7 +54,6 @@ nav>section:first-child {
     align-content: center;
     border-radius: 35px;
     min-width: 90px;
-    transition: background 400ms ease;
 }
 
 nav>section:first-child .button, #moreProfOpt, #search, #logout {
@@ -82,7 +81,6 @@ nav>section:first-child .button.active {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-right: 50px;
 }
 
 #dcLogo, #dcLogo img {
@@ -125,14 +123,85 @@ nav>section:first-child .button.active {
 
 #dashboard {
     background-color: #0D1225;
+    padding: 0 70px;
+    padding-top: 15px;
     z-index: 4;
+}
+
+#fileList {
+    position: relative;
+    width: 100%;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+}
+
+#tFileH, #tFileL {
+    position: relative;
+    display: flex;
+    width: 100%;
+}
+
+#tFileH {
+    flex-shrink: 0;
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+    font-size: 22px;
+}
+
+#tFileL {
+    flex-grow: 1;
+    flex-direction: column;
+}
+
+#tFileH>div:first-child {
+    position: absolute;
+    left: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#tSwitch {
+    position: relative;
+    display: grid;
+    grid-auto-columns: 1fr;
+    grid-template-columns: repeat(2, max-content);
+    gap: 17px;
+    /* flex-wrap: nowrap; */
+    align-items: stretch;
+}
+
+#tSwitch>div {
+    position: relative;
+    height: 100%;
+    padding: 16px 17px;
+    /* min-width: max-content; */
+}
+
+#tSwitch span {
+    height: 100%;
+}
+
+#switch {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 50%;
+    background-color: rgba(255, 255, 255, 0.3);
+    filter: blur(37px);
+    clip-path: polygon(18% 0, 80% 0, 100% 100%, 0 100%);
 }
 
 #chatSection {
     background-color: #0D1225;
     flex-direction: row;
     flex-wrap: nowrap;
-    z-index: 5;
+    z-index: 3;
 }
 
 #oProfiles {

@@ -13,7 +13,6 @@ const http = require('http')
 const { Server } = require('socket.io')
 const nodemailer = require('nodemailer')
 const otpGen = require('otp-generator')
-const { type } = require('os')
 
 const app = express()
 const server = http.createServer(app)
@@ -101,9 +100,8 @@ const db = new class {
     });
 
     this.chatSchema = new mongoose.Schema({
-      chatId: { type: String, unique: true },
-      user: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
-      otherUser: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
+      sender: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
+      receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
       lastMessage: {
         content: String,
         timestamp: Date,
@@ -295,8 +293,8 @@ io.on('connection', (socket) => {
 
   socket.on('addNewChat', async ({ senderId, recipientId, recipientName }) => {
     var response = await db.add('chat', {
-        user: senderId,
-        otherUser: recipientId
+        sender: senderId,
+        receiver: recipientId
     })
     if (response.success) {
       socket.emit('addNewUser', { recipientName: recipientName, ...response.result._doc })
@@ -305,8 +303,8 @@ io.on('connection', (socket) => {
     }
   })
 
-  socket.on('sendMessage', async ({ roomId, senderId, recipientId, type, message }) => {
-    console.log(`Message in room ${roomId} from ${senderId}: ${message}`);
+  socket.on('sendMessage', async ({ senderId, recipientId, type, message }) => {
+    console.log(`Message in room ${recipientId} from ${senderId}: ${message}`);
     
     var anc = await db.add('chatLog', {
         from: senderId,
@@ -315,7 +313,7 @@ io.on('connection', (socket) => {
         content: message
     })
 
-    socket.to(roomId).emit('newMessage', { ...anc.result._doc });
+    socket.to(recipientId).emit('newMessage', { ...anc.result._doc });
   });
 
   socket.on('markAsRead', async ({ message }) => {
@@ -543,16 +541,11 @@ app.get('/decrypt', authenticateJWT, upload.single('encrypted_zip'), async (req,
 
 app.get('/chat', authenticateJWT, async (req, res) => {
   try {
-    var recepient = req.user.data._id
+    var user = req.user.data._id
 
-    var iUarr = await db.search('chat', {
-      $or: [
-        { user: recepient },
-        { otherUser: recepient }
-      ]
-    }, 'find', null, [
-      { field:'user', select: '_id name'},
-      { field:'otherUser', select: '_id name'}
+    var iUarr = await db.search('chat', { sender: user }, 'find', null, [
+      { field:'sender', select: '_id name'},
+      { field:'receiver', select: '_id name'}
     ]);
   
     if (!iUarr.success && !iUarr.hasOwnProperty('result'))
@@ -690,10 +683,33 @@ const deleteExpiredFiles = async () => {
         expiredFiles = await db.search('Files', { expiry: { $lt: today } }, 
           'updateMany', {  active: false }
         )
-    // var files = await db.search('Files', {})
-    // var files = await db.search('chat', {})
-    
-    // console.log("files fn: ", files)
+    var files = await db.search('chat', {})
+    console.log("files fn: ", files)
+    // var files = await db.add('chat', {
+    //   sender: "673831bbb8bb9021101413e2",
+    //   receiver: "673862264a4c42d533ceff44"
+    // })
+    // var files = await db.add('chat', {
+    //   sender: "673862264a4c42d533ceff44",
+    //   receiver: "673831bbb8bb9021101413e2"
+    // })
+    // var files = await db.add('chatLog', {
+    //   from: "673862264a4c42d533ceff44",
+    //   to: "673831bbb8bb9021101413e2",
+    //   content: "Hi"
+    // })
+    // var files = await db.add('chatLog', {
+    //   from: "673831bbb8bb9021101413e2",
+    //   to: "673862264a4c42d533ceff44",
+    //   content: "Hello"
+    // })
+    // var files = await db.add('chatLog', {
+    //   from: "673862264a4c42d533ceff44",
+    //   to: "673831bbb8bb9021101413e2",
+    //   content: "How are you!"
+    // })
+    var files = await db.search('chatLog', {})
+    console.log("files fn: ", files)
     // await db.remove('chat', {}, 'multiple')
     console.log("exp files fn: ", expiredFiles)
   // for (const file of expiredFiles) {
