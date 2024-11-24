@@ -248,8 +248,9 @@ class fileSharing {
 
     async receive(e) {
         e.preventDefault()
-        var receiver = this.user.email,
-            token = this.user.token
+        var tokenReq = await F.getToken(),
+            receiver = tokenReq.user._id,
+            token = tokenReq.token
         try {
             const response = await fetch(`${BASE_URL}/receiver?receiver=${encodeURIComponent(receiver)}`, {
                 method: 'GET',
@@ -443,17 +444,15 @@ class chat {
         this.profTemp = F.G.id("profile").content.firstElementChild.cloneNode(true),
         this.msgTemp = F.G.id("message").content.firstElementChild.cloneNode(true)
         this.activeProfile = F.G.id('tChat')
-        this.joinedRooms = new Set()
+        this.chatUsers = new Set()
+
         F.BM(this, ["addChat", "openChat", "addNewUser", "sendMessage", "createChat"])
         F.l('click', F.G.id("oOpt"), this.handleOpts)
         this.profS = F.G.id('profS')
         F.l('click', this.profS, this.openChat)
         F.l('click', F.G.id('sText'), this.sendMessage)
         socket.on('newMessage', async (rMessage) => {
-            console.log(rMessage)
-            // if (this.activeProfile.open && this.activeProfile.con.userId === rMessage.senderId) {
-            //     socket.emit('markAsRead', rMessage)
-            // }
+            
         });
         socket.on('addNewUser', (user) => {
             this.createChat({
@@ -492,13 +491,13 @@ class chat {
     }
 
     createChat(data) {
-        console.log(data)
         var temp = this.profTemp.cloneNode(true),
             nSpan = F.Cr('span'),
             nCon = F.G.class('profName', temp)[0]
         nSpan.innerHTML = data.name
         nCon.appendChild(nSpan)
         F.G.id('profS').appendChild(temp)
+        this.chatUsers.add(data.id)
         temp.con = {
             userName: data.name,
             userId: data.id
@@ -507,20 +506,17 @@ class chat {
 
     async addNewUser(i, dBox) {
         const uEmail = i.userEmail.value,
-            tokenReq = await F.getToken(),
-            token = tokenReq.token,
             res = await axios.post(`${BASE_URL}/search`, {
                 collection: 'Users',
                 query: { email: uEmail },
                 method: 'findOne'
               }, {
                 headers: {
-                  'Authorization': `Bearer ${token}`,
+                  'Authorization': `Bearer ${this.token}`,
                   'Content-Type': 'application/json'
                 }
             }),
             user = res.data
-
         if (!user.success) {
             console.log('not found')
             alert("User not found.")
