@@ -452,7 +452,11 @@ class chat {
         F.l('click', this.profS, this.openChat)
         F.l('click', F.G.id('sText'), this.sendMessage)
         socket.on('newMessage', async (rMessage) => {
-            
+            this.newMessageLog(rMessage)
+        });
+        socket.on('sentMessage', async (rMessage) => {
+            console.log('sent message')
+            this.newMessageLog(rMessage)
         });
         socket.on('addNewUser', (user) => {
             this.createChat({
@@ -570,14 +574,13 @@ class chat {
                 if (e.to === data.userId) return { context: "received", type: e.type, content: e.content }
                 return null
             })
-        console.log("revised chats: ", chats)
+        F.G.id('sChat').innerHTML = ""
         this.renderMessages(chats)
     }
 
     renderMessages(data) {
         let cSection = F.G.id('sChat'),
             lastM = !1
-        cSection.innerHTML = ""
         data.forEach(c => {
             var tempDiv = F.Cr('div'),
                 tempSpan = F.Cr('span')
@@ -595,8 +598,13 @@ class chat {
         F.hide(F.G.id('sChat'), !0, "flex")
     }
     
-    newMessageLog() {
-        
+    newMessageLog(newChat) {
+        console.log(newChat)
+        let refChat;
+        let cInput = F.G.id('textMessage');
+        newChat.from === this.userData.user._id && (refChat = { context: "sent", type: newChat.type, content: newChat.content }) && (cInput.value = "")
+        newChat.to === this.userData.user._id && (refChat = { context: "received", type: newChat.type, content: newChat.content })
+        this.renderMessages([refChat])
     }
 
     sendMessage(e) {
@@ -611,7 +619,11 @@ class chat {
         });
     }
 
-    getInteractedUsersArray(result, requestingUserId) {
+    sentMessage(e) {
+
+    }
+
+    getInteractedUsersArray(result) {
         return result
         .map(item => {
             return { id: item.receiver._id, name: item.receiver.name };
@@ -635,6 +647,7 @@ new class {
             this.startInTimer()
             ipcRenderer.send('profile');
             socket.emit('joinRoom', isAuthorized.user._id);
+            console.log("joined room: ", isAuthorized.user._id)
             new gen
         }
     }

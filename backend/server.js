@@ -312,7 +312,9 @@ io.on('connection', (socket) => {
         type:  type || "text",
         content: message
     })
-
+    console.log("sender id: ", senderId)
+    console.log("receiver id: ", recipientId)
+    socket.emit('sentMessage', { ...anc.result._doc });
     socket.to(recipientId).emit('newMessage', { ...anc.result._doc });
   });
 
@@ -684,8 +686,15 @@ const deleteExpiredFiles = async () => {
         expiredFiles = await db.search('Files', { expiry: { $lt: today } }, 
           'updateMany', {  active: false }
         )
-    var files = await db.search('chat', {})
-    console.log("files fn: ", files)
+
+    // var files = await db.add('chat', {
+    //   sender: "673862264a4c42d533ceff44",
+    //   receiver: "672f9d597d4158f3e7170458"
+    // })
+    // var files = await db.add('chat', {
+    //   sender: "672f9d597d4158f3e7170458",
+    //   receiver: "673862264a4c42d533ceff44"
+    // })
     // var files = await db.add('chatLog', {
     //   from: "673862264a4c42d533ceff44",
     //   to: "672f9d597d4158f3e7170458",
@@ -701,6 +710,8 @@ const deleteExpiredFiles = async () => {
     //   to: "672f9d597d4158f3e7170458",
     //   content: "How are you!"
     // })
+    var files = await db.search('chat', {})
+    console.log("files fn: ", files)
     var files = await db.search('chatLog', {})
     console.log("files fn: ", files)
     // await db.remove('chat', {}, 'multiple')
