@@ -446,7 +446,7 @@ class chat {
         this.activeProfile = F.G.id('tChat')
         this.chatUsers = new Set()
 
-        F.BM(this, ["addChat", "openChat", "addNewUser", "sendMessage", "createChat"])
+        F.BM(this, ["addChat", "openChat", "addNewUser", "sendMessage", "createChat", "fetchMessages"])
         F.l('click', F.G.id("oOpt"), this.handleOpts)
         this.profS = F.G.id('profS')
         F.l('click', this.profS, this.openChat)
@@ -477,12 +477,15 @@ class chat {
                 }
             }),
             uList = this.getInteractedUsersArray(uReq.data.result, this.userData.user._id)
+            console.log(uReq)
+            console.log(uList)
             if (uList.length === 0)
                 return (console.log("no chats found"), false)
 
             uList.forEach(user => {
                 this.createChat(user)
             })
+            
         } catch (err) {
             console.error("error fetching chats: ", err)
             alert("Couldn't fetch chats at the moment.")
@@ -550,13 +553,50 @@ class chat {
     }
 
     async fetchMessages(data) {
-        // var tokenReq = await F.getToken(),
-        //     history = await axios.get(`${BASE_URL}/chat/${data.userId}`, {
-        //         headers: {
-        //             'Authorization': `Bearer ${tokenReq.token}`
-        //         }
-        //     })
+        var tokenReq = await F.getToken(),
+            history = await axios.get(`${BASE_URL}/chatLog/${data.userId}`, {
+                headers: {
+                    'Authorization': `Bearer ${tokenReq.token}`
+                }
+            })
+        if (!history.data.success) {
+            alert("Couldn't fech chats at the moment. Try again Later.")
+            return
+        }
+        console.log("unrevised chats: ", history)
+        var response = history.data.result,
+            chats = response.map(e => { 
+                if (e.from === data.userId) return { context: "sent", type: e.type, content: e.content }
+                if (e.to === data.userId) return { context: "received", type: e.type, content: e.content }
+                return null
+            })
+        console.log("revised chats: ", chats)
+        this.renderMessages(chats)
+    }
+
+    renderMessages(data) {
+        let cSection = F.G.id('sChat'),
+            lastM = !1
+        cSection.innerHTML = ""
+        data.forEach(c => {
+            var tempDiv = F.Cr('div'),
+                tempSpan = F.Cr('span')
+            if (c.context === "sent") {
+                tempDiv.classList.add('pUser')
+            } else if ('received' === c.context) {
+                tempDiv.classList.add('sUser')
+            }
+            tempDiv.appendChild(tempSpan)
+            tempSpan.innerText = c.content
+            !lastM && cSection.appendChild(tempDiv)
+            lastM && cSection.insertBefore(tempDiv, lastM)
+            lastM = tempDiv
+        })
         F.hide(F.G.id('sChat'), !0, "flex")
+    }
+    
+    newMessageLog() {
+        
     }
 
     sendMessage(e) {

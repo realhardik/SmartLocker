@@ -542,11 +542,12 @@ app.get('/decrypt', authenticateJWT, upload.single('encrypted_zip'), async (req,
 app.get('/chat', authenticateJWT, async (req, res) => {
   try {
     var user = req.user.data._id
-
+    console.log(user)
     var iUarr = await db.search('chat', { sender: user }, 'find', null, [
       { field:'sender', select: '_id name'},
       { field:'receiver', select: '_id name'}
     ]);
+    console.log("users arr: ", iUarr)
   
     if (!iUarr.success && !iUarr.hasOwnProperty('result'))
       return res.status(401).json({ success: false, msg: 'Error fetching chats. Try again later' })
@@ -566,7 +567,7 @@ app.get('/chatLog/:userId', authenticateJWT, async (req, res) => {
             { from: otherUser, to: userId }
           ]
         })
-  if (!iUarr.success && !iUarr.hasOwnProperty('result'))
+  if (!history.success && !history.hasOwnProperty('result'))
     return res.status(401).json({ success: false, msg: 'Error fetching messages. Try again later' }) 
   return res.json({ success: true, result: history.result });
 });
@@ -685,27 +686,19 @@ const deleteExpiredFiles = async () => {
         )
     var files = await db.search('chat', {})
     console.log("files fn: ", files)
-    // var files = await db.add('chat', {
-    //   sender: "673831bbb8bb9021101413e2",
-    //   receiver: "673862264a4c42d533ceff44"
-    // })
-    // var files = await db.add('chat', {
-    //   sender: "673862264a4c42d533ceff44",
-    //   receiver: "673831bbb8bb9021101413e2"
-    // })
     // var files = await db.add('chatLog', {
     //   from: "673862264a4c42d533ceff44",
-    //   to: "673831bbb8bb9021101413e2",
+    //   to: "672f9d597d4158f3e7170458",
     //   content: "Hi"
     // })
     // var files = await db.add('chatLog', {
-    //   from: "673831bbb8bb9021101413e2",
+    //   from: "672f9d597d4158f3e7170458",
     //   to: "673862264a4c42d533ceff44",
     //   content: "Hello"
     // })
     // var files = await db.add('chatLog', {
     //   from: "673862264a4c42d533ceff44",
-    //   to: "673831bbb8bb9021101413e2",
+    //   to: "672f9d597d4158f3e7170458",
     //   content: "How are you!"
     // })
     var files = await db.search('chatLog', {})

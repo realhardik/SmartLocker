@@ -422,7 +422,7 @@ nav>section:first-child .button.active {
     z-index: 2;
 }
 
-.sen, .rec {
+.pUser, .sUser {
     width: 100%;
     display: flex;
     flex-wrap: wrap;
@@ -430,23 +430,23 @@ nav>section:first-child .button.active {
     margin: 3px 0;
 }
 
-.sen span, .rec span {
+.pUser span, .sUser span {
     padding: 5px 15px;
 }
 
-.sen {
+.pUser {
     justify-content: flex-start;
 }
 
-.rec {
+.sUser {
     justify-content: flex-end;
 }
 
-.sen span {
+.pUser span {
     background-color: #006d77;
 }
 
-.rec span {
+.sUser span {
     background-color: #415a77;
 }
 
