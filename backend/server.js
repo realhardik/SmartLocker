@@ -101,7 +101,8 @@ const db = new class {
 
     this.chatSchema = new mongoose.Schema({
       sender: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
-      receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
+      receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+      group: { type: mongoose.Schema.Types.ObjectId, ref: 'group' },
       lastMessage: {
         content: String,
         timestamp: Date,
@@ -109,6 +110,21 @@ const db = new class {
       },
       unreadCount: { type: Number, default: 0 },
       type: { type: String, enum: ["solo", "group"], default: "solo" }
+    });
+
+    this.groupSchema = new mongoose.Schema({
+      name: { type: String, required: true },
+      description: { type: String },
+      createdAt: { type: Date, default: Date.now },
+      createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
+      members: [
+        {
+          user: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
+          role: { type: String, enum: ['admin', 'member'], default: 'member' },
+          joinedAt: { type: Date, default: Date.now }
+        }
+      ],
+      active: { type: Boolean, default: true }
     });
     
     this.chatLogs = new mongoose.Schema({
@@ -150,6 +166,7 @@ const db = new class {
     this.Session = mongoose.model('session', this.sessionSchema)
     this.chatLog = mongoose.model('chatLogs', this.chatLogs)
     this.chat = mongoose.model('chat', this.chatSchema)
+    this.group = mongoose.model('group', this.groupSchema);
     this.otp = mongoose.model('otpCollection', this.otpSchema)
   }
 
@@ -300,6 +317,26 @@ io.on('connection', (socket) => {
       socket.emit('addNewUser', { recipientName: recipientName, ...response.result._doc })
     } else {
       socket.emit('NoNewUser', "Error adding new user.")
+    }
+  })
+
+  socket.on('addNewGroup', async ({ name, creator, recipients }) => {
+    var members = recipients
+        .filter(u => u !== creator)
+        .map(u => ({ user: u, role: 'member' }))
+    members.push({
+      user: creator,
+      role: 'admin'
+    })
+    var response = await db.add('group', {
+        name: name,
+        createdBy: creator,
+        members: members
+    })
+    if (response.success) {
+      socket.emit('addNewGroup', { ...response.result._doc })
+    } else {
+      socket.emit('NoNewUser', "Error creating new group.")
     }
   })
 
@@ -545,15 +582,17 @@ app.get('/chat', authenticateJWT, async (req, res) => {
   try {
     var user = req.user.data._id
     console.log(user)
-    var iUarr = await db.search('chat', { sender: user }, 'find', null, [
+    var iUarr = await db.search('chat', { sender: user, type: 'solo' }, 'find', null, [
       { field:'sender', select: '_id name'},
       { field:'receiver', select: '_id name'}
-    ]);
-    console.log("users arr: ", iUarr)
-  
+    ]),
+    iGarr = await db.search('chat', { sender: user, type: 'group' }, 'find', null, [
+      { field:'group', select: '_id name members'}
+    ]),
+    iChats = { ...iUarr.result, ...iGarr.result }
+    console.log("interacted both: ", iChats)
     if (!iUarr.success && !iUarr.hasOwnProperty('result'))
       return res.status(401).json({ success: false, msg: 'Error fetching chats. Try again later' })
-    console.log('reached chat retriev: ', iUarr.result)
     return res.status(201).json({ success: true, result: iUarr.result })
   } catch(err) {
     res.status(401).json({ success: false, msg: "Unexpected Error occured. Please try again later." });

@@ -465,6 +465,13 @@ class chat {
                 chatId: user.chatId
             })
         })
+        socket.on('addNewGroup', (user) => {
+            this.createChat({
+                name: user.recipientName,
+                id: user.recipientId,
+                chatId: user.chatId
+            })
+        })
         socket.on('NoNewUser', (msg) => {
             alert(msg)
         })
@@ -481,8 +488,6 @@ class chat {
                 }
             }),
             uList = this.getInteractedUsersArray(uReq.data.result, this.userData.user._id)
-            console.log(uReq)
-            console.log(uList)
             if (uList.length === 0)
                 return (console.log("no chats found"), false)
 
