@@ -488,9 +488,9 @@ class chat {
                     'Authorization': `Bearer ${this.token}`
                 }
             })
-            console.log(uReq)
+            console.log("user req raw: ", uReq)
         var uList = this.getInteractedUsersArray(uReq.data.result, this.userData.user._id)
-
+        console.log("user req: ", uList)
             if (uList.length === 0)
                 return (console.log("no chats found"), false)
 
@@ -506,6 +506,7 @@ class chat {
     }
 
     createChat(data) {
+        console.log(data)
         var temp = this.profTemp.cloneNode(true),
             nSpan = F.Cr('span'),
             nCon = F.G.class('profName', temp)[0],
@@ -579,7 +580,7 @@ class chat {
 
     async fetchMessages(data) {
         var tokenReq = await F.getToken(),
-            history = await axios.get(`${BASE_URL}/chatLog/${data.userId}`, {
+            history = await axios.get(`${BASE_URL}/chatLog/${data.convId}`, {
                 headers: {
                     'Authorization': `Bearer ${tokenReq.token}`
                 }
@@ -591,8 +592,8 @@ class chat {
         console.log("unrevised chats: ", history)
         var response = history.data.result,
             chats = response.map(e => { 
-                if (e.from === data.userId) return { context: "sent", type: e.type, content: e.content }
-                if (e.to === data.userId) return { context: "received", type: e.type, content: e.content }
+                if (e.from === data.convId) return { context: "sent", type: e.type, content: e.content }
+                if (e.to === data.convId) return { context: "received", type: e.type, content: e.content }
                 return null
             })
         F.G.id('sChat').innerHTML = ""
@@ -633,9 +634,10 @@ class chat {
         var activeProfile = this.activeProfile?.con
         if (!activeProfile)
             return (alert("Unexpected error occured while connecting to the server.\nPlease log in again."))
-        socket.emit('sendMessage', {
+        var type = 'group' === activeProfile.type ? 'sendGroupMessage' : 'sendMessage'
+        socket.emit(type, {
             senderId: this.userData.user._id,
-            recipientId: activeProfile.userId,
+            convId: activeProfile.convId,
             message: message
         });
     }
@@ -650,9 +652,9 @@ class chat {
             .map(item => {
                 if ('group' === item.type) {
                     user = item.group.members.find(item => item.user === item.sender._id)
-                    return { id: item.group._id, name: item.group.name, role: user.role, lastMessage: item.lastMessage.timestamp }
+                    return { id: item.group._id, name: item.group.name, role: user.role, lastMessage: item.lastMessage.timestamp, type: item.type }
                 }
-                return { id: item.receiver._id, name: item.receiver.name, lastMessage: item.lastMessage.timestamp };
+                return { id: item.receiver._id, name: item.receiver.name, lastMessage: item.lastMessage.timestamp, type: item.type };
             })
             .filter(name => name);
         modifiedChats.sort((a, b) => b.lastMessage - a.lastMessage);

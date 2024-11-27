@@ -349,22 +349,22 @@ io.on('connection', (socket) => {
     }
   })
 
-  socket.on('sendMessage', async ({ senderId, recipientId, type, message }) => {
-    console.log(`Message in room ${recipientId} from ${senderId}: ${message}`);
+  socket.on('sendMessage', async ({ senderId, convId, type, message }) => {
+    console.log(`Message in room ${convId} from ${senderId}: ${message}`);
     
     var anc = await db.add('chatLog', {
         from: senderId,
-        to: recipientId,
+        to: convId,
         type:  type || "text",
         content: message
     })
 
     socket.emit('sentMessage', { ...anc.result._doc });
-    socket.to(recipientId).emit('newMessage', { ...anc.result._doc });
+    socket.to(convId).emit('newMessage', { ...anc.result._doc });
   });
 
-  socket.on('sendGroupMessage', async ({ senderId, recipientId, type, message }) => {
-    console.log(`Message in room ${recipientId} from ${senderId}: ${message}`);
+  socket.on('sendGroupMessage', async ({ senderId, convId, type, message }) => {
+    console.log(`Message in room ${convId} from ${senderId}: ${message}`);
     
     var anc = await db.add('chatLog', {
         from: senderId,
@@ -611,7 +611,7 @@ app.get('/chat', authenticateJWT, async (req, res) => {
     iGarr = await db.search('chat', { sender: user, type: 'group' }, 'find', null, [
       { field:'group', select: '_id name members'}
     ]),
-    iChats = { ...iUarr.result, ...iGarr.result }
+    iChats =  [...iUarr.result, ...iGarr.result]
     console.log("interacted both: ", iChats)
     if (!iUarr.success && !iUarr.hasOwnProperty('result'))
       return res.status(401).json({ success: false, msg: 'Error fetching chats. Try again later' })
@@ -621,8 +621,8 @@ app.get('/chat', authenticateJWT, async (req, res) => {
   }
 });
 
-app.get('/chatLog/:userId', authenticateJWT, async (req, res) => {
-  const otherUser = req.params.userId,
+app.get('/chatLog/:convId', authenticateJWT, async (req, res) => {
+  const otherUser = req.params.convId,
         userId = req.user.data._id,
         history = await db.search('chatLog', {
           $or: [
