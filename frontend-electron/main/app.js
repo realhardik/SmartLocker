@@ -458,18 +458,19 @@ class chat {
             console.log('sent message')
             this.newMessageLog(rMessage)
         });
-        socket.on('addNewUser', (user) => {
+        socket.on('addedNewChat', (user) => {
             this.createChat({
                 name: user.recipientName,
                 id: user.recipientId,
-                chatId: user.chatId
+                type: 'solo'
             })
         })
-        socket.on('addNewGroup', (user) => {
+        socket.on('addedNewGroup', (group) => {
             this.createChat({
-                name: user.recipientName,
-                id: user.recipientId,
-                chatId: user.chatId
+                name: group.name,
+                id: group._id,
+                role: group.role,
+                type: 'group'
             })
         })
         socket.on('NoNewUser', (msg) => {
@@ -486,8 +487,10 @@ class chat {
                 headers: {
                     'Authorization': `Bearer ${this.token}`
                 }
-            }),
-            uList = this.getInteractedUsersArray(uReq.data.result, this.userData.user._id)
+            })
+            console.log(uReq)
+        var uList = this.getInteractedUsersArray(uReq.data.result, this.userData.user._id)
+
             if (uList.length === 0)
                 return (console.log("no chats found"), false)
 
@@ -505,15 +508,28 @@ class chat {
     createChat(data) {
         var temp = this.profTemp.cloneNode(true),
             nSpan = F.Cr('span'),
-            nCon = F.G.class('profName', temp)[0]
+            nCon = F.G.class('profName', temp)[0],
+            type = data.type
         nSpan.innerHTML = data.name
         nCon.appendChild(nSpan)
         F.G.id('profS').appendChild(temp)
-        this.chatUsers.add(data.id)
-        temp.con = {
+        "solo" === type && (temp.con = {
             userName: data.name,
-            userId: data.id
-        }
+            convId: data.id,
+            type: 'solo'
+        })
+        "group" === type && (temp.con = {
+            userName: data.name,
+            convId: data.id,
+            userRole: data.role,
+            type: 'group'
+        })
+        this.chatUsers.add(data.id)
+    }
+
+    async addNewGroup(i, dBox) {
+        var interactedUsers = this.chatUsers.filter(c => c.type === 'solo')
+        console.log(interactedUsers)
     }
 
     async addNewUser(i, dBox) {
@@ -629,11 +645,18 @@ class chat {
     }
 
     getInteractedUsersArray(result) {
-        return result
-        .map(item => {
-            return { id: item.receiver._id, name: item.receiver.name };
-        })
-        .filter(name => name);
+        let user;
+        let modifiedChats = result
+            .map(item => {
+                if ('group' === item.type) {
+                    user = item.group.members.find(item => item.user === item.sender._id)
+                    return { id: item.group._id, name: item.group.name, role: user.role, lastMessage: item.lastMessage.timestamp }
+                }
+                return { id: item.receiver._id, name: item.receiver.name, lastMessage: item.lastMessage.timestamp };
+            })
+            .filter(name => name);
+        modifiedChats.sort((a, b) => b.lastMessage - a.lastMessage);
+        return modifiedChats
     }
 }
 

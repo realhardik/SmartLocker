@@ -105,7 +105,7 @@ const db = new class {
       group: { type: mongoose.Schema.Types.ObjectId, ref: 'group' },
       lastMessage: {
         content: String,
-        timestamp: Date,
+        timestamp: { type: Date, default: Date.now },
         from: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
       },
       unreadCount: { type: Number, default: 0 },
@@ -313,8 +313,14 @@ io.on('connection', (socket) => {
         sender: senderId,
         receiver: recipientId
     })
+    db.search('chat', { 
+      $or: [
+        { sender: senderId, receiver: recipientId },
+        { sender: recipientId, receiver: senderId }
+      ]
+    }, 'findOneAndUpdate', { $set: { "lastMessage.timestamp": Date.now() } })
     if (response.success) {
-      socket.emit('addNewUser', { recipientName: recipientName, ...response.result._doc })
+      socket.emit('addedNewChat', { recipientName: recipientName, ...response.result._doc })
     } else {
       socket.emit('NoNewUser', "Error adding new user.")
     }
@@ -324,17 +330,20 @@ io.on('connection', (socket) => {
     var members = recipients
         .filter(u => u !== creator)
         .map(u => ({ user: u, role: 'member' }))
-    members.push({
-      user: creator,
-      role: 'admin'
-    })
+    
     var response = await db.add('group', {
         name: name,
         createdBy: creator,
-        members: members
+        members: [
+          { user: creator, role: 'admin' },
+          ...members
+      ]
     })
     if (response.success) {
-      socket.emit('addNewGroup', { ...response.result._doc })
+      members.forEach(m => {
+        socket.to(m.user).emit('addedNewGroup', { role: 'member', ...response.result._doc })
+      });
+      socket.emit('addedNewGroup', {role: 'admin', ...response.result._doc })
     } else {
       socket.emit('NoNewUser', "Error creating new group.")
     }
@@ -349,8 +358,21 @@ io.on('connection', (socket) => {
         type:  type || "text",
         content: message
     })
-    console.log("sender id: ", senderId)
-    console.log("receiver id: ", recipientId)
+
+    socket.emit('sentMessage', { ...anc.result._doc });
+    socket.to(recipientId).emit('newMessage', { ...anc.result._doc });
+  });
+
+  socket.on('sendGroupMessage', async ({ senderId, recipientId, type, message }) => {
+    console.log(`Message in room ${recipientId} from ${senderId}: ${message}`);
+    
+    var anc = await db.add('chatLog', {
+        from: senderId,
+        to: recipientId,
+        type:  type || "text",
+        content: message
+    })
+
     socket.emit('sentMessage', { ...anc.result._doc });
     socket.to(recipientId).emit('newMessage', { ...anc.result._doc });
   });

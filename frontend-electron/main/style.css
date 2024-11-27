@@ -226,7 +226,7 @@ nav>section:first-child .button.active {
     width: 100%;
     font-size: 21px;
     display: grid;
-    grid-template-columns: 60% 15% 15%;
+    grid-template-columns: 40% 15% 15% 15%;
     grid-column-gap: 5%;
     padding: 20px 15px;
     box-sizing: border-box;
@@ -240,7 +240,7 @@ nav>section:first-child .button.active {
     justify-content: center;
 }
 
-#oOpt, #addProf {
+#oOpt, #addProf, #addGroupIcon {
     height: 32px;
     cursor: pointer;
 }
@@ -450,7 +450,7 @@ nav>section:first-child .button.active {
     background-color: #415a77;
 }
 
-#addChat {
+#addChat, #addGroup {
     display: none;
     pointer-events: none;
     position: absolute;
