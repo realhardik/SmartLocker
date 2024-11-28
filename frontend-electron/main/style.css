@@ -465,8 +465,12 @@ nav>section:first-child .button.active {
     z-index: 5;
 }
 
-#addChat form, #addChat form div {
+#addChat form, #addChat form div, #addGroup form, #addGroup div {
     width: 100%;
+}
+
+#addGroup>div {
+    display: flex;
 }
 
 #addChat form>div:last-child {
@@ -482,9 +486,62 @@ button {
     border-radius: 17px;
 }
 
-#addChat button {
+#addChat button, #addGroup button {
+    border-radius: 8px;
     background-color: #0077b6;
     border: solid 1px white;
+}
+
+#ngTitle, #grpMemTitle {
+    justify-content: center;
+    align-items: center;
+}
+
+#addGroup {
+    padding-top: 8px;
+}
+
+#addGroup form>div {
+    margin-top: 12px;
+}
+
+#grpMembers>div {
+    margin-bottom: 7px;
+}
+
+#addGroup button {
+    float: left;
+}
+
+#grpButtons {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+}
+
+#grpMemList {
+    background-color: rgba(89, 101, 111, 0.6);
+    padding: 5px 6px;
+    border-radius: 8px;
+    max-height: 170px;
+    overflow: scroll;
+}
+
+#grpMemList label {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    align-content: center;
+    border-bottom: solid 0.4px rgba(255, 255, 255, 0.4);
+    padding: 4px 0;
+}
+
+#grpMemList label:last-child {
+    border-bottom: none !important;
 }
 
 /* file sharing */
@@ -655,12 +712,18 @@ select:-moz-focusring {
 	text-shadow: 0 0 0 #000;
 }
 
-.passPhrase input {
+.passPhrase input, #grpNameField input[type="text"] {
 	border-radius: 6px;
 	line-height: 1.5em;
 	padding: 0.3em 0.3em 0.3em 0.4em;
 	width: calc(50px + 7vw);
 	min-width: 100px;
+}
+
+#grpNameField input[type="text"] {
+    width: auto;
+    min-width: auto;
+    background-color: #565656;
 }
 
 #expTitle {

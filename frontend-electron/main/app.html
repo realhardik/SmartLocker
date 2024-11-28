@@ -135,7 +135,7 @@
                     
                 } 
             },
-            debounce(func, delay) {
+            debounce: (func, delay) => {
                 let timer;
                 return function (...args) {
                     clearTimeout(timer);
@@ -334,7 +334,37 @@
     </div>
     <div id="addGroup" style="display: block;">
         <form>
-
+            <div id="ngTitle">
+                <span>New Group</span>
+            </div>
+            <div id="grpNameField">
+                <div>
+                    <input type="text" min="1" max="10" id="groupName" required placeholder="Enter Group Name">
+                </div>
+            </div>
+            <div id="grpMembers">
+                <div id="grpMemTitle">
+                    <span>Select Group Members</span>
+                </div>
+                <div id="grpMemList">
+                    <label>
+                        <span>John Locke</span>
+                        <input type="checkbox" name="newGroupUser" value="abc">
+                    </label>
+                    <label>
+                        <span>Jack Shephard</span>
+                        <input type="checkbox" name="newGroupUser" value="abc">
+                    </label>
+                    <label>
+                        <span>Neal Caffrey</span>
+                        <input type="checkbox" name="newGroupUser" value="abc">
+                    </label>
+                </div>
+            </div>
+            <div id="grpButtons">
+                <button type="reset">Cancel</button>
+                <button type="submit">Create Group</button>
+            </div>
         </form>
     </div>
     <div id="fileSharing">
