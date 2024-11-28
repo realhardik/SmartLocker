@@ -529,7 +529,9 @@ class chat {
     }
 
     async addNewGroup(i, dBox) {
-        var interactedUsers = this.chatUsers.filter(c => c.type === 'solo')
+        console.log(i)
+        console.log(this.chatUsers)
+        var interactedUsers = [...this.chatUsers].filter(c => c.type === 'solo')
         console.log(interactedUsers)
     }
 
