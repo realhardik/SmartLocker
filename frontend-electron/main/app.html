@@ -339,7 +339,7 @@
             </div>
             <div id="grpNameField">
                 <div>
-                    <input type="text" min="1" max="10" id="groupName" required placeholder="Enter Group Name">
+                    <input type="text" min="1" maxlength="10" pattern="^[A-Za-z][A-Za-z0-9]*$" title="Only alphabets and numbers allowed." id="groupName" required placeholder="Enter Group Name">
                 </div>
             </div>
             <div id="grpMembers">
@@ -362,8 +362,8 @@
                 </div>
             </div>
             <div id="grpButtons">
-                <button type="reset">Cancel</button>
-                <button type="submit">Create Group</button>
+                <button type="reset" class="c">Cancel</button>
+                <button type="submit" class="i" data-dialog="addGroup" data-p="addNewGroup;chat" data-i='["groupName"]'>Create Group</button>
             </div>
         </form>
     </div>

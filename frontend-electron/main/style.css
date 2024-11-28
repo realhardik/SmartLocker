@@ -497,7 +497,16 @@ button {
     align-items: center;
 }
 
+#ngTitle {
+    font-size: 20px;
+}
+
+#grpMemTitle {
+    font-size: 19px;
+}
+
 #addGroup {
+    width: 35vw;
     padding-top: 8px;
 }
 
@@ -522,11 +531,19 @@ button {
     gap: 8px;
 }
 
+#grpMembers {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
 #grpMemList {
     background-color: rgba(89, 101, 111, 0.6);
-    padding: 5px 6px;
+    padding: 5px 10px;
     border-radius: 8px;
-    max-height: 170px;
+    height: 222px;
+    max-width: 300px;
     overflow: scroll;
 }
 
@@ -538,10 +555,28 @@ button {
     align-content: center;
     border-bottom: solid 0.4px rgba(255, 255, 255, 0.4);
     padding: 4px 0;
+    font-size: 17px;
+    height: 34px;
+    cursor: pointer;
 }
 
 #grpMemList label:last-child {
     border-bottom: none !important;
+}
+
+#grpMemList label input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    height: 100%;
+    aspect-ratio: 1 / 1;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: solid 1px black;
+    border-radius: 2px;
+}
+
+#grpMemList label input:checked {
+    background-color: #0077b6 !important;
 }
 
 /* file sharing */
@@ -721,9 +756,10 @@ select:-moz-focusring {
 }
 
 #grpNameField input[type="text"] {
-    width: auto;
-    min-width: auto;
+    width: clamp(120px, 25vw, 220px);
+    min-width: 120px;
     background-color: #565656;
+    max-width: 250px;
 }
 
 #expTitle {

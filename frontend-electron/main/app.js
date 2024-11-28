@@ -446,7 +446,7 @@ class chat {
         this.activeProfile = F.G.id('tChat')
         this.chatUsers = new Set()
 
-        F.BM(this, ["addChat", "openChat", "addNewUser", "sendMessage", "createChat", "fetchMessages"])
+        F.BM(this, ["addChat", "openChat", "addNewUser", "addNewGroup", "sendMessage", "createChat", "fetchMessages"])
         F.l('click', F.G.id("oOpt"), this.handleOpts)
         this.profS = F.G.id('profS')
         F.l('click', this.profS, this.openChat)
