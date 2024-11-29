@@ -13,6 +13,9 @@ const http = require('http')
 const { Server } = require('socket.io')
 const nodemailer = require('nodemailer')
 const otpGen = require('otp-generator')
+const { send } = require('process')
+const { group } = require('console')
+const { type } = require('os')
 
 const app = express()
 const server = http.createServer(app)
@@ -130,10 +133,10 @@ const db = new class {
     this.chatLogs = new mongoose.Schema({
       timestamp: { type: Date, default: Date.now },
       from: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
-      to: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
+      to: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+      group: { type: mongoose.Schema.Types.ObjectId, ref: 'group' },
       type: { type: String, enum: ['file', 'text'], default: 'text' },
-      content: String,
-      read: { type: Boolean, default: false }
+      content: String
     });
     
     this.fileLog = new mongoose.Schema({
@@ -327,10 +330,11 @@ io.on('connection', (socket) => {
   })
 
   socket.on('addNewGroup', async ({ grpName, grpMembers, createdBy }) => {
-    var members = grpMembers
-        .filter(u => u !== createdBy)
-        .map(u => ({ user: u, role: 'member' }))
-    
+    const members = grpMembers
+          .map(u => ({ user: u, role: 'member' }))
+    console.log("grp: ", grpName)
+    console.log("grp: ", grpMembers)
+    console.log("grp: ", createdBy)
     var response = await db.add('group', {
         name: grpName,
         createdBy: createdBy,
@@ -338,6 +342,25 @@ io.on('connection', (socket) => {
           { user: createdBy, role: 'admin' },
           ...members
       ]
+    })
+
+    if (!response.success) {
+      socket.emit('NoNewUser', "Error creating new group.")
+    }
+
+    var grp = response.result
+    console.log("new group", grp)
+    await db.add('chat', {
+      sender: createdBy,
+      group: grp._id,
+      type: 'group'
+    })
+    grpMembers.forEach(async (u) => {
+      await db.add('chat', {
+        sender: u,
+        group: grp._id,
+        type: 'group'
+      })
     })
 
     if (response.success) {
@@ -623,7 +646,7 @@ app.get('/chat', authenticateJWT, async (req, res) => {
     console.log("interacted both: ", iChats)
     if (!iUarr.success && !iUarr.hasOwnProperty('result'))
       return res.status(401).json({ success: false, msg: 'Error fetching chats. Try again later' })
-    return res.status(201).json({ success: true, result: iUarr.result })
+    return res.status(201).json({ success: true, result: iChats })
   } catch(err) {
     res.status(401).json({ success: false, msg: "Unexpected Error occured. Please try again later." });
   }

@@ -523,7 +523,6 @@ class chat {
     }
 
     createChat(data) {
-        console.log(data)
         var temp = this.profTemp.cloneNode(true),
             nSpan = F.Cr('span'),
             nCon = F.G.class('profName', temp)[0],
@@ -550,9 +549,11 @@ class chat {
     }
 
     async addNewGroup(i, dBox) {
-        var grpName = i["groupName"],
+        var grpName = i["groupName"].value,
             grpMembers = F.G.query('input[type="checkbox"]:checked', this.grpList, "a")
         grpMembers = Array.from(grpMembers).map(checkbox => checkbox.value);
+        console.log("grp: ", grpName)
+        console.log("grp: ", grpMembers)
         socket.emit('addNewGroup', {
             grpName: grpName,
             grpMembers: grpMembers,
@@ -683,11 +684,11 @@ class chat {
         let user;
         let modifiedChats = result
             .map(item => {
-                if ('solo' === item.type) {
-                    user = item.group.members.find(item => item.user === item.sender._id)
+                if ('group' === item.type) {
+                    user = item.group.members.find(member => member.user === item.sender)
                     return { id: item.group._id, name: item.group.name, role: user.role, lastMessage: item.lastMessage.timestamp, type: item.type }
                 }
-                return { id: item.receiver._id, name: item.receiver.name, lastMessage: item.lastMessage.timestamp, type: 'group' };
+                return { id: item.receiver._id, name: item.receiver.name, lastMessage: item.lastMessage.timestamp, type: 'solo' };
             })
             .filter(name => name);
         modifiedChats.sort((a, b) => b.lastMessage - a.lastMessage);
