@@ -313,12 +313,12 @@ io.on('connection', (socket) => {
         sender: senderId,
         receiver: recipientId
     })
-    db.search('chat', { 
-      $or: [
-        { sender: senderId, receiver: recipientId },
-        { sender: recipientId, receiver: senderId }
-      ]
-    }, 'findOneAndUpdate', { $set: { "lastMessage.timestamp": Date.now() } })
+
+    response = await db.add('chat', {
+      sender: recipientId,
+      receiver: senderId
+    })
+
     if (response.success) {
       socket.emit('addedNewChat', { recipientName: recipientName, ...response.result._doc })
     } else {
@@ -326,19 +326,20 @@ io.on('connection', (socket) => {
     }
   })
 
-  socket.on('addNewGroup', async ({ name, creator, recipients }) => {
-    var members = recipients
-        .filter(u => u !== creator)
+  socket.on('addNewGroup', async ({ grpName, grpMembers, createdBy }) => {
+    var members = grpMembers
+        .filter(u => u !== createdBy)
         .map(u => ({ user: u, role: 'member' }))
     
     var response = await db.add('group', {
-        name: name,
-        createdBy: creator,
+        name: grpName,
+        createdBy: createdBy,
         members: [
-          { user: creator, role: 'admin' },
+          { user: createdBy, role: 'admin' },
           ...members
       ]
     })
+
     if (response.success) {
       members.forEach(m => {
         socket.to(m.user).emit('addedNewGroup', { role: 'member', ...response.result._doc })
@@ -358,6 +359,13 @@ io.on('connection', (socket) => {
         type:  type || "text",
         content: message
     })
+
+    db.search('chat', { 
+      $or: [
+        { sender: senderId, receiver: convId },
+        { sender: convId, receiver: senderId }
+      ]
+    }, 'findOneAndUpdate', { $set: { "lastMessage.timestamp": Date.now() } })
 
     socket.emit('sentMessage', { ...anc.result._doc });
     socket.to(convId).emit('newMessage', { ...anc.result._doc });

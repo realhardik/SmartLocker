@@ -481,7 +481,7 @@ class chat {
         })
         this.addChat()
     }
-
+    
     init(v) {
         if ("addGroup" === v) {
             this.grpList.innerHTML = ""
@@ -490,8 +490,6 @@ class chat {
                 var grpLTemp = this.grpTemp.cloneNode(true),
                     tCheckBox = F.G.query('input', grpLTemp),
                     tSpan = F.Cr('span')
-                console.log(tSpan)
-                console.log(tCheckBox)
                 tSpan.innerText = u.name
                 tCheckBox.setAttribute('value', u.convId)
                 grpLTemp.insertBefore(tSpan, tCheckBox)
@@ -511,14 +509,12 @@ class chat {
             })
             console.log("user req raw: ", uReq)
         var uList = this.getInteractedUsersArray(uReq.data.result, this.userData.user._id)
-        console.log("user req: ", uList)
             if (uList.length === 0)
                 return (console.log("no chats found"), false)
 
             uList.forEach(user => {
                 this.createChat(user)
             })
-            
         } catch (err) {
             console.error("error fetching chats: ", err)
             alert("Couldn't fetch chats at the moment.")
@@ -554,9 +550,15 @@ class chat {
     }
 
     async addNewGroup(i, dBox) {
-        console.log(i)
-        // var interactedUsers = [...this.chatUsers].filter(c => c.type === 'solo')
-        // console.log(interactedUsers)
+        var grpName = i["groupName"],
+            grpMembers = F.G.query('input[type="checkbox"]:checked', this.grpList, "a")
+        grpMembers = Array.from(grpMembers).map(checkbox => checkbox.value);
+        socket.emit('addNewGroup', {
+            grpName: grpName,
+            grpMembers: grpMembers,
+            createdBy: this.userData.user._id
+        })
+        dBox && dBox.close()
     }
 
     async addNewUser(i, dBox) {
@@ -681,11 +683,11 @@ class chat {
         let user;
         let modifiedChats = result
             .map(item => {
-                if ('group' === item.type) {
+                if ('solo' === item.type) {
                     user = item.group.members.find(item => item.user === item.sender._id)
                     return { id: item.group._id, name: item.group.name, role: user.role, lastMessage: item.lastMessage.timestamp, type: item.type }
                 }
-                return { id: item.receiver._id, name: item.receiver.name, lastMessage: item.lastMessage.timestamp, type: item.type };
+                return { id: item.receiver._id, name: item.receiver.name, lastMessage: item.lastMessage.timestamp, type: 'group' };
             })
             .filter(name => name);
         modifiedChats.sort((a, b) => b.lastMessage - a.lastMessage);
