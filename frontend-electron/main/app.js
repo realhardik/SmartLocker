@@ -335,7 +335,7 @@ class gen {
         var dts = e.target["dataset"],
             dBoxId = dts.dbox,
             dBox = F.G.id(dBoxId)
-        dts.c && this[dts.c].init && this[dts.c].init()
+        dts.c && this[dts.c].init && this[dts.c].init(dBoxId)
         dBox && F.hide(dBox, !0)
         dBox.close = () => this.closeDialog(F.G.class('c', dBox)[0]);
         F.class([F.G.id('app')], ["disable"])
@@ -442,11 +442,14 @@ class chat {
         this.profS = F.G.id("profS"),
         this.aProfChat = F.G.id("sChat"),
         this.profTemp = F.G.id("profile").content.firstElementChild.cloneNode(true),
-        this.msgTemp = F.G.id("message").content.firstElementChild.cloneNode(true)
+        this.msgTemp = F.G.id("message").content.firstElementChild.cloneNode(true),
+        this.grpTemp = F.G.id("grpMemListProf").content.firstElementChild.cloneNode(true)
+        this.grpList = F.G.id('grpMemList')
         this.activeProfile = F.G.id('tChat')
-        this.chatUsers = new Set()
+        this.chatUsers = new Map()
 
         F.BM(this, ["addChat", "openChat", "addNewUser", "addNewGroup", "sendMessage", "createChat", "fetchMessages"])
+        F.BM(this, ['init'])
         F.l('click', F.G.id("oOpt"), this.handleOpts)
         this.profS = F.G.id('profS')
         F.l('click', this.profS, this.openChat)
@@ -479,6 +482,24 @@ class chat {
         this.addChat()
     }
 
+    init(v) {
+        if ("addGroup" === v) {
+            this.grpList.innerHTML = ""
+            var iList = [...this.chatUsers.values()].filter(value => value.type === "solo")
+            iList.forEach(u => {
+                var grpLTemp = this.grpTemp.cloneNode(true),
+                    tCheckBox = F.G.query('input', grpLTemp),
+                    tSpan = F.Cr('span')
+                console.log(tSpan)
+                console.log(tCheckBox)
+                tSpan.innerText = u.name
+                tCheckBox.setAttribute('value', u.convId)
+                grpLTemp.insertBefore(tSpan, tCheckBox)
+                this.grpList.append(grpLTemp)
+            })
+        }
+    }
+    
     async addChat() {
         this.userData = await F.getToken()
         this.token = this.userData.token
@@ -525,14 +546,17 @@ class chat {
             userRole: data.role,
             type: 'group'
         })
-        this.chatUsers.add(data.id)
+        this.chatUsers.set(data.id, {
+            convId: data.id,
+            name: data.name,
+            type: data.type
+        })
     }
 
     async addNewGroup(i, dBox) {
         console.log(i)
-        console.log(this.chatUsers)
-        var interactedUsers = [...this.chatUsers].filter(c => c.type === 'solo')
-        console.log(interactedUsers)
+        // var interactedUsers = [...this.chatUsers].filter(c => c.type === 'solo')
+        // console.log(interactedUsers)
     }
 
     async addNewUser(i, dBox) {
@@ -549,10 +573,15 @@ class chat {
             }),
             user = res.data
         if (!user.success) {
-            console.log('not found')
             alert("User not found.")
+            dBox.close && dBox.close()
             return false
         }
+        if (this.chatUsers.has(user.result._id)) {
+            dBox.close && dBox.close()
+            return (alert('User already exists in chat.'), false)
+        }
+            
         socket.emit('addNewChat', {
             senderId: this.userData.user._id,
             recipientId: user.result._id,
