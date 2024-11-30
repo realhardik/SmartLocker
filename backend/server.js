@@ -670,7 +670,9 @@ app.get('/chatLog/:convId', authenticateJWT, async (req, res) => {
   } else if (type === 'group') {
     history = await db.search('chatLog', {
       to: otherUser
-    })
+    }, 'find', null, [
+      { field: 'from', select: '_id name' }
+    ])
   }
   
   if (!history.success && !history.hasOwnProperty('result'))

@@ -320,9 +320,19 @@ nav>section:first-child .button.active {
     font-size: 18px;
 }
 
-#aFileHist {
+#otherChatOptions {
     font-size: 18px;
+}
+
+#otherChatOptions>* {
     cursor: pointer;
+}
+
+#deleteGroup, #leaveGroup {
+    display: none;
+    pointer-events: none;
+    color: red;
+    margin-left: 17px;
 }
 
 #sChat {
@@ -430,8 +440,24 @@ nav>section:first-child .button.active {
     margin: 3px 0;
 }
 
-.sUser span, .pUser span {
-    padding: 5px 15px;
+.sUser>span, .pUser>span {
+    padding: 5px 5px;
+    width: max-content;
+}
+
+.sUser.g {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.gUserName {
+    font-size: 15px;
+    color: #5cf156;
+}
+
+.gUserName::before {
+    font-size: 15px;
+    content: "~";
 }
 
 .sUser {
@@ -442,11 +468,11 @@ nav>section:first-child .button.active {
     justify-content: flex-end;
 }
 
-.sUser span {
+.sUser>span {
     background-color: #006d77;
 }
 
-.pUser span {
+.pUser>span {
     background-color: #415a77;
 }
 

@@ -625,27 +625,46 @@ class chat {
         console.log("unrevised chats: ", history)
         var response = history.data.result,
             chats = response.map(e => {
-                if (e.from !== tokenReq.user._id) return { context: "received", type: e.type, content: e.content }
-                if (e.from === tokenReq.user._id) return { context: "sent", type: e.type, content: e.content }
+                var from = data.type === 'group' ? e.from._id : e.from
+                if (from !== tokenReq.user._id) return { context: "received", type: e.type, content: e.content, name: e.from?.name || "solo" }
+                if (from === tokenReq.user._id) return { context: "sent", type: e.type, content: e.content }
                 return null
             })
         F.G.id('sChat').innerHTML = ""
-        this.renderMessages(chats)
+        this.renderMessages({ type: data.type, chats: chats })
     }
 
     renderMessages(data) {
         let cSection = F.G.id('sChat'),
-            lastM = !1
-        data.forEach(c => {
+            lastM = !1,
+            type = data.type,
+            chats = data.chats
+        
+        chats.forEach(c => {
             var tempDiv = F.Cr('div'),
-                tempSpan = F.Cr('span')
+                tempSpan = F.Cr('span'),
+                sCon;
             if (c.context === "sent") {
                 tempDiv.classList.add('pUser')
             } else if ('received' === c.context) {
                 tempDiv.classList.add('sUser')
             }
-            tempDiv.appendChild(tempSpan)
-            tempSpan.innerText = c.content
+
+            if (type === "group" && c.context === "received") {
+                tempDiv.appendChild(tempSpan)
+                sCon = F.G.query('span', tempDiv)
+                tempSpan = F.Cr('span')
+                tempSpan.classList.add('gUserName')
+                tempSpan.innerText = c.name
+                tempDiv.classList.add('g')
+                sCon.appendChild(tempSpan)
+                tempSpan = F.Cr('span')
+                tempSpan.innerText = c.content
+                sCon.appendChild(tempSpan)
+            } else {
+                tempSpan.innerText = c.content
+                tempDiv.appendChild(tempSpan)
+            }
             !lastM && cSection.appendChild(tempDiv)
             lastM && cSection.insertBefore(tempDiv, lastM)
             lastM = tempDiv
@@ -659,7 +678,10 @@ class chat {
         let cInput = F.G.id('textMessage');
         newChat.from === this.userData.user._id && (refChat = { context: "sent", type: newChat.type, content: newChat.content }) && (cInput.value = "")
         newChat.to === this.userData.user._id && (refChat = { context: "received", type: newChat.type, content: newChat.content })
-        this.renderMessages([refChat])
+        this.renderMessages({
+            type: newChat.type,
+            chats: [refChat]
+        })
     }
 
     sendMessage(e) {
