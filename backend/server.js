@@ -288,11 +288,6 @@ const db = new class {
       } else if (method === "multiple") {
           result = await model.deleteMany(query);
       }
-
-      if ((method === "multiple" && result.deletedCount === 0) || (method !== "multiple" && result.deletedCount !== 1)) {
-          console.log("No results found");
-          return { success: false };
-      }
       return { success: true, result: result}
     } catch (err) {
         console.error("Error removing: ", err);
@@ -412,26 +407,53 @@ io.on('connection', (socket) => {
   });
 
   socket.on('deleteGroup', async (data) => {
-    // var group = await db.search('group', {
-    //   _id: data._id
-    // }, 'findOne')
-    // if (!group.success) {
-    //   socket.emit('NoNewUser', "Couldn't find the group")
-    // }
-    // group = group.result
-    // console.log(group)
-    // group.members.forEach(async (u) => {
-    //   console.log(u.user)
-    //   var result = await db.search('chat', {
-    //     sender: u.user,
-    //     group: group._id
-    //   })
-    //   console.log("found chat: ", result)
-    // })
+    var group = await db.search('group', {
+      _id: data.id
+    }, 'findOne')
+
+    if (!group.success) {
+      socket.emit('NoNewUser', "Couldn't find the group")
+      return
+    }
+    group = group.result
+    group.members.forEach(async (u) => {
+      var result = await db.remove('chat', {
+        sender: u.user,
+        group: group._id
+      })
+      if (u.user === group.createdBy) {
+        socket.emit('deletedGroup', group._id)
+      } else {
+        socket.to(u.user).emit('deletedGroup', group._id)
+      }
+    })
+    group = await group.deleteOne()
+    db.remove('chatLog', {
+      to: data.id
+    }, "multiple")
   });
 
-  socket.on('leaveGroup', () => {
-    console.log('leaveGroup')
+  socket.on('leaveGroup', async (data) => {
+    var group = await db.search('group', {
+      _id: data.id
+    }, 'findOne')
+
+    if (!group.success) {
+      socket.emit('NoNewUser', "Couldn't find the group")
+      return
+    }
+    group = group.result
+    console.log(data.userId)
+    var result = await db.remove('chat', {
+      sender: data.userId,
+      group: group._id
+    })
+    console.log(result)
+    if (result.success) {
+      socket.emit('leavedGroup', group._id)
+    } else {
+      socket.emit('NoNewUser', "Error leaving the group.")
+    }
   });
 
   socket.on('markAsRead', async ({ message }) => {
@@ -839,10 +861,10 @@ const deleteExpiredFiles = async () => {
     //   to: "672f9d597d4158f3e7170458",
     //   content: "How are you!"
     // })
-    var files = await db.search('chat', {})
-    console.log("files fn: ", files)
-    var files = await db.search('chatLog', {})
-    console.log("files fn: ", files)
+    // var files = await db.search('chat', {})
+    // console.log("files fn: ", files)
+    // var files = await db.search('chatLog', {})
+    // console.log("files fn: ", files)
     // await db.remove('chat', {}, 'multiple')
     console.log("exp files fn: ", expiredFiles)
   // for (const file of expiredFiles) {

@@ -445,7 +445,7 @@ class chat {
         this.chatUsers = new Map()
 
         F.BM(this, ["addChat", "openChat", "addNewUser", "addNewGroup", "sendMessage", "createChat", "fetchMessages"])
-        F.BM(this, ['init'])
+        F.BM(this, ['init', 'leaveGroup'])
         F.l('click', F.G.id("oOpt"), this.handleOpts)
         this.profS = F.G.id('profS')
         F.l('click', this.profS, this.openChat)
@@ -474,6 +474,12 @@ class chat {
                 type: 'group'
             })
         })
+        socket.on('deletedGroup', () => {
+            console.log('delet group')
+        })
+        socket.on('leavedGroup', () => {
+            console.log('leave group')
+        })
         socket.on('NoNewUser', (msg) => {
             alert(msg)
         })
@@ -501,11 +507,10 @@ class chat {
         e.stopPropagation()
         var op = e.target.id,
             context = F.G.id('tChat')?.con
-        console.log(op)
-        console.log(e.target)
         socket.emit(op, {
             name: context.userName,
             id: context.convId,
+            userId: this.userData.user._id,
             role: context.userRole,
             type: context.type
         })
