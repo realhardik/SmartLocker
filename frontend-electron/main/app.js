@@ -308,10 +308,6 @@ class gen {
         F.l('click', F.G.id('nav'), this.handleNav)
     }
 
-    async openTabs(e) {
-
-    }
-
     async handleNav(e) {
         e.stopPropagation()
         var target = e.target,
@@ -615,6 +611,9 @@ class chat {
     async fetchMessages(data) {
         var tokenReq = await F.getToken(),
             history = await axios.get(`${BASE_URL}/chatLog/${data.convId}`, {
+                params: {
+                    type: data.type
+                },
                 headers: {
                     'Authorization': `Bearer ${tokenReq.token}`
                 }
@@ -625,9 +624,9 @@ class chat {
         }
         console.log("unrevised chats: ", history)
         var response = history.data.result,
-            chats = response.map(e => { 
-                if (e.from === data.convId) return { context: "sent", type: e.type, content: e.content }
-                if (e.to === data.convId) return { context: "received", type: e.type, content: e.content }
+            chats = response.map(e => {
+                if (e.from !== tokenReq.user._id) return { context: "received", type: e.type, content: e.content }
+                if (e.from === tokenReq.user._id) return { context: "sent", type: e.type, content: e.content }
                 return null
             })
         F.G.id('sChat').innerHTML = ""
@@ -668,16 +667,12 @@ class chat {
         var activeProfile = this.activeProfile?.con
         if (!activeProfile)
             return (alert("Unexpected error occured while connecting to the server.\nPlease log in again."))
-        var type = 'group' === activeProfile.type ? 'sendGroupMessage' : 'sendMessage'
-        socket.emit(type, {
+        socket.emit('sendMessage', {
             senderId: this.userData.user._id,
             convId: activeProfile.convId,
-            message: message
+            message: message,
+            cType: activeProfile.type
         });
-    }
-
-    sentMessage(e) {
-
     }
 
     getInteractedUsersArray(result) {

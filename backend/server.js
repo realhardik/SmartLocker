@@ -133,8 +133,7 @@ const db = new class {
     this.chatLogs = new mongoose.Schema({
       timestamp: { type: Date, default: Date.now },
       from: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
-      to: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
-      group: { type: mongoose.Schema.Types.ObjectId, ref: 'group' },
+      to: { type: mongoose.Schema.Types.ObjectId, required: true },
       type: { type: String, enum: ['file', 'text'], default: 'text' },
       content: String
     });
@@ -373,39 +372,43 @@ io.on('connection', (socket) => {
     }
   })
 
-  socket.on('sendMessage', async ({ senderId, convId, type, message }) => {
+  socket.on('sendMessage', async ({ senderId, convId, mType, message, cType }) => {
     console.log(`Message in room ${convId} from ${senderId}: ${message}`);
     
     var anc = await db.add('chatLog', {
         from: senderId,
         to: convId,
-        type:  type || "text",
-        content: message
+        mType:  mType || "text",
+        content: message,
+        cType: cType || 'solo'
     })
 
-    db.search('chat', { 
-      $or: [
-        { sender: senderId, receiver: convId },
-        { sender: convId, receiver: senderId }
-      ]
-    }, 'findOneAndUpdate', { $set: { "lastMessage.timestamp": Date.now() } })
+    if (cType === 'group') {
+      var group = await db.search('group', {
+        _id: convId
+      }, 'findOne')
 
-    socket.emit('sentMessage', { ...anc.result._doc });
-    socket.to(convId).emit('newMessage', { ...anc.result._doc });
-  });
-
-  socket.on('sendGroupMessage', async ({ senderId, convId, type, message }) => {
-    console.log(`Message in room ${convId} from ${senderId}: ${message}`);
-    
-    var anc = await db.add('chatLog', {
-        from: senderId,
-        to: recipientId,
-        type:  type || "text",
-        content: message
-    })
-
-    socket.emit('sentMessage', { ...anc.result._doc });
-    socket.to(recipientId).emit('newMessage', { ...anc.result._doc });
+      db.search('chat', {
+        receiver: convId
+      }, 'updateMany',  { $set: { "lastMessage.timestamp": Date.now() } })
+      console.log("senders id: ", senderId)
+      group.result.members.forEach(u => {
+        if (!u.user.equals(senderId)) {
+          socket.to(u.user).emit('newMessage', { ...anc.result._doc })
+        }
+      })
+      socket.emit('sentMessage', { ...anc.result._doc })
+    } else {
+      db.search('chat', { 
+        $or: [
+          { sender: senderId, receiver: convId },
+          { sender: convId, receiver: senderId }
+        ]
+      }, 'findOneAndUpdate', { $set: { "lastMessage.timestamp": Date.now() } })
+  
+      socket.emit('sentMessage', { ...anc.result._doc });
+      socket.to(convId).emit('newMessage', { ...anc.result._doc });
+    }
   });
 
   socket.on('markAsRead', async ({ message }) => {
@@ -655,12 +658,21 @@ app.get('/chat', authenticateJWT, async (req, res) => {
 app.get('/chatLog/:convId', authenticateJWT, async (req, res) => {
   const otherUser = req.params.convId,
         userId = req.user.data._id,
-        history = await db.search('chatLog', {
-          $or: [
-            { from: userId, to: otherUser },
-            { from: otherUser, to: userId }
-          ]
-        })
+        type = req.query.type
+  let history;
+  if (type === 'solo') {
+    history = await db.search('chatLog', {
+      $or: [
+        { from: userId, to: otherUser },
+        { from: otherUser, to: userId }
+      ]
+    })
+  } else if (type === 'group') {
+    history = await db.search('chatLog', {
+      to: otherUser
+    })
+  }
+  
   if (!history.success && !history.hasOwnProperty('result'))
     return res.status(401).json({ success: false, msg: 'Error fetching messages. Try again later' }) 
   return res.json({ success: true, result: history.result });
