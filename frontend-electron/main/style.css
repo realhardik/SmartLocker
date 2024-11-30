@@ -335,6 +335,10 @@ nav>section:first-child .button.active {
     margin-left: 17px;
 }
 
+#deleteGroup span, #leaveGroup span {
+    pointer-events: none;
+}
+
 #sChat {
     position: relative;
     width: 100%;

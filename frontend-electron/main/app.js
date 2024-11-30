@@ -450,6 +450,8 @@ class chat {
         this.profS = F.G.id('profS')
         F.l('click', this.profS, this.openChat)
         F.l('click', F.G.id('sText'), this.sendMessage)
+        F.l('click', F.G.id('deleteGroup'), this.leaveGroup)
+        F.l('click', F.G.id('leaveGroup'), this.leaveGroup)
         socket.on('newMessage', async (rMessage) => {
             this.newMessageLog(rMessage)
         });
@@ -475,6 +477,7 @@ class chat {
         socket.on('NoNewUser', (msg) => {
             alert(msg)
         })
+        
         this.addChat()
     }
     
@@ -492,6 +495,20 @@ class chat {
                 this.grpList.append(grpLTemp)
             })
         }
+    }
+
+    leaveGroup(e) {
+        e.stopPropagation()
+        var op = e.target.id,
+            context = F.G.id('tChat')?.con
+        console.log(op)
+        console.log(e.target)
+        socket.emit(op, {
+            name: context.userName,
+            id: context.convId,
+            role: context.userRole,
+            type: context.type
+        })
     }
     
     async addChat() {
@@ -596,6 +613,8 @@ class chat {
         this.activeProfile.open = !0
         if (!t)
             return
+        F.hide(F.G.id('deleteGroup'))
+        F.hide(F.G.id('leaveGroup'))
         var profPic = F.G.class('profPic', c)[0],
             profName = F.G.class('profName', c)[0]
         if (!profPic || !profName) return;
@@ -605,6 +624,14 @@ class chat {
         F.hide(F.G.id('sChat'))
         this.activeProfile.con = c.con
         tName.innerText = userName
+        if (c.con.type === "group") {
+            var role = c.con.userRole
+            if (role === "admin") {
+                F.hide(F.G.id('deleteGroup'), !0)
+            } else {
+                F.hide(F.G.id('leaveGroup'), !0)
+            }
+        }
         this.fetchMessages(this.activeProfile.con)
     }
 
@@ -673,7 +700,6 @@ class chat {
     }
     
     newMessageLog(newChat) {
-        console.log(newChat)
         let refChat;
         let cInput = F.G.id('textMessage');
         newChat.from === this.userData.user._id && (refChat = { context: "sent", type: newChat.type, content: newChat.content }) && (cInput.value = "")

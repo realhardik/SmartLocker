@@ -411,6 +411,29 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('deleteGroup', async (data) => {
+    // var group = await db.search('group', {
+    //   _id: data._id
+    // }, 'findOne')
+    // if (!group.success) {
+    //   socket.emit('NoNewUser', "Couldn't find the group")
+    // }
+    // group = group.result
+    // console.log(group)
+    // group.members.forEach(async (u) => {
+    //   console.log(u.user)
+    //   var result = await db.search('chat', {
+    //     sender: u.user,
+    //     group: group._id
+    //   })
+    //   console.log("found chat: ", result)
+    // })
+  });
+
+  socket.on('leaveGroup', () => {
+    console.log('leaveGroup')
+  });
+
   socket.on('markAsRead', async ({ message }) => {
     await db.search('chatLog', { _id: message._id }, 'findOneAndUpdate', { read: true })
   });
