@@ -440,6 +440,8 @@ class chat {
         this.profTemp = F.G.id("profile").content.firstElementChild.cloneNode(true),
         this.msgTemp = F.G.id("message").content.firstElementChild.cloneNode(true),
         this.grpTemp = F.G.id("grpMemListProf").content.firstElementChild.cloneNode(true)
+        this.load = F.G.id('loadChat')
+        this.chatS = F.G.id('chat')
         this.grpList = F.G.id('grpMemList')
         this.activeProfile = F.G.id('tChat')
         this.chatUsers = new Map()
@@ -474,11 +476,33 @@ class chat {
                 type: 'group'
             })
         })
-        socket.on('deletedGroup', () => {
-            console.log('delet group')
+        socket.on('deletedGroup', (group) => {
+            var users = Array.from(this.profS.children)
+            for (var u = 0; u<users.length; u++) {
+                console.log(users[u])
+                console.log(users[u].con)
+                if(users[u]?.con?.convId === group) {
+                    users[u].remove()
+                    F.G.id('sChat').innerHTML = ""
+                    F.G.id('textMessage').value = ""
+                    F.hide(F.G.id('chat'))
+                    break
+                }
+            }
         })
-        socket.on('leavedGroup', () => {
-            console.log('leave group')
+        socket.on('leavedGroup', (group) => {
+            var users = Array.from(this.profS.children)
+            for (var u = 0; u<users.length; u++) {
+                console.log(users[u])
+                console.log(users[u].con)
+                if(users[u]?.con?.convId === group) {
+                    users[u].remove()
+                    F.G.id('sChat').innerHTML = ""
+                    F.G.id('textMessage').value = ""
+                    F.hide(F.G.id('chat'))
+                    break
+                }
+            }
         })
         socket.on('NoNewUser', (msg) => {
             alert(msg)
@@ -616,8 +640,14 @@ class chat {
         var c = e.target,
             t = 'DIV' === c.tagName;
         this.activeProfile.open = !0
-        if (!t)
+        if (!t || !c.classList.contains('profile'))
             return
+        F.hide(this.chatS)
+        F.hide(this.load, !0, 'flex')
+        !this.activeProfile.previous && F.hide(F.G.id('loadPoster'))
+        this.activeProfile.previous && this.activeProfile.previous.classList.remove('active')
+        c.classList.add('active')
+        this.activeProfile.previous = c
         F.hide(F.G.id('deleteGroup'))
         F.hide(F.G.id('leaveGroup'))
         var profPic = F.G.class('profPic', c)[0],
@@ -626,7 +656,6 @@ class chat {
         var { userName } = c.con,
             tPic = F.G.query('img', F.G.id('aProfPic')),
             tName = F.G.query('span', F.G.id('aProfName'))
-        F.hide(F.G.id('sChat'))
         this.activeProfile.con = c.con
         tName.innerText = userName
         if (c.con.type === "group") {
@@ -654,7 +683,6 @@ class chat {
             alert("Couldn't fech chats at the moment. Try again Later.")
             return
         }
-        console.log("unrevised chats: ", history)
         var response = history.data.result,
             chats = response.map(e => {
                 var from = data.type === 'group' ? e.from._id : e.from
@@ -663,7 +691,7 @@ class chat {
                 return null
             })
         F.G.id('sChat').innerHTML = ""
-        this.renderMessages({ type: data.type, chats: chats })
+        this.renderMessages({ type: data.type, chats: chats, new: !0 })
     }
 
     renderMessages(data) {
@@ -671,7 +699,6 @@ class chat {
             lastM = !1,
             type = data.type,
             chats = data.chats
-        
         chats.forEach(c => {
             var tempDiv = F.Cr('div'),
                 tempSpan = F.Cr('span'),
@@ -701,7 +728,10 @@ class chat {
             lastM && cSection.insertBefore(tempDiv, lastM)
             lastM = tempDiv
         })
-        F.hide(F.G.id('sChat'), !0, "flex")
+        if (data?.new) {
+            F.hide(F.G.id('chat'), !0, "flex")
+            F.hide(this.load)
+        }
     }
     
     newMessageLog(newChat) {

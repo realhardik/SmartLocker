@@ -214,11 +214,48 @@ nav>section:first-child .button.active {
 
 #chat {
     position: relative;
+    display: none;
+    pointer-events: none;
     width: 80%;
-    display: flex;
     flex-direction: column;
 }
 
+#loadChat, #loadPoster {
+    width: 80%;
+    position: relative;
+    display: none;
+    font-family: varela;
+    pointer-events: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 25px;
+}
+
+#loadPoster {
+    display: flex;
+    font-size: 11.2vh;
+}
+
+.hypnotic-4 {
+    width: 75px;
+    height: 75px;
+    border: 1.5px solid;
+    border-radius: 50%;
+    background:
+      radial-gradient(farthest-side,#0000 calc(100% - 2px),currentColor calc(100% - 2px) 98%,#0000),
+      radial-gradient(farthest-side,#0000 calc(100% - 2px),currentColor calc(100% - 2px) 98%,#0000);
+    background-size: 23px 23px;
+    background-position: 0 0,12px 12px;
+    animation: h4 1s infinite;
+}
+  
+@keyframes h4{
+    100% {background-position: -23px 0px,12px 35px}
+}
+
+
+  
 #headerS {
     position: relative;
     top: 0;
@@ -259,10 +296,15 @@ nav>section:first-child .button.active {
     display: grid;
     grid-template-columns: 30% 60%;
     grid-gap: 10%;
-    padding: 0 20px;
-    margin: 17.5px 0;
+    padding: 10px 20px;
+    margin: 10px 0;
     box-sizing: border-box;
     cursor: pointer;
+    border-bottom: solid #6c6c6c 0.5px;
+}
+
+#profS>div.active {
+    background-color: rgba(30, 171, 246, 0.5)
 }
 
 #profS>div * {
@@ -283,10 +325,6 @@ nav>section:first-child .button.active {
     height: 100%;
     object-fit: cover;
     border-radius: 50%;
-}
-
-.profName {
-    border-bottom: solid #6c6c6c 0.5px;
 }
 
 .profPic, .profName, #tChat>* {

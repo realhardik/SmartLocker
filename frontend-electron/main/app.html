@@ -14,6 +14,13 @@
 			font-display: swap;
 		}
 
+        @font-face {
+			font-family: 'varela';
+			src: url("../static/fonts/varela/Varela-Regular.ttf") format("woff2");
+			font-weight: 700;
+			font-display: swap;
+		}
+
 		* {
 			margin: 0;
 			padding: 0;
@@ -330,6 +337,17 @@
                     </div>
                 </div>
             </section>
+            <div id="loadChat">
+                <div class="hypnotic-4"></div>
+                <div>
+                    <span>Loading...</span>
+                </div>
+            </div>
+            <div id="loadPoster">
+                <div>
+                    <span>Smart Locker</span>
+                </div>
+            </div>
         </section>
     </main>
     <div id="addChat">
@@ -471,7 +489,7 @@
         </form>
 	</div>
     <template id="profile">
-        <div>
+        <div class="profile">
             <div class="profPic">
                 <div>
                     <img src="../static/profiles/profile1.jpg" alt="">

@@ -416,17 +416,24 @@ io.on('connection', (socket) => {
       return
     }
     group = group.result
-    group.members.forEach(async (u) => {
-      var result = await db.remove('chat', {
+    for (const u of group.members) {
+      const result = await db.remove('chat', {
         sender: u.user,
         group: group._id
-      })
-      if (u.user === group.createdBy) {
-        socket.emit('deletedGroup', group._id)
+      });
+      
+      console.log("deleting grp: ", result);
+      console.log(u.user);
+      console.log(group.createdBy);
+      
+      if (u.user.equals(group.createdBy)) {
+        console.log('emitting');
+        socket.emit('deletedGroup', group._id);
       } else {
-        socket.to(u.user).emit('deletedGroup', group._id)
+        socket.to(u.user).emit('deletedGroup', group._id);
       }
-    })
+    }
+    console.log("deleting group now")
     group = await group.deleteOne()
     db.remove('chatLog', {
       to: data.id
