@@ -306,6 +306,7 @@ class gen {
             F.l('click', e, this.handleInputs)
         })
         F.l('click', F.G.id('nav'), this.handleNav)
+        this.setupProfile(data)
     }
 
     async handleNav(e) {
@@ -324,6 +325,13 @@ class gen {
         } else if (logout) {
             this.logout()
         }
+    }
+
+    setupProfile(user) {
+        var sNameSection = F.G.id('userName')
+        var tSpan = F.Cr('span')
+        tSpan.innerText = user.name
+        sNameSection.appendChild(tSpan)
     }
 
     async openDialog(e) {
@@ -789,8 +797,7 @@ new class {
             this.startInTimer()
             ipcRenderer.send('profile');
             socket.emit('joinRoom', isAuthorized.user._id);
-            console.log("joined room: ", isAuthorized.user._id)
-            new gen
+            new gen(isAuthorized.user)
         }
     }
 
