@@ -634,7 +634,7 @@ class chat {
         });
         dBox.close && dBox.close()
     }
-
+    
     openChat(e) {
         e.stopPropagation()
         var c = e.target,
