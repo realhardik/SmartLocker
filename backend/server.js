@@ -377,7 +377,6 @@ io.on('connection', (socket) => {
         content: message,
         cType: cType || 'solo'
     })
-
     if (cType === 'group') {
       var group = await db.search('group', {
         _id: convId
@@ -385,25 +384,47 @@ io.on('connection', (socket) => {
 
       db.search('chat', {
         receiver: convId
-      }, 'updateMany',  { $set: { "lastMessage.timestamp": Date.now() } })
-      console.log("senders id: ", senderId)
-      group.result.members.forEach(u => {
+      }, 'updateMany',
+      { $set: { "lastMessage.timestamp": Date.now() } })
+
+      var oUsers = group.result.members.map(e => e.user !== senderId)
+      await db.search('chat', {
+        receiver: convId
+      }, 'updateMany',
+      {
+          $inc: { unreadCount: 1 }
+      })
+      group.result.members.forEach(async (u) => {
         if (!u.user.equals(senderId)) {
           socket.to(u.user).emit('newMessage', { ...anc.result._doc })
         }
       })
       socket.emit('sentMessage', { ...anc.result._doc })
     } else {
+      await db.search('chat', { sender: convId, receiver: senderId }, 'findOneAndUpdate',
+      { $inc: { unreadCount: 1 } })
+
       db.search('chat', { 
         $or: [
           { sender: senderId, receiver: convId },
           { sender: convId, receiver: senderId }
         ]
-      }, 'findOneAndUpdate', { $set: { "lastMessage.timestamp": Date.now() } })
-  
+      }, 'updateMany', { $set: { "lastMessage.timestamp": Date.now() } })
+
       socket.emit('sentMessage', { ...anc.result._doc });
       socket.to(convId).emit('newMessage', { ...anc.result._doc });
     }
+  });
+
+  socket.on('markRead', async (data) => {
+    var res = await db.search('chat', {
+      sender: data.receiverId,
+      receiver: data.senderId
+    }, 'findOneAndUpdate', {
+      $set: { unreadCount: 0 }
+    })
+    console.log("marked read: ", res)
+    socket.emit('markedRead')
   });
 
   socket.on('deleteGroup', async (data) => {

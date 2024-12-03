@@ -575,10 +575,14 @@ class chat {
     createChat(data) {
         var temp = this.profTemp.cloneNode(true),
             nSpan = F.Cr('span'),
+            n2Span = F.Cr('span'),
             nCon = F.G.class('profName', temp)[0],
+            unCon = F.G.class('unreadCount', temp)[0],
             type = data.type
-        nSpan.innerHTML = data.name
+            nSpan.innerHTML = data.name
+            n2Span.innerHTML = data.unreadCount
         nCon.appendChild(nSpan)
+        unCon.appendChild(n2Span)
         F.G.id('profS').appendChild(temp)
         "solo" === type && (temp.con = {
             userName: data.name,
@@ -652,6 +656,10 @@ class chat {
             return
         F.hide(this.chatS)
         F.hide(this.load, !0, 'flex')
+        socket.emit('markRead', ({
+            senderId: c.con.convId,
+            receiverId: this.userData.user._id
+        }))
         !this.activeProfile.previous && F.hide(F.G.id('loadPoster'))
         this.activeProfile.previous && this.activeProfile.previous.classList.remove('active')
         c.classList.add('active')
@@ -772,12 +780,23 @@ class chat {
             .map(item => {
                 if ('group' === item.type) {
                     user = item.group.members.find(member => member.user === item.sender)
-                    return { id: item.group._id, name: item.group.name, role: user.role, lastMessage: item.lastMessage.timestamp, type: item.type }
+                    return { id: item.group._id, 
+                        name: item.group.name, 
+                        role: user.role, 
+                        lastMessage: item.lastMessage.timestamp, 
+                        type: item.type,
+                        unreadCount: item.unreadCount || "no"
+                    }
                 }
-                return { id: item.receiver._id, name: item.receiver.name, lastMessage: item.lastMessage.timestamp, type: 'solo' };
+                return { id: item.receiver._id, 
+                    name: item.receiver.name, 
+                    lastMessage: item.lastMessage.timestamp, 
+                    type: 'solo',
+                    unreadCount: item.unreadCount || "no"
+                };
             })
             .filter(name => name);
-        modifiedChats.sort((a, b) => b.lastMessage - a.lastMessage);
+        modifiedChats.sort((a, b) => new Date(b.lastMessage) - new Date(a.lastMessage));
         return modifiedChats
     }
 }
