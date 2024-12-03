@@ -40,6 +40,10 @@ nav>section:first-child {
     gap: 20px;
 }
 
+#o>* {
+    z-index: 99 !important;
+}
+
 #profileAccess {
     flex-direction: row;
     gap: 12px;
@@ -647,6 +651,10 @@ button {
     background-color: #0077b6 !important;
 }
 
+#grpMemList label>* {
+    pointer-events: none;
+}
+
 /* file sharing */
 
 #fileSharing {
@@ -800,12 +808,12 @@ select.inp {
 	-moz-appearance: none;
 }
 
-#fileSharing input {
+#fileSharing input, #editProfile input {
     background-color: #30363d;
     border: thin solid #444c56;
 }
 
-#fileSharing input:focus {
+#fileSharing input:focus, #editProfile input:focus {
   border-color: #58a6ff;
   outline: 0;
 }
@@ -999,6 +1007,116 @@ select:-moz-focusring {
 
 main.disable {
     filter: brightness(80%);
+}
+
+#viewProfile {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #0e1319;
+    color: white;
+    width: 500px;
+    height: 420px;
+    border: solid 1px rgba(255, 255, 255, 0.7);
+    border-radius: 17px;
+    overflow: hidden;
+    transition: width 500ms ease, height 500ms ease;
+}
+
+#viewProfile.editProfile {
+    width: 420px;
+    height: 270px;
+}
+
+#showProfile, #mainProfile, #editProfile form, #editProfile {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#showProfile {
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 50% -10%, rgba(61, 130, 253, 0.5) 50%, rgba(255, 0, 0, 0));
+}
+
+#mainProfile {
+    gap: 5px;
+}
+
+#profName {
+    font-size: 22px;
+}
+
+#profId {
+    font-size: 17px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+#profPhoto {
+    width: 200px;
+    height: 200px;
+    margin-bottom: 9px;
+    border-radius: 50%;
+}
+
+#profInfo {
+    display: grid;
+    grid-template-columns: auto auto;
+    margin-top: 20px;
+}
+
+#profInfo>div:first-child span {
+    width: 90px;
+}
+
+#profInfo>div:last-child span {
+    text-align: right;
+}
+
+#switchProfView {
+    position: absolute;
+    top: 0;
+    padding: 10px 15px;
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+}
+
+#switchProfView svg {
+    width: 25px;
+    height: 25px;
+}
+
+#editProfile {
+    width: 100%;
+    height: 100%;
+}
+
+#editProfile form>:first-child>div span {
+    margin-bottom: 12px;
+}
+
+#editProfile form>div:first-child {
+    display: grid;
+    grid-template-columns: auto auto;
+}
+
+#editProfile form>div:last-child {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+#editProfile span {
+    pointer-events: all;
+}
+
+#editProfile form>div:first-child>div:first-child span {
+    width: 75px;
 }
 
 /* receive files */

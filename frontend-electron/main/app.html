@@ -348,187 +348,240 @@
             </div>
         </section>
     </main>
-    <div id="addChat">
-        <form>
-            <div>
-                <input type="text" min="5" max="50" id="newChatId" name="userEmail" pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{2,7}$" placeholder="Enter email of the user." data-name="userEmail" required>
-            </div>
-            <div>
-                <button data-dialog="addChat" data-i='["newChatId"]' class="c">Cancel</button>
-                <button id="addUserBtn" type="submit" class="i" data-dialog="addChat" data-p="addNewUser;chat" data-i='["newChatId"]'>Add</button>
-            </div>
-        </form>
-    </div>
-    <div id="addGroup">
-        <form>
-            <div id="ngTitle">
-                <span>New Group</span>
-            </div>
-            <div id="grpNameField">
+    <div id="o">
+        <div id="addChat">
+            <form>
                 <div>
-                    <input type="text" min="1" maxlength="10" pattern="^[A-Za-z][A-Za-z0-9]*$" title="Only alphabets and numbers allowed." id="groupName" required placeholder="Enter Group Name">
+                    <input type="text" min="5" max="50" id="newChatId" name="userEmail" pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{2,7}$" placeholder="Enter email of the user." data-name="userEmail" required>
                 </div>
-            </div>
-            <div id="grpMembers">
-                <div id="grpMemTitle">
-                    <span>Select Group Members</span>
+                <div>
+                    <button data-dialog="addChat" data-i='["newChatId"]' class="c">Cancel</button>
+                    <button id="addUserBtn" type="submit" class="i" data-dialog="addChat" data-p="addNewUser;chat" data-i='["newChatId"]'>Add</button>
                 </div>
-                <div id="grpMemList">
-                    
-                    <label>
-                        <span>Jack Shephard</span>
-                        <input type="checkbox" name="newGroupUser" value="abc">
-                    </label>
-                    <label>
-                        <span>Neal Caffrey</span>
-                        <input type="checkbox" name="newGroupUser" value="abc">
-                    </label>
+            </form>
+        </div>
+        <div id="addGroup">
+            <form>
+                <div id="ngTitle">
+                    <span>New Group</span>
                 </div>
-            </div>
-            <div id="grpButtons">
-                <button type="reset" class="c" data-dialog="addGroup">Cancel</button>
-                <button type="submit" class="i" data-dialog="addGroup" data-p="addNewGroup;chat" data-i='["groupName"]'>Create Group</button>
-            </div>
-        </form>
-    </div>
-    <div id="fileSharing">
-        <form>
-            <div id="fhTitle">File Sharing</div>
-            <section id="fInput">
-                <div id="fUplArea">
-                    <div id="bUpl">
-                        <label for="fileInput" id="dropArea">
-                            <div>
-                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#fff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M12 17L12 10M12 10L15 13M12 10L9 13" stroke="#fff" stroke-width="0.9600000000000002" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M16 7H12H8" stroke="#fff" stroke-width="0.9600000000000002" stroke-linecap="round"></path> <path d="M22 12C22 16.714 22 19.0711 20.5355 20.5355C19.0711 22 16.714 22 12 22C7.28595 22 4.92893 22 3.46447 20.5355C2 19.0711 2 16.714 2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.92893 2 7.28595 2 12 2C16.714 2 19.0711 2 20.5355 3.46447C21.5093 4.43821 21.8356 5.80655 21.9449 8" stroke="#fff" stroke-width="0.9600000000000002" stroke-linecap="round"></path> </g></svg>
-                            </div>
-                            <span>Drop your file here or click to upload</span>
+                <div id="grpNameField">
+                    <div>
+                        <input type="text" min="1" maxlength="10" pattern="^[A-Za-z][A-Za-z0-9]*$" title="Only alphabets and numbers allowed." id="groupName" required placeholder="Enter Group Name">
+                    </div>
+                </div>
+                <div id="grpMembers">
+                    <div id="grpMemTitle">
+                        <span>Select Group Members</span>
+                    </div>
+                    <div id="grpMemList">
+                        
+                        <label>
+                            <span>Jack Shephard</span>
+                            <input type="checkbox" name="newGroupUser" value="abc">
                         </label>
-                        <input type="file" id="fileInput" accept=".pdf" hidden/>
+                        <label>
+                            <span>Neal Caffrey</span>
+                            <input type="checkbox" name="newGroupUser" value="abc">
+                        </label>
                     </div>
-                    <div id="aUpl">
+                </div>
+                <div id="grpButtons">
+                    <button type="reset" class="c" data-dialog="addGroup">Cancel</button>
+                    <button type="submit" class="i" data-dialog="addGroup" data-p="addNewGroup;chat" data-i='["groupName"]'>Create Group</button>
+                </div>
+            </form>
+        </div>
+        <div id="fileSharing">
+            <form>
+                <div id="fhTitle">File Sharing</div>
+                <section id="fInput">
+                    <div id="fUplArea">
+                        <div id="bUpl">
+                            <label for="fileInput" id="dropArea">
+                                <div>
+                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#fff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M12 17L12 10M12 10L15 13M12 10L9 13" stroke="#fff" stroke-width="0.9600000000000002" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M16 7H12H8" stroke="#fff" stroke-width="0.9600000000000002" stroke-linecap="round"></path> <path d="M22 12C22 16.714 22 19.0711 20.5355 20.5355C19.0711 22 16.714 22 12 22C7.28595 22 4.92893 22 3.46447 20.5355C2 19.0711 2 16.714 2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.92893 2 7.28595 2 12 2C16.714 2 19.0711 2 20.5355 3.46447C21.5093 4.43821 21.8356 5.80655 21.9449 8" stroke="#fff" stroke-width="0.9600000000000002" stroke-linecap="round"></path> </g></svg>
+                                </div>
+                                <span>Drop your file here or click to upload</span>
+                            </label>
+                            <input type="file" id="fileInput" accept=".pdf" hidden/>
+                        </div>
+                        <div id="aUpl">
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0,0,256,256">
+                                    <g fill="#ffffff" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><g transform="scale(5.12,5.12)"><path d="M7,2v46h36v-33.40625l-0.28125,-0.3125l-12,-12l-0.3125,-0.28125zM9,4h20v12h12v30h-32zM31,5.4375l8.5625,8.5625h-8.5625z"></path></g></g>
+                                </svg>
+                            </div>
+                            <div>
+                                <span id="fileUplName"></span>
+                                <div id="fileRem">
+                                    <span>
+                                        <svg fill="#fff" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" stroke="#fff" stroke-width="0.00032"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M16 5C9.935 5 5 9.934 5 16c0 6.067 4.935 11 11 11s11-4.933 11-11c0-6.066-4.935-11-11-11zm0 2.75c1.777 0 3.427.569 4.775 1.53L9.279 20.778A8.214 8.214 0 0 1 7.75 16c0-4.549 3.701-8.25 8.25-8.25zm0 16.5a8.2 8.2 0 0 1-4.775-1.53l11.494-11.497A8.205 8.205 0 0 1 24.25 16c0 4.547-3.701 8.25-8.25 8.25z"></path></g></svg>
+                                    </span>
+                                    <span>Remove current file</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section id="f-eDet" class="disable">
+                    <div id="algOpt">
+                        <div id="gnil">
+                            <span>Number of layers of Encryption: </span>
+                            <input type="number" min="1" max="7" value="1" id="nLayers" required>
+                        </div>
+                        <div id="cLayers">
+                            <div class="layInfo">
+                                <div class="lNo">
+                                    <span>1)</span>
+                                </div>
+                                <select class="inp eType">
+                                    <option>AES 128</option>
+                                    <option>AES 256</option>
+                                    <option>AES GCM</option>
+                                    <option>ARC 4</option>
+                                    <option>Blowfish</option>
+                                    <option>Chacha 20 poly</option>
+                                    <option>DES 3</option>
+                                    <option>RC 4</option>
+                                    <option>Salsa 20</option>
+                                    <option>xChacha 20</option>
+                                </select>
+                                <div class="passPhrase">
+                                    <input type="text" class="passPh" maxlength="15" pattern="^[a-zA-Z0-9]+$" title="Only alphanumeric characters are allowed" placeholder="Password" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="othOpt">
+                        <div id="expTitle">
+                            <span>Expiry Options</span>
+                        </div>
+                        <div id="expOpt">
+                            <div id="dExp">
+                                <div id="expD">
+                                    <span>Expiry Date: </span>
+                                    <input type="date" required name="expiry_date" min="<?php echo date('Y-m-d'); ?>" id="expiry_date">
+                                </div>
+                                <div id="expT">
+                                    <span>Expiry Time: </span>
+                                    <input type="time" required name="expiry_time" id="expiry_time">
+                                </div>
+                                <div id="oExpChk">
+                                    <span>Limit Number of Views: </span>
+                                    <input type="checkbox" id="enableMaxViews">
+                                </div>
+                            </div>
+                            <div id="oExp">
+                                <div id="getViews">
+                                    <span>Maximum Number of views: </span>
+                                    <input type="number" name="max_views" id="max_views" min="1" value="1" max="99">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <div id="fButtons">
+                    <button id="cButton" class="c" data-dialog="fileSharing" type="reset" data-i='["fileInput"]'>Cancel</button>
+                    <button id="sButton" type="submit" class="i disable" data-dialog="fileSharing" data-p="shareFile;fileSharing" data-i='["nLayers", "expiry_date", "expiry_time", "enableMaxViews", "max_views"]'>Share</button>
+                </div>
+            </form>
+        </div>
+        <div id="viewProfile">
+            <div id="showProfile" style="display: none;">
+                <div id="switchProfView">
+                    <button>Edit Profile</button>
+                    <button class="c" data-dialog="viewProfile">
+                        <svg width="75px" height="75px" viewBox="0 0 22 22" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>cancel</title> <desc>Created with Sketch.</desc> <g id="icons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> <g id="ui-gambling-website-lined-icnos-casinoshunter" transform="translate(-869.000000, -159.000000)" fill="#ffffff" fill-rule="nonzero"> <g id="square-filled" transform="translate(50.000000, 120.000000)"> <path d="M820.716328,39.2890737 L830,48.573 L839.283672,39.2890737 C839.644156,38.9285898 840.211387,38.9008602 840.603678,39.2058851 L840.710926,39.3021143 C841.101451,39.6926386 841.101451,40.3258036 840.710926,40.7163279 L831.427,50 L840.710926,59.2836721 C841.07141,59.6441561 841.09914,60.2113872 840.794115,60.6036784 L840.697886,60.7109263 C840.307361,61.1014506 839.674196,61.1014506 839.283672,60.7109263 L830,51.427 L820.716328,60.7109263 C820.355844,61.0714102 819.788613,61.0991398 819.396322,60.7941149 L819.289074,60.6978857 C818.898549,60.3073614 818.898549,59.6741964 819.289074,59.2836721 L828.573,50 L819.289074,40.7163279 C818.92859,40.3558439 818.90086,39.7886128 819.205885,39.3963216 L819.302114,39.2890737 C819.692639,38.8985494 820.325804,38.8985494 820.716328,39.2890737 Z M819.996181,40.0092211 L829.987233,50 L819.996181,59.9907789 L820.009221,60.0038195 L830,50.0127671 L839.990779,60.0038195 L840.003819,59.9907789 L830.012767,50 L840.003819,40.0092211 L839.990779,39.9961805 L830,49.9872329 L820.009221,39.9961805 L819.996181,40.0092211 Z" id="cancel"> </path> </g> </g> </g> </g></svg>
+                    </button>
+                </div>
+                <div id="mainProfile">
+                    <img id="profPhoto" src="../static/profiles/profile1.jpg" alt="">
+                    <span id="profName">John Locke</span>
+                    <span id="profId">ABCDEFGHI</span>
+                </div>
+                <div id="profInfo">
+                    <div>
+                        <span>Email: </span>
+                        <span>Joined: </span>
+                    </div>
+                    <div>
+                        <span>johnlocke@gmail.com</span>
+                        <span>September, 2024</span>
+                    </div>
+                </div>
+            </div>
+            <div id="editProfile">
+                <form>
+                    <div>
                         <div>
-                            <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0,0,256,256">
-                                <g fill="#ffffff" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><g transform="scale(5.12,5.12)"><path d="M7,2v46h36v-33.40625l-0.28125,-0.3125l-12,-12l-0.3125,-0.28125zM9,4h20v12h12v30h-32zM31,5.4375l8.5625,8.5625h-8.5625z"></path></g></g>
-                            </svg>
+                            <span>Name</span>
+                            <span>Email</span>
                         </div>
                         <div>
-                            <span id="fileUplName"></span>
-                            <div id="fileRem">
-                                <span>
-                                    <svg fill="#fff" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" stroke="#fff" stroke-width="0.00032"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M16 5C9.935 5 5 9.934 5 16c0 6.067 4.935 11 11 11s11-4.933 11-11c0-6.066-4.935-11-11-11zm0 2.75c1.777 0 3.427.569 4.775 1.53L9.279 20.778A8.214 8.214 0 0 1 7.75 16c0-4.549 3.701-8.25 8.25-8.25zm0 16.5a8.2 8.2 0 0 1-4.775-1.53l11.494-11.497A8.205 8.205 0 0 1 24.25 16c0 4.547-3.701 8.25-8.25 8.25z"></path></g></svg>
-                                </span>
-                                <span>Remove current file</span>
-                            </div>
-                        </div>
+                            <span>
+                                <input type="text" name="newName" id="newName">
+                            </span>
+                            <span>
+                                <input type="text" name="newEmail" id="newEmail">
+                            </span>
+                        </div>    
                     </div>
-                </div>
-            </section>
-            <section id="f-eDet" class="disable">
-                <div id="algOpt">
-                    <div id="gnil">
-                        <span>Number of layers of Encryption: </span>
-                        <input type="number" min="1" max="7" value="1" id="nLayers" required>
+                    <div>
+                        <button>Go Back</button>
+                        <button>Save Changes</button>
                     </div>
-                    <div id="cLayers">
-                        <div class="layInfo">
-                            <div class="lNo">
-                                <span>1)</span>
-                            </div>
-                            <select class="inp eType">
-                                <option>AES 128</option>
-                                <option>AES 256</option>
-                                <option>AES GCM</option>
-                                <option>ARC 4</option>
-                                <option>Blowfish</option>
-                                <option>Chacha 20 poly</option>
-                                <option>DES 3</option>
-                                <option>RC 4</option>
-                                <option>Salsa 20</option>
-                                <option>xChacha 20</option>
-                            </select>
-                            <div class="passPhrase">
-                                <input type="text" class="passPh" maxlength="15" pattern="^[a-zA-Z0-9]+$" title="Only alphanumeric characters are allowed" placeholder="Password" required>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div id="othOpt">
-                    <div id="expTitle">
-                        <span>Expiry Options</span>
-                    </div>
-                    <div id="expOpt">
-                        <div id="dExp">
-                            <div id="expD">
-                                <span>Expiry Date: </span>
-                                <input type="date" required name="expiry_date" min="<?php echo date('Y-m-d'); ?>" id="expiry_date">
-                            </div>
-                            <div id="expT">
-                                <span>Expiry Time: </span>
-                                <input type="time" required name="expiry_time" id="expiry_time">
-                            </div>
-                            <div id="oExpChk">
-                                <span>Limit Number of Views: </span>
-                                <input type="checkbox" id="enableMaxViews">
-                            </div>
-                        </div>
-                        <div id="oExp">
-                            <div id="getViews">
-                                <span>Maximum Number of views: </span>
-                                <input type="number" name="max_views" id="max_views" min="1" value="1" max="99">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            <div id="fButtons">
-                <button id="cButton" class="c" data-dialog="fileSharing" type="reset" data-i='["fileInput"]'>Cancel</button>
-                <button id="sButton" type="submit" class="i disable" data-dialog="fileSharing" data-p="shareFile;fileSharing" data-i='["nLayers", "expiry_date", "expiry_time", "enableMaxViews", "max_views"]'>Share</button>
-            </div>
-        </form>
-	</div>
-    <template id="profile">
-        <div class="profile">
-            <div class="profPic">
-                <div>
-                    <img src="../static/profiles/profile1.jpg" alt="">
-                </div>
-            </div>
-            <div class="profName">
+                </form>
             </div>
         </div>
-    </template>
-    <template id="message">
-        <div>
-            <span></span>
-        </div>
-    </template>
-    <template id="encLayers">
-        <div class="layInfo">
-            <div class="lNo">
-                <span>1)</span>
+    </div>
+    
+    <div id="templates">
+        <template id="profile">
+            <div class="profile">
+                <div class="profPic">
+                    <div>
+                        <img src="../static/profiles/profile1.jpg" alt="">
+                    </div>
+                </div>
+                <div class="profName">
+                </div>
             </div>
-            <select class="inp eType">
-                <option>AES 128</option>
-                <option>AES 256</option>
-                <option>AES GCM</option>
-                <option>ARC 4</option>
-                <option>Blowfish</option>
-                <option>Chacha 20 poly</option>
-                <option>DES 3</option>
-                <option>RC 4</option>
-                <option>Salsa 20</option>
-                <option>xChacha 20</option>
-            </select>
-            <div class="passPhrase">
-                <input type="text" class="passPh" maxlength="15" placeholder="Password" required>
+        </template>
+        <template id="message">
+            <div>
+                <span></span>
             </div>
-        </div>
-    </template>
-    <template id="grpMemListProf">
-        <label>
-            <input type="checkbox" name="newGroupUser">
-        </label>
-    </template>
+        </template>
+        <template id="encLayers">
+            <div class="layInfo">
+                <div class="lNo">
+                    <span>1)</span>
+                </div>
+                <select class="inp eType">
+                    <option>AES 128</option>
+                    <option>AES 256</option>
+                    <option>AES GCM</option>
+                    <option>ARC 4</option>
+                    <option>Blowfish</option>
+                    <option>Chacha 20 poly</option>
+                    <option>DES 3</option>
+                    <option>RC 4</option>
+                    <option>Salsa 20</option>
+                    <option>xChacha 20</option>
+                </select>
+                <div class="passPhrase">
+                    <input type="text" class="passPh" maxlength="15" placeholder="Password" required>
+                </div>
+            </div>
+        </template>
+        <template id="grpMemListProf">
+            <label>
+                <input type="checkbox" name="newGroupUser">
+            </label>
+        </template>
+    </div>
+    
     <script src="app.js"></script>
 </body>
 </html>
