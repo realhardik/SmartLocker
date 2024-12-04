@@ -774,11 +774,9 @@ class chat {
                     receiverId: this.userData.user._id
                 })
             } else {
-
                 element.classList.contains('unreadMsg') ? (
                     count = parseInt(F.G.query('span', F.G.class('unreadCount', element)[0])?.innerText) || 1
-                ) : (count = 0)
-                console.log("numner: ", parseInt(F.G.query('span', F.G.class('unreadCount')[0])?.innerText))
+                ) : (count = 0)                
                 count++
                 F.G.query('span', F.G.class('unreadCount', element)[0]).innerText = count
                 element.classList.add('unreadMsg')

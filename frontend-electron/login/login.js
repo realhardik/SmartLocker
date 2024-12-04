@@ -22,12 +22,12 @@ class login {
             container.classList.add("active");
             container.classList.add("active-forgot");
         })
-        // F.l("click", F.G.id('verify'), (e) => { 
-        //     e.preventDefault();
-        //     container.classList.remove("active");
-        //     container.classList.add("active-forgot");
-        //     container.classList.add("active-forgot.OTP");
-        // })
+        F.l("click", F.G.id('verify'), (e) => { 
+            e.preventDefault();
+            container.classList.remove("active");
+            container.classList.add("active-forgot");
+            container.classList.add("active-forgot.OTP");
+        })
     }
 
     async login() {
@@ -45,7 +45,6 @@ class login {
             email = F.G.id('sEmail').value,
             password = F.G.id('sPass').value,
             result = await ipcRenderer.invoke('signup', { name, email, password })
-            console.log(result)
         F.G.id("sName").value = ""
         F.G.id('sEmail').value = ""
         F.G.id('sPass').value = ""

@@ -160,7 +160,8 @@ const db = new class {
       timestamp: { type: Date, default: Date.now },
       email: { type: String, required: true },
       otp: { type: String, required: true },
-      createdAt: { type: Date, default: Date.now, index: { expires: '5m' } }, // Expire after 5 minutes
+      createdAt: { type: Date, default: Date.now, index: { expires: '5m' } },
+      type: { type: String, enum: ["signIn", "forgotPass"] }
     });
     
     this.Users = mongoose.model('user', this.userSchema)
@@ -493,11 +494,56 @@ io.on('connection', (socket) => {
   });
 });
 
+app.get('/signup', async (req, res) => {
+  try {
+    var { email } = req.query,
+    prevReq = await db.search('otpSchema', {
+      email: email,
+      type: "signIn"
+    })
+
+    if (prevReq) {
+      const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+      if (new Date(prevReq.createdAt) > oneMinuteAgo) {
+          res.status(401).json({ success: false, msg: "OTP was created less than a minute ago."})
+          return
+      }
+  }
+    otp = otpGen.generate(6, { specialChars: false })
+    var hashedOTP = await bcrypt.hash(otp, 10)
+    
+    var sendotp = await h.sendMail({
+      to: email,
+      subject: 'Forgot Password - OTP',
+      text: `Your OTP for verification is: ${otp}`,
+      html: `<h2>Your OTP for verification is: <b>${otp}</b></h2>\n<h4>OTP is valid for 5 minutes.</h4>`
+    })
+    if (!sendotp.success) {
+      alert(sendotp.msg || "Couldn't send otp at the moment. \nTry again later.")
+    }
+    await db.add('otp', { email: email, otp: hashedOTP, type: "signIn" })
+    return res.status(201).json({ success: true, msg: "OTP sent successfully"})
+  } catch (err) {
+    console.log("error signing up: ", err)
+    return res.status(401).json({ success: false, msg: "Error signing up."})
+  }
+});
+
 app.post('/signup', async (req, res) => {
   try {
-    var { name, email, password } = req.body,
-        user = await db.addUser(name, email, password)
-    return res.json(user)
+    var { name, email, password, otp } = req.body,
+        storedOtp = await db.search('otp', {
+          email: email,
+          type: "signIn"
+        }, 'findOne')
+
+    var checkOTP = await bcrypt.compare(otp, storedOtp.result.otp)
+    if (!checkOTP) {
+      return res.status(401).json({ success: false, msg: "Invalid OTP." });
+    }
+    await db.remove('otp', { email: email }, 'multiple')
+    await db.addUser(name, email, password)
+    res.status(200).json({ success: true, msg: "OTP verified successfully." });
   } catch (err) {
     console.log("error signing up: ", err)
     return res.json({ success: false, msg: "Error signing up."})
@@ -822,12 +868,12 @@ app.post('/forgotPassword', async (req, res) => {
       to: email,
       subject: 'Forgot Password - OTP',
       text: `Your OTP for resetting password: ${otp}`,
-      html: `<h2>Your OTP for verification is: <b>${otp}</b></h2>\n<h4>OTP is valid for 5 minutes.</h4>`
+      html: `<h2>Your OTP for resetting password is: <b>${otp}</b></h2>\n<h4>OTP is valid for 5 minutes.</h4>`
     })
     if (!sendotp.success) {
       alert(sendotp.msg || "Couldn't send otp at the moment. \nTry again later.")
     }
-    await db.add('otp', { email: email, otp: hashedOTP })
+    await db.add('otp', { email: email, otp: hashedOTP, type: "forgotPass" })
     res.status(200).json(sendotp);
   } catch (err) {
     console.error('Server error:', err);
@@ -840,7 +886,7 @@ app.get('/forgotPassword/:otp', async (req, res) => {
   const { email } = req.query;
 
   try {
-    var storedOtp = await db.search('otp', { email: email }, 'findOne')
+    var storedOtp = await db.search('otp', { email: email, type: "forgotPass" }, 'findOne')
     
     if (!storedOtp) {
       return res.status(400).json({ success: false, msg: "OTP has expired or is invalid." });
