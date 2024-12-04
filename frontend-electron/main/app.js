@@ -455,7 +455,7 @@ class chat {
         this.chatUsers = new Map()
 
         F.BM(this, ["addChat", "openChat", "addNewUser", "addNewGroup", "sendMessage", "createChat", "fetchMessages"])
-        F.BM(this, ['init', 'leaveGroup'])
+        F.BM(this, ['init', 'leaveGroup', 'newMessageLog'])
         F.l('click', F.G.id("oOpt"), this.handleOpts)
         this.profS = F.G.id('profS')
         F.l('click', this.profS, this.openChat)
@@ -463,7 +463,7 @@ class chat {
         F.l('click', F.G.id('deleteGroup'), this.leaveGroup)
         F.l('click', F.G.id('leaveGroup'), this.leaveGroup)
         socket.on('newMessage', async (rMessage) => {
-            this.newMessageLog(rMessage)
+            this.newMessageLog(rMessage, 'newMessage')
         });
         socket.on('sentMessage', async (rMessage) => {
             console.log('sent message')
@@ -599,7 +599,8 @@ class chat {
         this.chatUsers.set(data.id, {
             convId: data.id,
             name: data.name,
-            type: data.type
+            type: data.type,
+            el: temp
         })
     }
 
@@ -752,15 +753,42 @@ class chat {
         }
     }
     
-    newMessageLog(newChat) {
+    newMessageLog(newChat, type) {
         let refChat;
         let cInput = F.G.id('textMessage');
+        let count;
         newChat.from === this.userData.user._id && (refChat = { context: "sent", type: newChat.type, content: newChat.content }) && (cInput.value = "")
         newChat.to === this.userData.user._id && (refChat = { context: "received", type: newChat.type, content: newChat.content })
-        this.renderMessages({
-            type: newChat.type,
-            chats: [refChat]
-        })
+        if (type === "newMessage" && this.chatUsers.has(newChat.from)) {
+            var context = this.chatUsers.get(newChat.from),
+            element = context.el
+            console.log('open: ', context.el)
+            console.log("open: ", this.activeProfile.previous)
+            if (this.activeProfile.previous == context.el) {
+                this.renderMessages({
+                    type: newChat.type,
+                    chats: [refChat]
+                })
+                socket.emit('markRead', {
+                    senderId: context.convId,
+                    receiverId: this.userData.user._id
+                })
+            } else {
+
+                element.classList.contains('unreadMsg') ? (
+                    count = parseInt(F.G.query('span', F.G.class('unreadCount', element)[0])?.innerText) || 1
+                ) : (count = 0)
+                console.log("numner: ", parseInt(F.G.query('span', F.G.class('unreadCount')[0])?.innerText))
+                count++
+                F.G.query('span', F.G.class('unreadCount', element)[0]).innerText = count
+                element.classList.add('unreadMsg')
+            }
+        } else {
+            this.renderMessages({
+                type: newChat.type,
+                chats: [refChat]
+            })
+        }
     }
 
     sendMessage(e) {
