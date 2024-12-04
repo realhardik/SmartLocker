@@ -8,20 +8,26 @@ class login {
         F.l("click", this.regBtn, async (e) => { e.preventDefault(); this.signUp() })
         this.sToReg = F.G.id('register');
         this.sToLog = F.G.id('login');
-        F.l("click", this.sToReg, async (e) => { e.preventDefault();
-            F.G.id('container').classList.add("active")
+        var container = F.G.id('container')
+        F.l("click", this.sToReg, (e) => { e.preventDefault();
+            container.classList.add("active");
+            container.classList.remove("active-forgot");
         })
-        F.l("click", this.sToLog, async (e) => { e.preventDefault();
-            F.G.id('container').classList.remove("active") 
+        F.l("click", this.sToLog, (e) => { e.preventDefault();
+            container.classList.remove("active");
+            container.classList.remove("active-forgot");
         })
-        F.l("click", F.G.id('forgotPasswordLink'), async (e) => { 
+        F.l("click", F.G.id('forgot-password-btn'), (e) => { 
             e.preventDefault();
-            F.G.id('container').classList.add("active-forgot-password") 
+            container.classList.add("active");
+            container.classList.add("active-forgot");
         })
-        F.l("click", F.G.id('backToSignIn'), async (e) => { 
-            e.preventDefault();
-            F.G.id('container').classList.remove("active-forgot-password") 
-        })
+        // F.l("click", F.G.id('verify'), (e) => { 
+        //     e.preventDefault();
+        //     container.classList.remove("active");
+        //     container.classList.add("active-forgot");
+        //     container.classList.add("active-forgot.OTP");
+        // })
     }
 
     async login() {

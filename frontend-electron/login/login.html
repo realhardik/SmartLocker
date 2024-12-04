@@ -51,16 +51,7 @@
                 <button id="sBtn">Sign Up</button>
             </form>
         </div>
-        <div class="form-container forgotpassword" id="forgot-password">
-            <form>
-                <h1>Forgot Password</h1>
-                <span>or use your email for registration</span>
-                <input type="text" placeholder="Name">
-                <input type="email" placeholder="Email">
-                <button>Send Verification Code</button>
-                <button type="button" id="backToSignIn">Back to Sign In</button>
-            </form>
-        </div>
+        
         <div class="form-container sign-in">
             <form>
                 <h1>Sign In</h1>
@@ -73,10 +64,29 @@
                 <span>or use your email password</span>
                 <input type="email" id="lEmail" placeholder="Email">
                 <input type="password" id="lPass" placeholder="Password">
-                <a href="#" id="forgotPasswordLink">Forget Your Password?</a>
+                <a href="#" id="forgot-password-btn">Forgot Password?</a>
                 <button id="lBtn">Sign In</button>
             </form>
         </div>
+
+        <div class="form-container OTP">
+            <form>
+                <h1>Verification</h1>
+                <p>Since it's the first time you are loging in, we'll send you a code for verification.</p>
+                <input type="text" placeholder="One-Time Password">
+                <button onclick="">Resend OTP</button>
+            </form>
+        </div>
+        
+        <div class="form-container forgot-password">
+            <form>
+                <h1>Forgot Password</h1>
+                <p>Enter your email address, and we'll send you a link to reset your password.</p>
+                <input type="email" placeholder="Email">
+                <button onclick="">Send Reset Link</button>
+            </form>
+        </div>
+
         <div class="toggle-container">
             <div class="toggle">
                 <div class="toggle-panel toggle-left">
