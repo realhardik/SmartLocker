@@ -583,6 +583,7 @@ class chat {
             n2Span.innerHTML = data.unreadCount
         nCon.appendChild(nSpan)
         unCon.appendChild(n2Span)
+        data.unreadCount > 0 ? temp.classList.add('unreadMsg') : false
         F.G.id('profS').appendChild(temp)
         "solo" === type && (temp.con = {
             userName: data.name,
@@ -656,10 +657,11 @@ class chat {
             return
         F.hide(this.chatS)
         F.hide(this.load, !0, 'flex')
-        socket.emit('markRead', ({
+        c.classList.contains('unreadMsg') && socket.emit('markRead', ({
             senderId: c.con.convId,
             receiverId: this.userData.user._id
         }))
+        c.classList.remove('unreadMsg')
         !this.activeProfile.previous && F.hide(F.G.id('loadPoster'))
         this.activeProfile.previous && this.activeProfile.previous.classList.remove('active')
         c.classList.add('active')
@@ -785,14 +787,14 @@ class chat {
                         role: user.role, 
                         lastMessage: item.lastMessage.timestamp, 
                         type: item.type,
-                        unreadCount: item.unreadCount || "no"
+                        unreadCount: item.unreadCount
                     }
                 }
                 return { id: item.receiver._id, 
                     name: item.receiver.name, 
                     lastMessage: item.lastMessage.timestamp, 
                     type: 'solo',
-                    unreadCount: item.unreadCount || "no"
+                    unreadCount: item.unreadCount
                 };
             })
             .filter(name => name);

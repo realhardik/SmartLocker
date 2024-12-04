@@ -311,6 +311,10 @@ nav>section:first-child .button.active {
     background-color: rgba(30, 171, 246, 0.5)
 }
 
+#profS>div.unreadMsg .unreadCount {
+    display: flex !important;
+}
+
 #profS>div * {
     pointer-events: none;
 }
@@ -340,7 +344,8 @@ nav>section:first-child .button.active {
 .unreadCount {
     width: 100%;
     height: 100%;
-    display: flex;
+    display: none;
+    pointer-events: none;
     justify-content: center;
     align-items: center;
 }
