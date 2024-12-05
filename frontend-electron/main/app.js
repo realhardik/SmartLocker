@@ -177,7 +177,7 @@ class fileSharing {
 
     async shareFile(i, dBox) {
         const formData = {},
-            rTo = F.G.id('tChat')?.con?.email || "xyz@gmail.com",
+            rTo = F.G.id('tChat')?.con?.convId || "xyz@gmail.com",
             eTo = rTo.split(',').map(e => e.trim()),
             file = this.file,
             layers = {},
@@ -195,7 +195,7 @@ class fileSharing {
         try {
             const userCheck = await axios.post(`${BASE_URL}/search`, {
                 collection: "Users",
-                query: { email: { $in: eTo } },
+                query: { _id: { $in: eTo } },
                 method: "find"
             }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } });
 

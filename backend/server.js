@@ -519,7 +519,7 @@ app.get('/signup', async (req, res) => {
       type: "signUp"
     }, 'findOne')
 
-    if (prevReq) {
+    if (prevReq.success) {
       const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
       if (new Date(prevReq.result.createdAt) > oneMinuteAgo) {
           res.status(401).json({ success: false, msg: "OTP was created less than a minute ago."})
@@ -965,7 +965,9 @@ const deleteExpiredFiles = async () => {
     // console.log(files)
     // var files = await db.remove('Files', {}, 'multiple')
     // console.log(files)
-    // var files = await db.remove('otp', {}, 'multiple')
+    // var files = await db.remove('Users', {
+    //   email: "ujc183@gmail.com"
+    // }, 'multiple')
     // console.log(files)
 
     // var user = await db.addUser('Tobey', 'tobey@gmail.com', '123')
