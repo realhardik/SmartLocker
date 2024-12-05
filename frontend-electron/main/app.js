@@ -606,24 +606,26 @@ class chat {
             n2Span = F.Cr('span'),
             nCon = F.G.class('profName', temp)[0],
             unCon = F.G.class('unreadCount', temp)[0],
+            profPic = F.G.query('img', temp),
             type = data.type
             nSpan.innerHTML = data.name
             n2Span.innerHTML = data.unreadCount
         nCon.appendChild(nSpan)
         unCon.appendChild(n2Span)
+        console.log(profPic)
         data.unreadCount > 0 ? temp.classList.add('unreadMsg') : false
         F.G.id('profS').appendChild(temp)
         "solo" === type && (temp.con = {
             userName: data.name,
             convId: data.id,
             type: 'solo'
-        })
+        }, profPic.src = '../static/profiles/profile1.jpg')
         "group" === type && (temp.con = {
             userName: data.name,
             convId: data.id,
             userRole: data.role,
             type: 'group'
-        })
+        }, profPic.src = '../static/profiles/profile2.jpg')
         this.chatUsers.set(data.id, {
             convId: data.id,
             name: data.name,
