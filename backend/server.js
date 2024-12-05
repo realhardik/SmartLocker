@@ -161,7 +161,7 @@ const db = new class {
       email: { type: String, required: true },
       otp: { type: String, required: true },
       createdAt: { type: Date, default: Date.now, index: { expires: '5m' } },
-      type: { type: String, enum: ["signIn", "forgotPass"] }
+      type: { type: String, enum: ["signUp", "forgotPass"] }
     });
     
     this.Users = mongoose.model('user', this.userSchema)
@@ -497,14 +497,24 @@ io.on('connection', (socket) => {
 app.get('/signup', async (req, res) => {
   try {
     var { email } = req.query,
-    prevReq = await db.search('otpSchema', {
-      email: email,
-      type: "signIn"
+    prevUser = await db.search('Users', {
+      email: email
     })
+    console.log("email", email)
+    console.log(prevUser)
+    if (prevUser.success && prevUser.result.length > 0) {
+      res.status(401).json({ success: false, msg: "User already exists."})
+      return
+    }
+    console.log(prevUser)
+    var prevReq = await db.search('otp', {
+      email: email,
+      type: "signUp"
+    }, 'findOne')
 
     if (prevReq) {
       const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
-      if (new Date(prevReq.createdAt) > oneMinuteAgo) {
+      if (new Date(prevReq.result.createdAt) > oneMinuteAgo) {
           res.status(401).json({ success: false, msg: "OTP was created less than a minute ago."})
           return
       }
@@ -520,8 +530,9 @@ app.get('/signup', async (req, res) => {
     })
     if (!sendotp.success) {
       alert(sendotp.msg || "Couldn't send otp at the moment. \nTry again later.")
+      return res.status(401).json({ success: false, msg: "Couldn't send email at the moment. \n Try again later" })
     }
-    await db.add('otp', { email: email, otp: hashedOTP, type: "signIn" })
+    await db.add('otp', { email: email, otp: hashedOTP, type: "signUp" })
     return res.status(201).json({ success: true, msg: "OTP sent successfully"})
   } catch (err) {
     console.log("error signing up: ", err)
@@ -531,12 +542,16 @@ app.get('/signup', async (req, res) => {
 
 app.post('/signup', async (req, res) => {
   try {
-    var { name, email, password, otp } = req.body,
-        storedOtp = await db.search('otp', {
+    var { name, email, password, otp } = req.body
+    if (!name || !email || !password || !otp) {
+      return res.status(401).json({ success: false, msg: "Some Error Occured." });
+    }
+    var storedOtp = await db.search('otp', {
           email: email,
-          type: "signIn"
+          type: "signUp"
         }, 'findOne')
-
+    console.log(otp)
+    console.log(storedOtp)
     var checkOTP = await bcrypt.compare(otp, storedOtp.result.otp)
     if (!checkOTP) {
       return res.status(401).json({ success: false, msg: "Invalid OTP." });
@@ -939,7 +954,10 @@ const deleteExpiredFiles = async () => {
     // console.log("files fn: ", files)
     // var files = await db.search('chatLog', {})
     // console.log("files fn: ", files)
-    // await db.remove('chat', {}, 'multiple')
+    // var files = await db.remove('Users', {
+    //   email: "ujc183@gmail.com"
+    // }, 'multiple')
+    // console.log(files)
     console.log("exp files fn: ", expiredFiles)
   // for (const file of expiredFiles) {
     // if (fs.existsSync(file.fPath)) fs.unlinkSync(file.fPath);

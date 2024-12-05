@@ -66,9 +66,30 @@ function createRenderWindow() {
   renderWindow.loadFile('./render/render.html')
 }
 
+ipcMain.handle('sendOtp', async (e, event, email) => {
+  try {
+    console.log("Attempting signup with credentials:", email);
+    let response;
+    if (event === "signUp") {
+      response = await axios.get(`${apiBaseUrl}/signup`, {
+        params: {
+          email: email
+        }
+      });
+    }
+    console.log("response: ", response)
+    if (response.data.success)
+      return { success: true, result: response.data };
+    return { success: false, msg: response.data.msg }
+
+  } catch (error) {
+    console.error("Signup failed:", error.response ? error.response.data.msg : "Server not working at the moment.");
+    return { success: false, msg: (error.response.data.msg || "Server not working at the moment.") };
+  }
+});
+
 ipcMain.handle('signup', async (event, credentials) => {
   try {
-    console.log("Attempting signup with credentials:", credentials);
     const response = await axios.post(`${apiBaseUrl}/signup`, credentials);
     console.log(response)
     return response.data;

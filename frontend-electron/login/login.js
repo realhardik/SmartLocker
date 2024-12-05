@@ -22,11 +22,9 @@ class login {
             container.classList.add("active");
             container.classList.add("active-forgot");
         })
-        F.l("click", F.G.id('verify'), (e) => { 
+        F.l("click", F.G.id('signUp'), (e) => { 
             e.preventDefault();
-            container.classList.remove("active");
-            container.classList.add("active-forgot");
-            container.classList.add("active-forgot.OTP");
+            this.sendOtp("signUp")
         })
     }
 
@@ -35,8 +33,26 @@ class login {
             password = F.G.id('lPass').value,
             result = await ipcRenderer.invoke('login', { email, password })
         F.G.id('lPass').value = ""
-        if (!result.success) {
+        if (!result.success || !result.success) {
             alert("Invalid Login Credentials.")
+        }
+    }
+
+    async sendOtp(e) {
+        const container = F.G.id('container')
+        if (e === 'signUp') {
+            var email = F.G.id('sEmail').value,
+                result = await ipcRenderer.invoke('sendOtp', e, email)
+            console.log(result)
+            if (result?.success) {
+                container.classList.remove("active");
+                container.classList.add("active-forgot");
+                container.classList.add("active-forgot.OTP");
+            } else {
+                alert(result.msg || "Couldn't send otp at the moment.")
+                F.G.id("sName").value = ""
+                F.G.id('sEmail').value = ""
+            }
         }
     }
 
@@ -44,13 +60,18 @@ class login {
         var name = F.G.id("sName").value,
             email = F.G.id('sEmail').value,
             password = F.G.id('sPass').value,
-            result = await ipcRenderer.invoke('signup', { name, email, password })
+            otp = F.G.id('otp').value,
+            result = await ipcRenderer.invoke('signup', { name, email, password, otp }),
+            container = F.G.id('container')
         F.G.id("sName").value = ""
         F.G.id('sEmail').value = ""
         F.G.id('sPass').value = ""
+        F.G.id('otp').value = ""
         alert(result.msg)
         if (result.success) {
-            F.G.id('container').classList.remove("active")
+            container.classList.remove("active")
+            container.classList.remove("active-forgot");
+            container.classList.remove("active-forgot.OTP");
         }
     }
 }
