@@ -331,6 +331,7 @@ class gen {
         var name = user.name,
             email = user.email,
             date = new Date(user.created_at),
+            uniqueId = user.uniqueId,
             joinedAt = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
         var profSection = [{
@@ -342,6 +343,9 @@ class gen {
         }, {
             value: joinedAt,
             fields: F.G.class('pJoined')
+        }, {
+            value: uniqueId,
+            fields: F.G.class('pUniqueId')
         }]
         
         for (var i = 0; i<profSection.length; i++) {
@@ -496,7 +500,7 @@ class chat {
         socket.on('addedNewChat', (user) => {
             this.createChat({
                 name: user.recipientName,
-                id: user.recipientId,
+                id: user.receiver,
                 type: 'solo'
             })
         })
@@ -643,10 +647,10 @@ class chat {
     }
 
     async addNewUser(i, dBox) {
-        const uEmail = i.userEmail.value,
+        const userId = i.userId.value,
             res = await axios.post(`${BASE_URL}/search`, {
                 collection: 'Users',
-                query: { email: uEmail },
+                query: { uniqueId: userId },
                 method: 'findOne'
               }, {
                 headers: {
@@ -655,6 +659,7 @@ class chat {
                 }
             }),
             user = res.data
+        console.log(user)
         if (!user.success) {
             alert("User not found.")
             dBox.close && dBox.close()
@@ -670,6 +675,7 @@ class chat {
             recipientId: user.result._id,
             recipientName: user.result.name
         });
+
         dBox.close && dBox.close()
     }
     

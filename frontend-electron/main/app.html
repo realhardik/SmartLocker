@@ -355,7 +355,7 @@
         <div id="addChat">
             <form>
                 <div>
-                    <input type="text" min="5" max="50" id="newChatId" name="userEmail" pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{2,7}$" placeholder="Enter email of the user." data-name="userEmail" required>
+                    <input type="text" min="5" max="50" id="newChatId" name="userId" pattern="^[a-zA-Z0-9]+$" placeholder="Enter Unique Id of user." data-name="userId" required>
                 </div>
                 <div>
                     <button data-dialog="addChat" data-i='["newChatId"]' class="c">Cancel</button>
@@ -501,7 +501,7 @@
                 <div id="mainProfile">
                     <img id="profPhoto" src="../static/profiles/profile1.jpg" alt="">
                     <span id="profName" class="pName"></span>
-                    <span id="profId">ABCDEFGHI</span>
+                    <span id="profId" class="pUniqueId"></span>
                 </div>
                 <div id="profInfo">
                     <div>

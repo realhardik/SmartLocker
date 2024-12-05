@@ -13,13 +13,15 @@ const http = require('http')
 const { Server } = require('socket.io')
 const nodemailer = require('nodemailer')
 const otpGen = require('otp-generator')
-const { send } = require('process')
-const { group } = require('console')
-const { type } = require('os')
 
 const app = express()
 const server = http.createServer(app)
 const io = new Server(server)
+let generateId;
+(async () => {
+  const { customAlphabet } = await import('nanoid');
+  generateId = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', 8);
+})();
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
@@ -91,6 +93,11 @@ const db = new class {
   schemas() {
     this.userSchema = new mongoose.Schema({
       created_at: { type: Date, default: Date.now },
+      uniqueId: { 
+        type: String, 
+        unique: true, 
+        default: () => generateId()
+      },
       name: { type: String, required: true },
       email: { type: String, required: true, unique: true },
       password: { type: String, required: true }
@@ -308,13 +315,13 @@ io.on('connection', (socket) => {
 
   socket.on('addNewChat', async ({ senderId, recipientId, recipientName }) => {
     var response = await db.add('chat', {
-        sender: senderId,
-        receiver: recipientId
+      sender: recipientId,
+      receiver: senderId
     })
 
     response = await db.add('chat', {
-      sender: recipientId,
-      receiver: senderId
+      sender: senderId,
+      receiver: recipientId
     })
 
     if (response.success) {
@@ -948,14 +955,27 @@ const deleteExpiredFiles = async () => {
     //   to: "672f9d597d4158f3e7170458",
     //   content: "How are you!"
     // })
-    // var files = await db.search('chat', {})
+    // var files = await db.remove('chat', {}, 'multiple')
     // console.log("files fn: ", files)
-    // var files = await db.search('chatLog', {})
+    // var files = await db.remove('chatLog', {}, 'multiple')
     // console.log("files fn: ", files)
-    // var files = await db.remove('Users', {
-    //   email: "ujc183@gmail.com"
-    // }, 'multiple')
+    // var files = await db.remove('Users', {}, 'multiple')
     // console.log(files)
+    // var files = await db.remove('group', {}, 'multiple')
+    // console.log(files)
+    // var files = await db.remove('Files', {}, 'multiple')
+    // console.log(files)
+    // var files = await db.remove('otp', {}, 'multiple')
+    // console.log(files)
+
+    // var user = await db.addUser('Tobey', 'tobey@gmail.com', '123')
+    // console.log(user)
+    // var user = await db.addUser('Brock', 'brock@gmail.com', '123')
+    // console.log(user)
+    // var user = await db.addUser('Ash', 'ash@gmail.com', '123')
+    // console.log(user)
+    // var user = await db.addUser('John', 'john@gmail.com', '123')
+    // console.log(user)
     console.log("exp files fn: ", expiredFiles)
   // for (const file of expiredFiles) {
     // if (fs.existsSync(file.fPath)) fs.unlinkSync(file.fPath);
