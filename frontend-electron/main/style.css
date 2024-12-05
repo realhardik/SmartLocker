@@ -47,6 +47,11 @@ nav>section:first-child {
 #profileAccess {
     flex-direction: row;
     gap: 12px;
+    cursor: pointer;
+}
+
+#profileAccess>* {
+    pointer-events: none;
 }
 
 #profileAccess, nav>section:first-child .button {

@@ -328,10 +328,34 @@ class gen {
     }
 
     setupProfile(user) {
-        var sNameSection = F.G.id('userName')
-        var tSpan = F.Cr('span')
-        tSpan.innerText = user.name
-        sNameSection.appendChild(tSpan)
+        var name = user.name,
+            email = user.email,
+            date = new Date(user.created_at),
+            joinedAt = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+        var profSection = [{
+            value: name,
+            fields: F.G.class('pName')
+        }, {
+            value: email,
+            fields: F.G.class('pEmail')
+        }, {
+            value: joinedAt,
+            fields: F.G.class('pJoined')
+        }]
+        
+        for (var i = 0; i<profSection.length; i++) {
+            var f = profSection[i].fields,
+            value = profSection[i].value || ""
+            for (var j = 0; j<f.length; j++) {
+                var tag = f[j].tagName,
+                    span = 'DIV' === tag ? F.Cr('span') : f[j]
+                console.log(span)
+                tag === 'INPUT' && (span.setAttribute('placeholder', value))
+                tag === 'SPAN' && (span.innerText = value)
+                tag === 'DIV' && (span.innerText = value, f[j].appendChild(span))
+            }
+        }
     }
 
     async openDialog(e) {

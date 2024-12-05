@@ -169,11 +169,11 @@
             <div id="search">
                 <svg fill="#ffffff" height="75px" width="75px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 488.4 488.4" xml:space="preserve" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <path d="M0,203.25c0,112.1,91.2,203.2,203.2,203.2c51.6,0,98.8-19.4,134.7-51.2l129.5,129.5c2.4,2.4,5.5,3.6,8.7,3.6 s6.3-1.2,8.7-3.6c4.8-4.8,4.8-12.5,0-17.3l-129.6-129.5c31.8-35.9,51.2-83,51.2-134.7c0-112.1-91.2-203.2-203.2-203.2 S0,91.15,0,203.25z M381.9,203.25c0,98.5-80.2,178.7-178.7,178.7s-178.7-80.2-178.7-178.7s80.2-178.7,178.7-178.7 S381.9,104.65,381.9,203.25z"></path> </g> </g> </g></svg>
             </div>
-            <div id="profileAccess">
+            <div id="profileAccess" class="d" data-dbox="viewProfile">
                 <div id="userProfTN">
                     <img src="../static/profiles/profile1.jpg" alt="">
                 </div>
-                <div id="userName"></div>
+                <div id="userName" class="pName"></div>
                 <div id="moreProfOpt">
                     <svg fill="#ffffff" width="75px" height="75px" viewBox="-6.5 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>dropdown</title> <path d="M18.813 11.406l-7.906 9.906c-0.75 0.906-1.906 0.906-2.625 0l-7.906-9.906c-0.75-0.938-0.375-1.656 0.781-1.656h16.875c1.188 0 1.531 0.719 0.781 1.656z"></path> </g></svg>
                 </div>
@@ -491,7 +491,7 @@
             </form>
         </div>
         <div id="viewProfile" style="display: none;">
-            <div id="showProfile" style="display: none;">
+            <div id="showProfile">
                 <div id="switchProfView">
                     <button>Edit Profile</button>
                     <button class="c" data-dialog="viewProfile">
@@ -500,7 +500,7 @@
                 </div>
                 <div id="mainProfile">
                     <img id="profPhoto" src="../static/profiles/profile1.jpg" alt="">
-                    <span id="profName">John Locke</span>
+                    <span id="profName" class="pName"></span>
                     <span id="profId">ABCDEFGHI</span>
                 </div>
                 <div id="profInfo">
@@ -509,12 +509,12 @@
                         <span>Joined: </span>
                     </div>
                     <div>
-                        <span>johnlocke@gmail.com</span>
-                        <span>September, 2024</span>
+                        <span class="pEmail"></span>
+                        <span class="pJoined"></span>
                     </div>
                 </div>
             </div>
-            <div id="editProfile">
+            <div id="editProfile" style="display: none;">
                 <form>
                     <div>
                         <div>
@@ -523,10 +523,10 @@
                         </div>
                         <div>
                             <span>
-                                <input type="text" name="newName" id="newName">
+                                <input class="pName" type="text" name="newName" id="newName">
                             </span>
                             <span>
-                                <input type="text" name="newEmail" id="newEmail">
+                                <input class="pEmail" type="text" name="newEmail" id="newEmail">
                             </span>
                         </div>    
                     </div>

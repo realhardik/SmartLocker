@@ -550,8 +550,6 @@ app.post('/signup', async (req, res) => {
           email: email,
           type: "signUp"
         }, 'findOne')
-    console.log(otp)
-    console.log(storedOtp)
     var checkOTP = await bcrypt.compare(otp, storedOtp.result.otp)
     if (!checkOTP) {
       return res.status(401).json({ success: false, msg: "Invalid OTP." });
