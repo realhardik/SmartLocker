@@ -286,7 +286,7 @@ nav>section:first-child .button.active {
     justify-content: center;
 }
 
-#oOpt, #addProf, #addGroupIcon {
+#gFSharing, #addProf, #addGroupIcon {
     height: 32px;
     cursor: pointer;
 }
@@ -458,7 +458,7 @@ nav>section:first-child .button.active {
     cursor: pointer;
 }
 
-#fSharing, #emoji {
+#sFSharing, #emoji {
     margin-right: 20px;
 }
 
@@ -487,13 +487,13 @@ nav>section:first-child .button.active {
     transition: border 200ms ease, background-color 200ms ease;
 }
 
-#fSharing, #emoji, #sText{
+#sFSharing, #emoji, #sText{
     justify-content: center;
     align-items: center;
     align-content: center;
 }
 
-#fSharing div, #emoji div, #sText div {
+#sFSharing div, #emoji div, #sText div {
     width: 40px;
     height: 40px;
 }
@@ -709,12 +709,69 @@ button {
 	box-sizing: border-box;
 }
 
+#fHeader {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    background-color: #1c2128;
+	padding: 20px 35px;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+#mulRecipients {
+    display: none;
+    pointer-events: none;
+}
+
+#fileSharing.groupShare #mulRecipients {
+    display: block;
+    pointer-events: all;
+}
+
+#mulRecipients>span {
+    font-size: 14px;
+    margin-bottom: 4px;
+    text-align: center;
+    align-content: center;
+}
+
+#recipientsList {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: stretch;
+    font-size: 15px;
+}
+
+#recipientsList>span {
+    margin: 0 15px;
+}
+
+#mulRecipients span, #recipientsList label {
+    text-align: center;
+    align-content: center;
+}
+
+#recipientListEmails {
+    padding: 5px 7px;
+}
+
+#recipientsList label {
+    cursor: pointer;
+    background-color: #30363d;
+    padding: 4px 6px;
+    border-radius: 7px;
+}
+
+#recipientListFile {
+    display: none;
+}
+
 #fhTitle {
-	background-color: #1c2128;
-	padding: 20px 50px;
+    font-size: 22px;
 	text-align: center;
-    border-top: solid 1px rgba(255, 255, 255, 0.4);
-    border-radius: 12px;
+    align-content: center;
 }
 
 #fInput {

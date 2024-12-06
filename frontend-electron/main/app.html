@@ -217,7 +217,7 @@
                     <div id="addProf" class="d" data-dbox="addChat">
                         <svg width="75px" height="75px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8 10.5H16" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"></path> <path d="M8 14H13.5" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"></path> <path d="M17 3.33782C15.5291 2.48697 13.8214 2 12 2C6.47715 2 2 6.47715 2 12C2 13.5997 2.37562 15.1116 3.04346 16.4525C3.22094 16.8088 3.28001 17.2161 3.17712 17.6006L2.58151 19.8267C2.32295 20.793 3.20701 21.677 4.17335 21.4185L6.39939 20.8229C6.78393 20.72 7.19121 20.7791 7.54753 20.9565C8.88837 21.6244 10.4003 22 12 22C17.5228 22 22 17.5228 22 12C22 10.1786 21.513 8.47087 20.6622 7" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"></path> </g></svg>
                     </div>
-                    <div id="oOpt">
+                    <div id="gFSharing" class="d" data-c="fileSharing" data-dbox="fileSharing">
                         <svg width="75px" height="75px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M1 4C1 2.34315 2.34315 1 4 1H7.76393C8.90025 1 9.93904 1.64201 10.4472 2.65836L11.3416 4.44721C11.511 4.786 11.8573 5 12.2361 5H20C21.6569 5 23 6.34315 23 8V20C23 21.6569 21.6569 23 20 23H4C2.34315 23 1 21.6569 1 20V4ZM4 3C3.44772 3 3 3.44772 3 4V20C3 20.5523 3.44772 21 4 21H20C20.5523 21 21 20.5523 21 20V8C21 7.44772 20.5523 7 20 7H12.2361C11.0998 7 10.061 6.35799 9.55279 5.34164L8.65836 3.55279C8.48897 3.214 8.1427 3 7.76393 3H4Z" fill="#ffffff"></path> <path d="M14.5 11.45C14.5 12.8307 13.3807 13.95 12 13.95C10.6193 13.95 9.5 12.8307 9.5 11.45C9.5 10.0693 10.6193 8.94999 12 8.94999C13.3807 8.94999 14.5 10.0693 14.5 11.45Z" fill="#ffffff"></path> <path d="M16 19H8C7.44772 19 7.01319 18.5432 7.20937 18.027C7.60293 16.9913 8.73627 15.5 12 15.5C15.2637 15.5 16.3971 16.9913 16.7906 18.027C16.9868 18.5432 16.5523 19 16 19Z" fill="#ffffff"></path> </g></svg>
                     </div>
                 </div>
@@ -318,7 +318,7 @@
                     </div>
                 </div>
                 <div id="mChat">
-                    <div id="fSharing" class="d" data-c="fileSharing" data-dbox="fileSharing">
+                    <div id="sFSharing" class="d" data-c="fileSharing" data-dbox="fileSharing">
                         <div>
                             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#fff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M10 14H12M12 14H14M12 14V16M12 14V12" stroke="#fff" stroke-width="1.5" stroke-linecap="round"></path> <path d="M2 6.94975C2 6.06722 2 5.62595 2.06935 5.25839C2.37464 3.64031 3.64031 2.37464 5.25839 2.06935C5.62595 2 6.06722 2 6.94975 2C7.33642 2 7.52976 2 7.71557 2.01738C8.51665 2.09229 9.27652 2.40704 9.89594 2.92051C10.0396 3.03961 10.1763 3.17633 10.4497 3.44975L11 4C11.8158 4.81578 12.2237 5.22367 12.7121 5.49543C12.9804 5.64471 13.2651 5.7626 13.5604 5.84678C14.0979 6 14.6747 6 15.8284 6H16.2021C18.8345 6 20.1506 6 21.0062 6.76946C21.0849 6.84024 21.1598 6.91514 21.2305 6.99383C22 7.84935 22 9.16554 22 11.7979V14C22 17.7712 22 19.6569 20.8284 20.8284C19.6569 22 17.7712 22 14 22H10C6.22876 22 4.34315 22 3.17157 20.8284C2 19.6569 2 17.7712 2 14V6.94975Z" stroke="#fff" stroke-width="1.5"></path> </g></svg>
                         </div>
@@ -397,7 +397,20 @@
         </div>
         <div id="fileSharing">
             <form>
-                <div id="fhTitle">File Sharing</div>
+                <section id="fHeader">
+                    <div id="fhTitle">Share a File</div>
+                    <div id="mulRecipients">
+                        <span>Recipient Emails (Comma Separated)</span>
+                        <div id="recipientsList">
+                            <input type="text" id="recipientListEmails" placeholder="Enter Recipient Emails" >
+                            <span>or</span>
+                            <label for="recipientListFile">
+                                <span>Select a File</span>
+                                <input type="file" id="recipientListFile" accept=".csv">
+                            </label>
+                        </div>
+                    </div>
+                </section>
                 <section id="fInput">
                     <div id="fUplArea">
                         <div id="bUpl">

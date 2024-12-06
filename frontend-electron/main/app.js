@@ -48,7 +48,9 @@ class fileSharing {
         })
     }
 
-    init() {
+    init(e, t) {
+        var tSharing = 'gFSharing' === t.id  ? 'groupShare' : 'singleShare'
+        F.G.id(e).classList.add(tSharing)
         var today = new Date(),
             year = today.getFullYear(),
             month = String(today.getMonth() + 1).padStart(2, '0'),
@@ -58,13 +60,15 @@ class fileSharing {
         F.G.id('expiry_date').setAttribute('min', date);
         var close = () => {
             F.G.id('fileInput').value = ""
+            F.G.id('fileSharing').className = ''
             F.class([F.G.id('app'), F.G.id('fileSharing')], ["disable"], !0)
-            F.hide(bUpl, !0)
-            F.hide(aUpl)
+            F.hide(F.G.id('bUpl'), !0)
+            F.hide(F.G.id('aUpl'))
             this.cLayers.children.length > 1 
             ? Array.from(this.cLayers.children).slice(1).forEach(child => child.remove())
             : true;
         }
+        F.G.id(e).closeE = close
         F.G.id('cButton').closeE = close
     }
 
@@ -312,7 +316,7 @@ class gen {
     async handleNav(e) {
         e.stopPropagation()
         var target = e.target,
-            { tab, search, profile, logout } = target.dataset
+            { tab, search, logout } = target.dataset
         if (tab) {
             var s = tab === 'dashboard' ? 'chatSection' : 'dashboard',
                 tabButtons = Array.from(F.G.query('[data-tab]', document, "all"))
@@ -367,7 +371,7 @@ class gen {
         var dts = e.target["dataset"],
             dBoxId = dts.dbox,
             dBox = F.G.id(dBoxId)
-        dts.c && this[dts.c].init && this[dts.c].init(dBoxId)
+        dts.c && this[dts.c].init && this[dts.c].init(dBoxId, e.target)
         dBox && F.hide(dBox, !0)
         dBox.close = () => this.closeDialog(F.G.class('c', dBox)[0]);
         F.class([F.G.id('app')], ["disable"])
@@ -484,7 +488,6 @@ class chat {
 
         F.BM(this, ["addChat", "openChat", "addNewUser", "addNewGroup", "sendMessage", "createChat", "fetchMessages"])
         F.BM(this, ['init', 'leaveGroup', 'newMessageLog'])
-        F.l('click', F.G.id("oOpt"), this.handleOpts)
         this.profS = F.G.id('profS')
         F.l('click', this.profS, this.openChat)
         F.l('click', F.G.id('sText'), this.sendMessage)
