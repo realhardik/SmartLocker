@@ -642,7 +642,6 @@ async function encrypt(file, data) {
       },
       responseType: 'arraybuffer'
     });
-    console.log("file enc resp: ", response)
 
     const encryptedFilePath = path.join(encryptedPath, `${file.filename}_encrypted.zip`)
 
