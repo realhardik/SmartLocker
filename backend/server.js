@@ -628,20 +628,9 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-app.post('/encrypt', authenticateJWT, upload.single('file'), async (req, res) => {
-  const file = req.file,
-        data = typeof req.body.data === 'string' ? JSON.parse(req.body.data) : req.body.data,
-        tempFilePath = file.path,
-        formData = new FormData()
-// {
-  //   "layers": 1,
-  //   "selected_algos": ["aes128","aes256"],
-  //   "all_passphrases": ["ASDFGHJKL:","QWERTYUIOP"],
-  //   "filename":"0101"
-  // }
-  if (!file || !data.selected_algos || !data.all_passphrases || !data.filename) {
-    return res.status(201).json({ success:false, msg: "Missing required fields." });
-  }
+async function encrypt(file, data) {
+  const formData = new FormData(),
+        tempFilePath = file.path
 
   formData.append('original_pdf', fs.createReadStream(tempFilePath));
   formData.append('data', JSON.stringify(data));
@@ -653,47 +642,53 @@ app.post('/encrypt', authenticateJWT, upload.single('file'), async (req, res) =>
       },
       responseType: 'arraybuffer'
     });
+    console.log("file enc resp: ", response)
 
     const encryptedFilePath = path.join(encryptedPath, `${file.filename}_encrypted.zip`)
 
     fs.writeFileSync(encryptedFilePath, response.data)
-
     console.log(`Encrypted file saved at: ${encryptedFilePath}`)
-
-    res.status(201).json({
+    return {
       success: true,
       message: "File encrypted successfully",
-      encryptedFilePath: encryptedFilePath
-    });
+      path: encryptedFilePath
+    }
   } catch (error) {
     console.error("Error encrypting PDF:", error);
-    res.status(500).json({ success: false, message: "Failed to encrypt PDF" });
+    return { success: false, message: "Failed to encrypt PDF" }
   } finally {
     fs.unlinkSync(tempFilePath)
   }
-})
+}
 
-app.post('/upload', authenticateJWT, async (req, res) => {
+app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => {
+  console.log(req.body)
   const from = req.user.data._id,
-      { fileName, to } = req.body,
-      sTo = to.map(e => e.user),
-      eFile = await db.search("Files", { fName: fileName, from: from, to: { $elemMatch: { user: { $in: sTo } } }, active: true }),
-      otherData = req.body
+        file = req.file,
+        data = typeof req.body.data === 'string' ? JSON.parse(req.body.data) : req.body.data,
+        otherData = req.body,
+        to = JSON.parse(req.body.to),
+        sTo = to.map(e => e.user),
+      eFile = await db.search("Files", { fName: otherData.fileName, from: from, to: { $elemMatch: { user: { $in: sTo } } }, active: true })
+
   if (eFile.success) {
     return res.status(201).json({ success: false, msg: 'Given Filename is active currently. Change it to share.' });
   }
 
-  if (!fileName || !from || !to) {
+  if (!file || !from || !to) {
     return res.status(201).json({ success: false, msg: 'File, from, and to are required' });
   }
 
+  let savedFileData;
   try {
-    var filehash = await generateFileHash(otherData.filePath),
+    savedFileData = await encrypt(file, data)
+    console.log("saved file: ", savedFileData)
+    var filehash = await generateFileHash(savedFileData.path),
         fileEntry = {
           from: from,
           to: to,
-          fName: fileName,
-          fPath: otherData.filePath,
+          fName: otherData.fileName,
+          fPath: savedFileData.path,
           fileHash: filehash,
           expiry: otherData.expiry,
           rView: otherData.limit_views,
@@ -704,7 +699,8 @@ app.post('/upload', authenticateJWT, async (req, res) => {
     res.status(201).json(result);
   } catch (err) {
     console.log(err)
-    res.status(500).json({ msg: 'Error saving file entry to database' });
+    savedFileData.path && fs.unlinkSync(savedFileData.path)
+    res.status(500).json({ msg: 'Error while uploading the file. \nTry again later' });
   }
 });
 

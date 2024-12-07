@@ -64,9 +64,12 @@ class fileSharing {
             F.class([F.G.id('app'), F.G.id('fileSharing')], ["disable"], !0)
             F.hide(F.G.id('bUpl'), !0)
             F.hide(F.G.id('aUpl'))
-            this.cLayers.children.length > 1 
+            this.cLayers.children.length > 1
             ? Array.from(this.cLayers.children).slice(1).forEach(child => child.remove())
             : true;
+            F.G.class('passPhrase', this.cLayers.children[0])[0]?.value = ""
+            F.G.id('expiry_date')?.value = ""
+            F.G.id('expiry_time')?.value = ""
         }
         F.G.id(e).closeE = close
         F.G.id('cButton').closeE = close
@@ -122,41 +125,17 @@ class fileSharing {
 
     async upload(data, dBox) {
         try {
-            const formData = new FormData(),
-                  tokenReq = await F.getToken(),
-                  token = tokenReq.token,
-                  rLayers = data.layers,
-                  layers = Object.values(rLayers).map(item => item.type),
-                  pass = Object.values(rLayers).map(item => item.passPhrase)
+            const tokenReq = await F.getToken(),
+                  token = tokenReq.token
 
-            formData.append('file', this.file)
-            formData.append('data', JSON.stringify({
-                layers: layers.length,
-                selected_algos: layers,
-                all_passphrases: pass,
-                filename: this.file?.name || this.file?.originalName
-            }));
-
-            var response = await axios.post(`${BASE_URL}/encrypt`, formData, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            })
-
-            if (!response.data.success) {
-                alert("Error: ", response.data.message)
-                F.class([F.G.id('app')], ["disable"], !0)
-                return
-            }
-
-            data['filePath'] =  response.data.encryptedFilePath
-            var response2 = await axios.post(`${BASE_URL}/upload`, data, {
+            var response = await axios.post(`${BASE_URL}/upload`, data, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
                 });
-
-            data = response2.data
+            console.log(response)
+            data = response.data
+            console.log(data)
             if (!data.success) {
                 alert('Error: ' + (data?.msg || "Try again later"));
                 F.class([F.G.id('app')], ["disable"], !0)
@@ -180,7 +159,7 @@ class fileSharing {
     }
 
     async shareFile(i, dBox) {
-        const formData = {},
+        const formData = new FormData(),
             rTo = F.G.id('tChat')?.con?.convId || "xyz@gmail.com",
             eTo = rTo.split(',').map(e => e.trim()),
             file = this.file,
@@ -222,10 +201,22 @@ class fileSharing {
             alert("Unexpected error occured. Try again later")
             return
         }
+        
         if (file && file.type === "application/pdf" && file.name.toLowerCase().endsWith(".pdf")) {
-            formData['to'] = to
-            formData['fileName'] = file.name
-            formData['layers'] = layers
+            var layerTypes = Object.values(layers).map(item => item.type),
+            pass = Object.values(layers).map(item => item.passPhrase)
+
+            formData.append('to', JSON.stringify(to))
+            formData.append('fileName', file.name)
+            formData.append('layers', JSON.stringify(layers))
+            formData.append('file', file)
+            formData.append('data', JSON.stringify({
+                layers: layers.length,
+                selected_algos: layerTypes,
+                all_passphrases: pass,
+                filename: file?.name || file?.originalName
+            }));
+
             const userInputDateTime = `${i.expiry_date.value}T${i.expiry_time.value}:00`;
             const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
             const dateInUserTimeZone = new Date(
@@ -233,12 +224,12 @@ class fileSharing {
               );
             const dateInUTC = new Date(dateInUserTimeZone.toISOString());
             
-            formData['expiry'] = dateInUTC.toISOString()
+            formData.append('expiry', dateInUTC.toISOString())
             if (i.enableMaxViews.value) {
-                formData['limit_views'] = true
-                formData['max_views'] = i.max_views.value
+                formData.append('limit_views', true)
+                formData.append('max_views', i.max_views.value)
             } else {
-                formData['limit_views'] = false
+                formData.append('limit_views', false)
             }
             this.upload(formData, dBox)
         } else {
