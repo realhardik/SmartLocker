@@ -76,6 +76,10 @@ ipcMain.handle('sendOtp', async (e, event, email) => {
           email: email
         }
       });
+    } else if (event === 'forgotPass') {
+      response = await axios.post(`${apiBaseUrl}/forgotPassword`, {
+        email: email
+      });
     }
     console.log("response: ", response)
     if (response.data.success)

@@ -22,8 +22,21 @@ class login {
             container.classList.add("active");
             container.classList.add("active-forgot");
         })
+        F.G.id('sendOTP').addEventListener('click', (event) => {
+            event.preventDefault();
+            this.sendOtp('forgotPass')
+        });
+        F.G.id('submitOTP').addEventListener('click', (event) => {
+            event.preventDefault();
+            container.classList.add("active");
+            container.classList.remove("active-otp-reset");
+            container.classList.add("active-reset-password");
+        });
+
         F.l("click", F.G.id('signUp'), (e) => { 
             e.preventDefault();
+            container.classList.remove("active");
+            container.classList.add("active-otp-register");
             this.sendOtp("signUp")
         })
     }
@@ -41,17 +54,28 @@ class login {
     async sendOtp(e) {
         const container = F.G.id('container')
         if (e === 'signUp') {
-            var email = F.G.id('sEmail').value,
+            var email = F.G.id('sEmail').value
                 result = await ipcRenderer.invoke('sendOtp', e, email)
             console.log(result)
             if (result?.success) {
                 container.classList.remove("active");
-                container.classList.add("active-forgot");
-                container.classList.add("active-forgot.OTP");
+                container.classList.remove("active-forgot");
             } else {
                 alert(result.msg || "Couldn't send otp at the moment.")
                 F.G.id("sName").value = ""
                 F.G.id('sEmail').value = ""
+            }
+        } else if (e === 'forgotPass') {
+            var email = F.G.id('resetEmail').value
+                result = await ipcRenderer.invoke('sendOtp', e, email)
+            console.log(result)
+            if (result?.success) {
+                container.classList.remove("active");
+                container.classList.remove("active-forgot");
+                container.classList.add("active-otp-reset");
+            } else {
+                alert(result.msg || "Couldn't send otp at the moment.")
+                F.G.id('resetEmail').value = ""
             }
         }
     }
@@ -69,9 +93,8 @@ class login {
         F.G.id('otp').value = ""
         alert(result.msg)
         if (result.success) {
-            container.classList.remove("active")
-            container.classList.remove("active-forgot");
-            container.classList.remove("active-forgot.OTP");
+            container.classList.remove("active");
+            container.classList.add("active-otp-register");
         }
     }
 }
