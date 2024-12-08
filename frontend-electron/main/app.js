@@ -67,7 +67,7 @@ class fileSharing {
             this.cLayers.children.length > 1
             ? Array.from(this.cLayers.children).slice(1).forEach(child => child.remove())
             : true;
-            F.G.class('passPhrase', this.cLayers.children[0])[0]?.value = ""
+            // F.G.class('passPhrase', this.cLayers.children[0])[0]?.value = ""
             F.G.id('expiry_date')?.value = ""
             F.G.id('expiry_time')?.value = ""
         }

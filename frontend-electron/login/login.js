@@ -1,3 +1,4 @@
+const { default: axios } = require('axios');
 const { ipcRenderer } = require('electron');
 
 class login {
@@ -26,11 +27,9 @@ class login {
             event.preventDefault();
             this.sendOtp('forgotPass')
         });
-        F.G.id('submitOTP').addEventListener('click', (event) => {
+        F.G.id('setNewPassword').addEventListener('click', (event) => {
             event.preventDefault();
-            container.classList.add("active");
-            container.classList.remove("active-otp-reset");
-            container.classList.add("active-reset-password");
+            this.forgotPassword('verify')
         });
 
         F.l("click", F.G.id('signUp'), (e) => { 
@@ -51,10 +50,26 @@ class login {
         }
     }
 
+    async forgotPassword(e) {
+        if (e === 'verify') {
+            var rEmail = F.G.id('resetEmail').value,
+            otp = F.G.id('resetOTP').value,
+            newPass = F.G.id('newPassword').value,
+            response = await ipcRenderer.invoke('forgotPassword', { email: rEmail, otp: otp, newPass: newPass })
+            if (response.success) {
+                F.G.id('container').classList.remove('active-otp-reset')
+                alert('Updated Password Successfully.')
+                return
+            }
+            alert(response.msg)
+            return
+        }
+    }
+
     async sendOtp(e) {
         const container = F.G.id('container')
         if (e === 'signUp') {
-            var email = F.G.id('sEmail').value
+            var email = F.G.id('sEmail').value,
                 result = await ipcRenderer.invoke('sendOtp', e, email)
             console.log(result)
             if (result?.success) {
@@ -66,7 +81,7 @@ class login {
                 F.G.id('sEmail').value = ""
             }
         } else if (e === 'forgotPass') {
-            var email = F.G.id('resetEmail').value
+            var email = F.G.id('resetEmail').value,
                 result = await ipcRenderer.invoke('sendOtp', e, email)
             console.log(result)
             if (result?.success) {

@@ -92,6 +92,25 @@ ipcMain.handle('sendOtp', async (e, event, email) => {
   }
 });
 
+ipcMain.handle('forgotPassword', async (e, data) => {
+  try {
+    let response;
+      response = await axios.get(`${apiBaseUrl}/forgotPassword/${data.otp}`, {
+        params: {
+          email: data.email,
+          newPassword: data.newPass
+        }
+      });
+      console.log("response: ", response)
+    if (response.data.success)
+      return { success: true, result: response.data };
+    return { success: false, msg: response.data.msg }
+  } catch (error) {
+    console.error("Signup failed:", error.response ? error.response.data.msg : "Server not working at the moment.");
+    return { success: false, msg: (error.response.data.msg || "Server not working at the moment.") };
+  }
+});
+
 ipcMain.handle('signup', async (event, credentials) => {
   try {
     const response = await axios.post(`${apiBaseUrl}/signup`, credentials);

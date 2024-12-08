@@ -898,7 +898,7 @@ app.post('/forgotPassword', async (req, res) => {
 
 app.get('/forgotPassword/:otp', async (req, res) => {
   const { otp } = req.params;
-  const { email } = req.query;
+  const { email, newPassword } = req.query;
 
   try {
     var storedOtp = await db.search('otp', { email: email, type: "forgotPass" }, 'findOne')
@@ -913,7 +913,14 @@ app.get('/forgotPassword/:otp', async (req, res) => {
       return res.status(401).json({ success: false, msg: "Invalid OTP." });
     }
     await db.remove('otp', { email: email }, 'multiple')
-    res.status(200).json({ success: true, msg: "OTP verified successfully." });
+
+    var newHashedPassword = await bcrypt.hash(newPassword, 10),
+      response = await db.search('Users', { email: email }, 'findOneAndUpdate', {
+      password: newHashedPassword
+    })
+    if (response.success)
+      return res.status(200).json({ success: true, msg: "Updated Password Successfully." });
+    return res.status(400).json({ success: false, msg: "Server error. \nTry again later." });
   } catch (err) {
     console.error('Server error:', err);
     res.status(500).json({ success: false, msg: "Server error." });
