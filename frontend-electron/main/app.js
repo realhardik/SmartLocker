@@ -104,7 +104,7 @@ class fileSharing {
     }
 
     handleLayers(e) {
-        var t = parseInt(e.target.value, 10),
+        var t = F.Clamp(parseInt(e.target.value, 10), 1, 7),
         p = this.cLayers.children.length;
         if (t === p) return;
         if (t < p) {

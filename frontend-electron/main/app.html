@@ -148,7 +148,8 @@
                     clearTimeout(timer);
                     timer = setTimeout(() => func.apply(this, args), delay);
                 };
-            }
+            },
+            Clamp: (l,a,n)=>Math.min(Math.max(l, a), n)
         }
     </script>
 </head>
@@ -267,7 +268,7 @@
                         </div>
                     </div>
                 </div>
-                <div id="receiveFiles" hidden>
+                <div id="receivedFiles" hidden>
                     <table>
                         <thead>
                           <tr>
@@ -549,6 +550,48 @@
                     </div>
                 </form>
             </div>
+        </div>
+        <div id="receiveFiles" style="display: block; pointer-events: all;">
+            <form>
+                <div id="rHeader">
+                    <span>Received File</span>
+                    <span id="rFileName">Abc.txt</span>
+                </div>
+                <div id="dLayerNo">
+                    <span>Number of layers of Encryption: </span>
+                    <input type="number" min="1" max="7" value="1" id="decryptLayerNumber" required>
+                </div>
+                <div id="rLayers">
+                    <div class="layInfo">
+                        <div class="lNo">
+                            <span>1)</span>
+                        </div>
+                        <select class="inp eType">
+                            <option>AES 128</option>
+                            <option>AES 256</option>
+                            <option>AES GCM</option>
+                            <option>ARC 4</option>
+                            <option>Blowfish</option>
+                            <option>Chacha 20 poly</option>
+                            <option>DES 3</option>
+                            <option>RC 4</option>
+                            <option>Salsa 20</option>
+                            <option>xChacha 20</option>
+                        </select>
+                        <div class="passPhrase">
+                            <input type="text" class="passPh" maxlength="15" pattern="^[a-zA-Z0-9]+$" title="Only alphanumeric characters are allowed" placeholder="Password" required>
+                        </div>
+                    </div>
+                </div>
+                <label for="savePassword">
+                    <input type="checkbox" id="savePassword">
+                    <span>Save Password for next use</span>
+                </label>
+                <div id="receiveButtons">
+                    <button class="c">Cancel</button>
+                    <button id="render">Render</button>
+                </div>
+            </form>
         </div>
     </div>   
     <div id="templates">

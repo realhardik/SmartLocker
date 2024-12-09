@@ -547,7 +547,7 @@ nav>section:first-child .button.active {
     background-color: #415a77;
 }
 
-#addChat, #addGroup {
+#addChat, #addGroup, #receiveFiles {
     display: none;
     pointer-events: none;
     position: absolute;
@@ -1204,6 +1204,69 @@ main.disable {
 /* receive files */
 
 #receiveFiles {
+    width: 40vw;
+    min-width: 420px;
+}
+
+#receiveFiles, #dLayerNo {
+    flex-direction: column;
+}
+
+#dLayerNo, #rHeader, #receiveButtons {
+    display: flex;
+    flex-direction: row;
+}
+
+#rHeader {
+    font-size: 22px;
+    justify-content: space-between;
+    margin-bottom: 25px;
+    border-bottom: solid 0.7px rgba(255, 255, 255, 0.6);
+}
+
+#dLayerNo {
+    margin-bottom: 22px;
+}
+
+#dLayerNo, #rLayers {
+    justify-content: center;
+    align-content: stretch;
+}
+
+#rLayers {
+    height: 300px;
+}
+
+#receiveButtons {
+    justify-content: flex-end;
+    gap: 15px;
+}
+
+#receiveButtons button {
+    background-color: #58a6ff;
+    border: thin solid #444c56;
+    border-radius: 9px;
+    padding: 8px 14px;
+    transition: filter 200ms ease;
+}
+
+#dLayerNo input, #rLayers input {
+    background-color: #30363d;
+    border: thin solid #444c56;
+}
+
+#dLayerNo input {
+    padding: 3px 4px;
+    border-radius: 7px;
+    margin-left: 19px;
+}
+
+#receiveFiles label input {
+    float: left;
+    margin: 0 15px;
+}
+
+#receivedFiles {
     position: absolute;
     top: 85px;
     z-index: 5;
