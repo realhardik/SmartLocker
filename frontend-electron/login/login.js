@@ -27,6 +27,10 @@ class login {
             event.preventDefault();
             this.sendOtp('forgotPass')
         });
+        F.G.id('resendForgotOTP').addEventListener('click', (event) => {
+            event.preventDefault();
+            this.sendOtp('resendForgot')
+        });
         F.G.id('setNewPassword').addEventListener('click', (event) => {
             event.preventDefault();
             this.forgotPassword('verify')
@@ -88,6 +92,16 @@ class login {
                 container.classList.remove("active");
                 container.classList.remove("active-forgot");
                 container.classList.add("active-otp-reset");
+            } else {
+                alert(result.msg || "Couldn't send otp at the moment.")
+                F.G.id('resetOTP').value = ""
+                F.G.id('resetEmail').value = ""
+            }
+        } else if (e === "resendForgot") {
+            var email = F.G.id('resetEmail').value,
+                result = await ipcRenderer.invoke('sendOtp', 'forgotPass', email)
+            if (result?.success) {
+                alert('OTP resent successfully.')
             } else {
                 alert(result.msg || "Couldn't send otp at the moment.")
                 F.G.id('resetEmail').value = ""
