@@ -1234,7 +1234,9 @@ main.disable {
 }
 
 #rLayers {
-    height: 300px;
+    min-height: 200px;
+    max-height: 300px;
+    transition: height 400ms ease;
 }
 
 #receiveButtons {
