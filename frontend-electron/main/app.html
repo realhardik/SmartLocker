@@ -257,7 +257,7 @@
                         <span>John Locke</span>
                     </div>
                     <div id="otherChatOptions">
-                        <div id="aFileHist" class="i" data-dialog="receiveFiles" data-p="receiveFiles;fileSharing" data-i='["decryptLayerNumber", "savePassword"]'>
+                        <div id="aFileHist" class="d" data-c="fileSharing" data-dbox="receiveFiles">
                             <span>File History</span>
                         </div>
                         <div id="deleteGroup">
@@ -465,7 +465,7 @@
                                     <option>xChacha 20</option>
                                 </select>
                                 <div class="passPhrase">
-                                    <input type="text" class="passPh" maxlength="15" pattern="^[a-zA-Z0-9]+$" title="Only alphanumeric characters are allowed" placeholder="Password" required>
+                                    <input type="text" class="passPh" name="password" maxlength="15" pattern="^[a-zA-Z0-9]+$" title="Only alphanumeric characters are allowed" placeholder="Password" required>
                                 </div>
                             </div>
                         </div>
@@ -551,7 +551,7 @@
                 </form>
             </div>
         </div>
-        <div id="receiveFiles" style="display: block; pointer-events: all;">
+        <div id="receiveFiles" style="">
             <form>
                 <div id="rHeader">
                     <span>Received File</span>
@@ -579,7 +579,7 @@
                             <option>xChacha 20</option>
                         </select>
                         <div class="passPhrase">
-                            <input type="text" class="passPh" maxlength="15" pattern="^[a-zA-Z0-9]+$" title="Only alphanumeric characters are allowed" placeholder="Password" required>
+                            <input type="text" class="passPh" name="password" maxlength="15" pattern="^[a-zA-Z0-9]+$" title="Only alphanumeric characters are allowed" placeholder="Password" required>
                         </div>
                     </div>
                 </div>
@@ -588,8 +588,8 @@
                     <span>Save Password for next use</span>
                 </label>
                 <div id="receiveButtons">
-                    <button class="c">Cancel</button>
-                    <button id="render">Render</button>
+                    <button class="c" data-dialog="receiveFiles">Cancel</button>
+                    <button id="render" class="i" data-dialog="receiveFiles" data-p="receiveFiles;fileSharing" data-i='["decryptLayerNumber", "savePassword"]'>Render</button>
                 </div>
             </form>
         </div>
@@ -629,7 +629,7 @@
                     <option>xChacha 20</option>
                 </select>
                 <div class="passPhrase">
-                    <input type="text" class="passPh" maxlength="15" placeholder="Password" required>
+                    <input type="text" class="passPh" name="password" maxlength="15" placeholder="Password" required>
                 </div>
             </div>
         </template>

@@ -31,13 +31,15 @@ class fileSharing {
         this.fInput = F.G.id('fileInput')
         this.lTemp = F.G.id('encLayers').content.firstElementChild.cloneNode(true)
         this.cLayers = F.G.id('cLayers')
+        this.rLayers = F.G.id('rLayers')
         this.handleLayers = F.debounce(this.handleLayers.bind(this), 200);
         var events = ['dragenter', 'dragover', 'dragleave', 'drop']
         events.forEach(e => {
             F.l(e, this.dropArea, this.handleUpload)
         })
         this.file = null
-        F.l('change', F.G.id('nLayers'), this.handleLayers)
+        F.l('change', F.G.id('nLayers'), () => {  this.handleLayers("cLayers") })
+        F.l('change', F.G.id('rLayers'), () => {  this.handleLayers("rLayers") })
         F.l('change', this.fInput, this.handleUpload)
         F.l('click', F.G.id('fileRem'), () => {
             this.fInput.value = ""
@@ -49,27 +51,34 @@ class fileSharing {
     }
 
     init(e, t) {
-        var tSharing = 'gFSharing' === t.id  ? 'groupShare' : 'singleShare'
-        F.G.id(e).classList.add(tSharing)
-        var today = new Date(),
-            year = today.getFullYear(),
-            month = String(today.getMonth() + 1).padStart(2, '0'),
-            day = String(today.getDate()).padStart(2, '0'),
-            date = `${year}-${month}-${day}`
+        let close;
+        if (e === 'fileSharing') {
+            var tSharing = 'gFSharing' === t.id  ? 'groupShare' : 'singleShare'
+            F.G.id(e).classList.add(tSharing)
+            var today = new Date(),
+                year = today.getFullYear(),
+                month = String(today.getMonth() + 1).padStart(2, '0'),
+                day = String(today.getDate()).padStart(2, '0'),
+                date = `${year}-${month}-${day}`
 
-        F.G.id('expiry_date').setAttribute('min', date);
-        var close = () => {
-            F.G.id('fileInput').value = ""
-            F.G.id('fileSharing').className = ''
-            F.class([F.G.id('app'), F.G.id('fileSharing')], ["disable"], !0)
-            F.hide(F.G.id('bUpl'), !0)
-            F.hide(F.G.id('aUpl'))
-            this.cLayers.children.length > 1
-            ? Array.from(this.cLayers.children).slice(1).forEach(child => child.remove())
-            : true;
-            // F.G.class('passPhrase', this.cLayers.children[0])[0]?.value = ""
-            F.G.id('expiry_date')?.value = ""
-            F.G.id('expiry_time')?.value = ""
+            F.G.id('expiry_date').setAttribute('min', date);
+            close = () => {
+                F.G.id('fileInput').value = ""
+                F.G.id('fileSharing').className = ''
+                F.class([F.G.id('app'), F.G.id('fileSharing')], ["disable"], !0)
+                F.hide(F.G.id('bUpl'), !0)
+                F.hide(F.G.id('aUpl'))
+                this.cLayers.children.length > 1
+                ? Array.from(this.cLayers.children).slice(1).forEach(child => child.remove())
+                : true;
+                F.G.class('passPhrase', this.cLayers.children[0])[0].value = ""
+                F.G.id('expiry_date').value = ""
+                F.G.id('expiry_time').value = ""
+            }
+        } else if (e === 'receiveFiles') {
+            this.rLayers.children.length > 1
+                ? Array.from(this.rLayers.children).slice(1).forEach(child => child.remove())
+                : true;
         }
         F.G.id(e).closeE = close
         F.G.id('cButton').closeE = close
@@ -105,11 +114,11 @@ class fileSharing {
 
     handleLayers(e) {
         var t = F.Clamp(parseInt(e.target.value, 10), 1, 7),
-        p = this.cLayers.children.length;
+        p = this[e].children.length;
         if (t === p) return;
         if (t < p) {
-            while (this.cLayers.children.length > t) {
-                this.cLayers.lastChild.remove();
+            while (this[e].children.length > t) {
+                this[e].lastChild.remove();
             }
         } else if (t > p) {
             for (let i = p; i < t; i++) {
@@ -118,7 +127,7 @@ class fileSharing {
                 if (span) {
                     span.innerText = `${i + 1})`;
                 }
-                this.cLayers.append(temp);
+                this[e].append(temp);
             }
         }
     }
@@ -364,6 +373,7 @@ class gen {
             dBox = F.G.id(dBoxId)
         dts.c && this[dts.c].init && this[dts.c].init(dBoxId, e.target)
         dBox && F.hide(dBox, !0)
+        console.log('dBox: ', dBox)
         dBox.close = () => this.closeDialog(F.G.class('c', dBox)[0]);
         F.class([F.G.id('app')], ["disable"])
     }
