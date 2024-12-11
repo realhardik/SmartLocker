@@ -1236,7 +1236,7 @@ main.disable {
 #rLayers {
     min-height: 200px;
     max-height: 300px;
-    transition: height 400ms ease;
+    overflow: scroll;
 }
 
 #receiveButtons {
@@ -1269,6 +1269,8 @@ main.disable {
 }
 
 #receivedFiles {
+    display: none;
+    pointer-events: none;
     position: absolute;
     top: 85px;
     z-index: 5;

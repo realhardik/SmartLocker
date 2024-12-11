@@ -26,7 +26,7 @@ ipcRenderer.on('rec-profile', (event, { email, name }) => {
 
 class fileSharing {
     constructor() {
-        F.BM(this, ["init", "handleUpload", "receive", "oRender", "shareFile"])
+        F.BM(this, ["init", "handleUpload", "fetchFiles", "oRender", "shareFile"])
         this.dropArea = F.G.id('dropArea'),
         this.fInput = F.G.id('fileInput')
         this.lTemp = F.G.id('encLayers').content.firstElementChild.cloneNode(true)
@@ -38,8 +38,8 @@ class fileSharing {
             F.l(e, this.dropArea, this.handleUpload)
         })
         this.file = null
-        F.l('change', F.G.id('nLayers'), () => {  this.handleLayers("cLayers") })
-        F.l('change', F.G.id('rLayers'), () => {  this.handleLayers("rLayers") })
+        F.l('change', F.G.id('nLayers'), (e) => {  this.handleLayers(e, "cLayers") })
+        F.l('change', F.G.id('decryptLayerNumber'), (e) => {  this.handleLayers(e, "rLayers") })
         F.l('change', this.fInput, this.handleUpload)
         F.l('click', F.G.id('fileRem'), () => {
             this.fInput.value = ""
@@ -79,6 +79,8 @@ class fileSharing {
             this.rLayers.children.length > 1
                 ? Array.from(this.rLayers.children).slice(1).forEach(child => child.remove())
                 : true;
+        } else if (e === 'receivedFiles') {
+            this.fetchFiles()
         }
         F.G.id(e).closeE = close
         F.G.id('cButton').closeE = close
@@ -112,22 +114,23 @@ class fileSharing {
         F.class([F.G.id('f-eDet'), F.G.id('sButton')], ['disable'], !0)
     }
 
-    handleLayers(e) {
-        var t = F.Clamp(parseInt(e.target.value, 10), 1, 7),
-        p = this[e].children.length;
-        if (t === p) return;
-        if (t < p) {
-            while (this[e].children.length > t) {
-                this[e].lastChild.remove();
+    handleLayers(e, t) {
+        console.log(e)
+        var n = F.Clamp(parseInt(e.target.value, 10), 1, 7),
+        p = this[t].children.length;
+        if (n === p) return;
+        if (n < p) {
+            while (this[t].children.length > n) {
+                this[t].lastChild.remove();
             }
-        } else if (t > p) {
-            for (let i = p; i < t; i++) {
+        } else if (n > p) {
+            for (let i = p; i < n; i++) {
                 const temp = this.lTemp.cloneNode(true);
                 const span = temp.querySelector('.lNo span');
                 if (span) {
                     span.innerText = `${i + 1})`;
                 }
-                this[e].append(temp);
+                this[t].append(temp);
             }
         }
     }
@@ -250,8 +253,28 @@ class fileSharing {
         // F.G.id("receivers").value.split(",").map(email => ({ email: email.trim() }))
     }
 
-    async receive(e) {
-        e.preventDefault()
+    async renderFile(i, dBox) {
+        console.log(i)
+        console.log(dBox)
+        let tokenReq = await F.getToken(),
+            nLayers = i.decryptLayerNumber.value,
+            formData = new FormData(),
+            layers = {},
+            passPhrases = {};
+        
+        for (var l = 0; l<i.nLayers.value; l++) {
+            var temp = this.rLayers.children[l]
+            layers[l] = F.G.class('eType', temp)[0].value.toLowerCase().replace(" ", "");
+            passPhrases[l] = F.G.class('passPh', temp)[0].value
+        }
+
+        formData.append('noOfLayers', nLayers)
+        formData.append('layers', layers)
+        formData.append('passwords', passPhrases)
+            
+    }
+
+    async fetchFiles() {
         var tokenReq = await F.getToken(),
             receiver = tokenReq.user._id,
             token = tokenReq.token
@@ -269,7 +292,7 @@ class fileSharing {
 
             var data = await response.json(),
                 files = data.result,
-                fileList = F.G.id('file-list');
+                fileList = F.G.query('tbody', F.G.id('receivedFiles'));
             fileList.innerHTML = '';
             console.log(files)
             files.forEach(file => {

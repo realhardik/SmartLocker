@@ -257,7 +257,7 @@
                         <span>John Locke</span>
                     </div>
                     <div id="otherChatOptions">
-                        <div id="aFileHist" class="d" data-c="fileSharing" data-dbox="receiveFiles">
+                        <div id="aFileHist" class="d" data-dbox="receivedFiles">
                             <span>File History</span>
                         </div>
                         <div id="deleteGroup">
@@ -268,7 +268,7 @@
                         </div>
                     </div>
                 </div>
-                <div id="receivedFiles" hidden>
+                <div id="receivedFiles">
                     <table>
                         <thead>
                           <tr>
@@ -551,7 +551,7 @@
                 </form>
             </div>
         </div>
-        <div id="receiveFiles" style="">
+        <div id="receiveFiles">
             <form>
                 <div id="rHeader">
                     <span>Received File</span>
@@ -589,7 +589,7 @@
                 </label>
                 <div id="receiveButtons">
                     <button class="c" data-dialog="receiveFiles">Cancel</button>
-                    <button id="render" class="i" data-dialog="receiveFiles" data-p="receiveFiles;fileSharing" data-i='["decryptLayerNumber", "savePassword"]'>Render</button>
+                    <button id="render" class="i disable" data-dialog="receiveFiles" data-p="renderFile;fileSharing" data-i='["decryptLayerNumber", "savePassword"]'>Render</button>
                 </div>
             </form>
         </div>
