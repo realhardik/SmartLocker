@@ -1312,6 +1312,17 @@ td {
     max-width: 150px;
     word-wrap: break-word;
     white-space: normal;
+    pointer-events: none;
+    cursor: pointer;
+}
+
+tbody tr {
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 tbody tr:first-child td {

@@ -41,6 +41,7 @@ class fileSharing {
         F.l('change', F.G.id('nLayers'), (e) => {  this.handleLayers(e, "cLayers") })
         F.l('change', F.G.id('decryptLayerNumber'), (e) => {  this.handleLayers(e, "rLayers") })
         F.l('change', this.fInput, this.handleUpload)
+        F.l('click', F.G.id('aFileHist'), this.fetchFiles)
         F.l('click', F.G.id('fileRem'), () => {
             this.fInput.value = ""
             F.G.id('fileUplName').value = ""
@@ -80,8 +81,6 @@ class fileSharing {
             this.rLayers.children.length > 1
                 ? Array.from(this.rLayers.children).slice(1).forEach(child => child.remove())
                 : true;
-        } else if (e === 'receivedFiles') {
-            this.fetchFiles()
         }
         F.G.id(e).closeE = close
         F.G.id('cButton').closeE = close
@@ -277,6 +276,7 @@ class fileSharing {
 
     async fetchFiles() {
         console.log('fetchFIles')
+        F.hide(F.G.id('receivedFiles'), !0)
         var tokenReq = await F.getToken(),
             sender = F.G.id('tChat').con.convId || "",
             token = tokenReq.token
@@ -293,12 +293,9 @@ class fileSharing {
                 throw new Error('Network response was not ok');
             }
 
-            console.log()
-
             var files = response.data.result,
                 fileList = F.G.query('tbody', F.G.id('receivedFiles'));
             fileList.innerHTML = '';
-            console.log(files)
             files.forEach(file => {
                 var listItem = F.Cr('tr'),
                     recieved_at = file.timestamp,
@@ -315,11 +312,10 @@ class fileSharing {
                 fileList.appendChild(listItem);
                 listItem.fCon = {
                     from: file.from,
-                    to: receiver,
                     fName: file.fName,
                     hash: file.fileHash
                 }
-                F.l('click', listItem, (e) => { this.oRender(e) })
+                F.l('click', listItem, this.oRender)
             })
         } catch (error) {
             console.error('Error fetching files:', error);
@@ -328,7 +324,8 @@ class fileSharing {
 
     async oRender(e) {
         var f = e.target
-        ipcRenderer.invoke('render', f["fCon"])
+        console.log(f.fCon)
+        // ipcRenderer.invoke('render', f["fCon"])
     }
 }
 
