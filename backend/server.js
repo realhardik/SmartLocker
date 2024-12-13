@@ -735,7 +735,7 @@ app.post('/received', authenticateJWT, async (req, res) => {
   try {
     const filesForUser = await db.search('Files', { to: { $elemMatch: { user: recipient } } });
     console.log('searched received')
-    res.status(200).json({ success: true, result: filesForUser });
+    res.status(200).json({ success: true, result: filesForUser.result });
   } catch (error) {
     res.status(500).json({ success: false, msg: 'Error fetching entries', error });
   }

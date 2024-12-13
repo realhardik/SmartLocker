@@ -293,25 +293,34 @@ class fileSharing {
                 throw new Error('Network response was not ok');
             }
 
-            console.log(response.data.result)
+            console.log()
 
-            // var data = await response.json(),
-            //     files = data.result,
-            //     fileList = F.G.query('tbody', F.G.id('receivedFiles'));
-            // fileList.innerHTML = '';
-            // console.log(files)
-            // files.forEach(file => {
-            //     const listItem = document.createElement('li');
-            //     listItem.textContent = file.fName;
-            //     fileList.appendChild(listItem);
-            //     listItem.fCon = {
-            //         from: file.from,
-            //         to: receiver,
-            //         fName: file.fName,
-            //         hash: file.fileHash
-            //     }
-            //     F.l('click', listItem, (e) => { this.oRender(e) })
-            // })
+            var files = response.data.result,
+                fileList = F.G.query('tbody', F.G.id('receivedFiles'));
+            fileList.innerHTML = '';
+            console.log(files)
+            files.forEach(file => {
+                var listItem = F.Cr('tr'),
+                    recieved_at = file.timestamp,
+                    expiry = file.expiry
+                var fName = F.Cr('td'),
+                    rec_at = F.Cr('td'),
+                    exp = F.Cr('td')
+                fName.innerText = file.fName
+                rec_at.innerText = recieved_at
+                exp.innerText = expiry
+                listItem.appendChild(fName)
+                listItem.appendChild(rec_at)
+                listItem.appendChild(exp)
+                fileList.appendChild(listItem);
+                listItem.fCon = {
+                    from: file.from,
+                    to: receiver,
+                    fName: file.fName,
+                    hash: file.fileHash
+                }
+                F.l('click', listItem, (e) => { this.oRender(e) })
+            })
         } catch (error) {
             console.error('Error fetching files:', error);
         }
