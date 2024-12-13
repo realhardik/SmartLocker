@@ -52,6 +52,7 @@ class fileSharing {
 
     init(e, t) {
         let close;
+        console.log("dbox: ", e)
         if (e === 'fileSharing') {
             var tSharing = 'gFSharing' === t.id  ? 'groupShare' : 'singleShare'
             F.G.id(e).classList.add(tSharing)
@@ -275,38 +276,42 @@ class fileSharing {
     }
 
     async fetchFiles() {
+        console.log('fetchFIles')
         var tokenReq = await F.getToken(),
-            receiver = tokenReq.user._id,
+            sender = F.G.id('tChat').con.convId || "",
             token = tokenReq.token
         try {
-            const response = await fetch(`${BASE_URL}/receiver?receiver=${encodeURIComponent(receiver)}`, {
-                method: 'GET',
+            const response = await axios.post(`${BASE_URL}/received`, {
+                from: sender
+            }, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
-            });
+            })
 
-            if (!response.ok) {
+            if (!response.data.success) {
                 throw new Error('Network response was not ok');
             }
 
-            var data = await response.json(),
-                files = data.result,
-                fileList = F.G.query('tbody', F.G.id('receivedFiles'));
-            fileList.innerHTML = '';
-            console.log(files)
-            files.forEach(file => {
-                const listItem = document.createElement('li');
-                listItem.textContent = file.fName;
-                fileList.appendChild(listItem);
-                listItem.fCon = {
-                    from: file.from,
-                    to: receiver,
-                    fName: file.fName,
-                    hash: file.fileHash
-                }
-                F.l('click', listItem, (e) => { this.oRender(e) })
-            })
+            console.log(response.data.result)
+
+            // var data = await response.json(),
+            //     files = data.result,
+            //     fileList = F.G.query('tbody', F.G.id('receivedFiles'));
+            // fileList.innerHTML = '';
+            // console.log(files)
+            // files.forEach(file => {
+            //     const listItem = document.createElement('li');
+            //     listItem.textContent = file.fName;
+            //     fileList.appendChild(listItem);
+            //     listItem.fCon = {
+            //         from: file.from,
+            //         to: receiver,
+            //         fName: file.fName,
+            //         hash: file.fileHash
+            //     }
+            //     F.l('click', listItem, (e) => { this.oRender(e) })
+            // })
         } catch (error) {
             console.error('Error fetching files:', error);
         }
@@ -392,11 +397,11 @@ class gen {
     async openDialog(e) {
         e.preventDefault()
         var dts = e.target["dataset"],
-            dBoxId = dts.dbox,
+            dBoxId = dts.dialog,
             dBox = F.G.id(dBoxId)
+        console.log("actual id", dBoxId)
         dts.c && this[dts.c].init && this[dts.c].init(dBoxId, e.target)
         dBox && F.hide(dBox, !0)
-        console.log('dBox: ', dBox)
         dBox.close = () => this.closeDialog(F.G.class('c', dBox)[0]);
         F.class([F.G.id('app')], ["disable"])
     }

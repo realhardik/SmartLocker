@@ -722,16 +722,20 @@ async function generateFileHash(filePath) {
   });
 }
 
-app.post('/receiver', authenticateJWT, async (req, res) => {
-  const recipient = req.user.data._id
-
+app.post('/received', authenticateJWT, async (req, res) => {
+  let recipient = req.user.data._id,
+      {sender} = req.body
+  console.log(recipient)
+  console.log(sender)
+  console.log('search received')
   if (!recipient) {
     return res.status(400).json({ success: false, msg: 'Username is required' });
   }
 
   try {
     const filesForUser = await db.search('Files', { to: { $elemMatch: { user: recipient } } });
-    res.status(200).json(filesForUser);
+    console.log('searched received')
+    res.status(200).json({ success: true, result: filesForUser });
   } catch (error) {
     res.status(500).json({ success: false, msg: 'Error fetching entries', error });
   }
