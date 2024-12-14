@@ -1134,7 +1134,29 @@ main.disable {
 
 #viewProfile.editProfile {
     width: 420px;
-    height: 270px;
+    height: 350px;
+}
+
+#showProfile {
+    opacity: 1;
+    pointer-events: all;
+}
+
+#mainProfile, #profInfo {
+    scale: 1;
+}
+
+#editProfile {
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    scale: 0.7;
+}
+
+#showProfile, #editProfile, #mainProfile, #profInfo {
+    transition: opacity 500ms ease, scale 500ms ease;
 }
 
 #showProfile, #mainProfile, #editProfile form, #editProfile {
@@ -1142,6 +1164,21 @@ main.disable {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+}
+
+#viewProfile.editProfile #editProfile {
+    opacity: 1;
+    pointer-events: all;
+    scale: 1;
+}
+
+#viewProfile.editProfile #showProfile {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#viewProfile.editProfile #mainProfile, #viewProfile.editProfile #profInfo {
+    scale: 0.7;
 }
 
 #showProfile {
@@ -1203,13 +1240,39 @@ main.disable {
     height: 100%;
 }
 
-#editProfile form>:first-child>div span {
+#editProfile form>div {
     margin-bottom: 12px;
 }
 
+#editProfile form>:last-child>div span {
+    margin-bottom: 0;
+}
+
 #editProfile form>div:first-child {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#editProfile form>div:first-child>div, #editProfile form>div:nth-child(2) span {
+    margin-bottom: 10px;
+}
+
+#editProfile form>div:first-child img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+}
+
+#editProfileImg {
+    cursor: pointer;
+}
+
+#editProfile form>div:nth-child(2) {
     display: grid;
     grid-template-columns: auto auto;
+    gap: 20px;
 }
 
 #editProfile form>div:last-child {

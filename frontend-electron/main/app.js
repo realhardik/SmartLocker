@@ -424,6 +424,7 @@ class gen {
         F.BM(this, ["closeDialog", "openDialog", "handleInputs", "handleNav", "logout"])
         this.chat = new chat
         this.fileSharing = new fileSharing
+        this.profileView = F.G.id('viewProfile')
         F.G.class('d').forEach(e => {
             F.l('click', e, this.openDialog)
         })
@@ -432,6 +433,14 @@ class gen {
         })
         F.G.class('i').forEach(e => {
             F.l('click', e, this.handleInputs)
+        })
+        F.l('click', F.G.id('toEditProfile'), (e) => {
+            e.preventDefault()
+            this.profileView.classList.add('editProfile')
+        })
+        F.l('click', F.G.id('backView'), (e) => {
+            e.preventDefault()
+            this.profileView.classList.remove('editProfile')
         })
         F.l('click', F.G.id('nav'), this.handleNav)
         this.setupProfile(data)
