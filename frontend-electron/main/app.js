@@ -2,8 +2,21 @@ const { ipcRenderer } = require('electron');
 const axios = require('axios');
 const io = require("socket.io-client");
 const socket = io("http://localhost:3000");
-
+const reader = new FileReader();
 const BASE_URL = 'http://localhost:3000';
+
+function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+        reader.onload = (event) => {
+            resolve(event.target.result);
+        };
+
+        reader.onerror = (error) => {
+            reject(error);
+        };
+        reader.readAsText(file);
+    });
+}
 
 F.getToken = async () => {
     var t = await ipcRenderer.invoke('isAuthorized')
@@ -53,14 +66,17 @@ class fileSharing {
             textInput = F.G.id('recipientListEmails'),
             span = F.G.query('span', F.G.id('recipientsList')),
             cButton = F.G.id('removeRecipientFile'),
-            fName = F.G.id('recipientFileName')
+            fName = F.G.id('recipientFileName'),
+            dBox = F.G.id('fileSharing')
         F.l('input', textInput, F.debounce((e) => {
             if (e.target.value == 0) {
                 F.hide(fileInput.parentNode, !0)
                 F.hide(span, !0)
+                dBox.received = !1
             } else {
                 F.hide(fileInput.parentNode)
                 F.hide(span)
+                dBox.received = e.target
             }
         }, 400))
         F.l('change', fileInput, F.debounce((e) => {
@@ -71,20 +87,24 @@ class fileSharing {
                 F.hide(fileInput.parentNode, !0)
                 F.hide(textInput, !0)
                 F.hide(span, !0)
+                dBox.received = !1
             } else if (files.length == 1 && files[0].type === 'text/plain') {
                 F.hide(fileInput.parentNode)
                 F.hide(textInput)
                 F.hide(span)
                 var fileName = files[0].name
                 fName.innerText = fileName
+                dBox.received = e.target
                 F.hide(F.G.id('afUpl'), !0, 'flex')
             } else if (files.length > 1 || !files[0].type === 'text/plain') {
+                dBox.received = !1
                 alert('Please upload A single (.txt) file.')
             }
         }, 400))
         F.l('click', cButton, () => {
             fileInput.value = ""
             fName.innerText = ""
+            dBox.received = !1
             F.hide(F.G.id('afUpl'))
             F.hide(fileInput.parentNode, !0)
             F.hide(textInput, !0)
@@ -94,7 +114,6 @@ class fileSharing {
 
     init(e, t) {
         let close;
-        console.log("dbox: ", e)
         if (e === 'fileSharing') {
             var tSharing = 'gFSharing' === t.id  ? 'groupShare' : 'singleShare'
             F.G.id(e).classList.add(tSharing)
@@ -109,14 +128,12 @@ class fileSharing {
                 F.G.id('fileInput').value = ""
                 F.G.id('fileSharing').className = ''
                 F.class([F.G.id('app'), F.G.id('fileSharing')], ["disable"], !0)
+                F.class([F.G.id('f-eDet'), F.G.id('sButton')], ['disable'])
                 F.hide(F.G.id('bUpl'), !0)
                 F.hide(F.G.id('aUpl'))
                 this.cLayers.children.length > 1
                 ? Array.from(this.cLayers.children).slice(1).forEach(child => child.remove())
                 : true;
-                F.G.class('passPhrase', this.cLayers.children[0])[0].value = ""
-                F.G.id('expiry_date').value = ""
-                F.G.id('expiry_time').value = ""
             }
         } else if (e === 'receiveFiles') {
             this.rLayers.children.length > 1
@@ -218,7 +235,14 @@ class fileSharing {
             tokenReq = await F.getToken()
         let rTo, eTo, to;
         if (dBox.classList.contains('groupShare')) {
-            // rTo = 
+            var isFile = dBox.received.type == 'file',
+            fileContent
+            rTo =  isFile ? dBox.received.files[0] : dBox.received.value
+            fileContent = await readFileAsText(rTo)
+            console.log('file content: ', fileContent)
+            var src = isFile ? fileContent : rTo
+            console.log('src', src)
+            eTo = src.split(',').map(e => e.trim())
         } else {
             rTo = F.G.id('tChat')?.con?.convId
             eTo = rTo.split(',').map(e => e.trim())
@@ -235,13 +259,13 @@ class fileSharing {
         try {
             const userCheck = await axios.post(`${BASE_URL}/search`, {
                 collection: "Users",
-                query: { _id: { $in: eTo } },
+                query: { email: { $in: eTo } },
                 method: "find"
             }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } });
 
             if (!userCheck.data.success) {
                 dBox.closeE && dBox.closeE()
-                return (alert("Given user does not exist."), false)
+                return (alert("Server error."), false)
             }
                 
             if (userCheck.data.success && userCheck.data.result.length !== eTo.length) {
@@ -461,14 +485,11 @@ class gen {
         var element = e.target || e,
             dts = element["dataset"],
             dBoxVar = dts.dialog,
-            dBox = F.G.id(dBoxVar)
-        if ('i' in dts) {
-            var ifA = JSON.parse(dts.i)
-            console.log(ifA)
-            ifA.forEach(e => {
-                F.G.id(e).value = ""
-            })
-        }
+            dBox = F.G.id(dBoxVar),
+            ifA = F.G.query('input', dBox, "a")
+        Array.from(ifA).forEach(e => {
+            e.value = ""
+        })
         element.closeE && element.closeE()
         F.hide(dBox)
         F.class([F.G.id('app'), dBox], ["disable"], !0)

@@ -359,7 +359,7 @@
                     <input type="text" min="5" max="50" id="newChatId" name="userId" pattern="^[a-zA-Z0-9]+$" placeholder="Enter Unique Id of user." data-name="userId" required>
                 </div>
                 <div>
-                    <button data-dialog="addChat" data-i='["newChatId"]' class="c">Cancel</button>
+                    <button data-dialog="addChat" class="c">Cancel</button>
                     <button id="addUserBtn" type="submit" class="i" data-dialog="addChat" data-p="addNewUser;chat" data-i='["newChatId"]'>Add</button>
                 </div>
             </form>
@@ -506,7 +506,7 @@
                     </div>
                 </section>
                 <div id="fButtons">
-                    <button id="cButton" class="c" data-dialog="fileSharing" type="reset" data-i='["fileInput"]'>Cancel</button>
+                    <button id="cButton" class="c" data-dialog="fileSharing" type="reset">Cancel</button>
                     <button id="sButton" type="submit" class="i disable" data-dialog="fileSharing" data-p="shareFile;fileSharing" data-i='["nLayers", "expiry_date", "expiry_time", "enableMaxViews", "max_views"]'>Share</button>
                 </div>
             </form>
