@@ -739,13 +739,39 @@ button {
 #recipientsList {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: center;
     align-items: stretch;
     font-size: 15px;
 }
 
 #recipientsList>span {
     margin: 0 15px;
+}
+
+#afUpl {
+    display: none;
+    pointer-events: none;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+}
+
+#afUpl svg {
+    width: 35px;
+    height: 35px;
+}
+
+#afUpl>div span:first-child {
+    max-width: 170px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+#afUpl>div span:last-child {
+    pointer-events: all;
+    cursor: pointer;
 }
 
 #mulRecipients span, #recipientsList label {

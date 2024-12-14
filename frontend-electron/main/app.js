@@ -49,6 +49,47 @@ class fileSharing {
             F.hide(F.G.id('bUpl'), !0)
             F.class([F.G.id('f-eDet'), F.G.id('sButton')], ['disable'])
         })
+        let fileInput = F.G.id('recipientListFile'),
+            textInput = F.G.id('recipientListEmails'),
+            span = F.G.query('span', F.G.id('recipientsList')),
+            cButton = F.G.id('removeRecipientFile'),
+            fName = F.G.id('recipientFileName')
+        F.l('input', textInput, F.debounce((e) => {
+            if (e.target.value == 0) {
+                F.hide(fileInput.parentNode, !0)
+                F.hide(span, !0)
+            } else {
+                F.hide(fileInput.parentNode)
+                F.hide(span)
+            }
+        }, 400))
+        F.l('change', fileInput, F.debounce((e) => {
+            var files = e.target.files
+            if (files.length == 0) {
+                fName.innerText = ""
+                F.hide(F.G.id('afUpl'))
+                F.hide(fileInput.parentNode, !0)
+                F.hide(textInput, !0)
+                F.hide(span, !0)
+            } else if (files.length == 1 && files[0].type === 'text/plain') {
+                F.hide(fileInput.parentNode)
+                F.hide(textInput)
+                F.hide(span)
+                var fileName = files[0].name
+                fName.innerText = fileName
+                F.hide(F.G.id('afUpl'), !0, 'flex')
+            } else if (files.length > 1 || !files[0].type === 'text/plain') {
+                alert('Please upload A single (.txt) file.')
+            }
+        }, 400))
+        F.l('click', cButton, () => {
+            fileInput.value = ""
+            fName.innerText = ""
+            F.hide(F.G.id('afUpl'))
+            F.hide(fileInput.parentNode, !0)
+            F.hide(textInput, !0)
+            F.hide(span, !0)
+        })
     }
 
     init(e, t) {
@@ -172,12 +213,16 @@ class fileSharing {
 
     async shareFile(i, dBox) {
         const formData = new FormData(),
-            rTo = F.G.id('tChat')?.con?.convId || "xyz@gmail.com",
-            eTo = rTo.split(',').map(e => e.trim()),
             file = this.file,
             layers = {},
             tokenReq = await F.getToken()
-        let to;
+        let rTo, eTo, to;
+        if (dBox.classList.contains('groupShare')) {
+            // rTo = 
+        } else {
+            rTo = F.G.id('tChat')?.con?.convId
+            eTo = rTo.split(',').map(e => e.trim())
+        }
         
         for (var l = 0; l<i.nLayers.value; l++) {
             var temp = this.cLayers.children[l]
