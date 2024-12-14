@@ -874,6 +874,39 @@ app.post('/search', authenticateJWT, async (req, res) => {
     return res.json(result)
 })
 
+app.post('/updateProfile', authenticateJWT, async (req, res) => {
+  let { newEmail, newName, newProfPic } = req.body
+  const updateFields = {};
+  if (newEmail && newEmail.trim() !== "") updateFields.email = newEmail.trim();
+  if (newName && newName.trim() !== "") updateFields.name = newName.trim();
+
+
+  if (Object.keys(updateFields).length === 0) {
+      return res.status(400).json({ msg: "No valid fields to update" });
+  }
+
+  try {
+    const checkAvail = await db.search("Users", {
+      email: newEmail
+    }, "findOne")
+
+    if (checkAvail.success && checkAvail.result) {
+      return res.status(400).json({ msg: "Email is already linked with another account." });
+    }
+
+    console.log(updateFields)
+    console.log(req.user.data)
+
+    const response = await db.search("Users", {
+        _id: req.user.data._id
+    }, 'findOneAndUpdate', { $set: updateFields });
+    console.log("ipdate prof", response)
+    return res.json(response);
+  } catch (error) {
+      return res.status(500).json({ msg: "Database update failed" });
+  }
+})
+
 app.post('/forgotPassword', async (req, res) => {
   const { email } = req.body,
     chkE = await db.search('Users', { email: email }, 'findOne')

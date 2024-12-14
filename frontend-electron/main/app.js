@@ -442,6 +442,10 @@ class gen {
             e.preventDefault()
             this.profileView.classList.remove('editProfile')
         })
+        F.l('click', F.G.id('updateProfile'), (e) => {
+            e.preventDefault()
+            this.editProfile()
+        })
         F.l('click', F.G.id('nav'), this.handleNav)
         this.setupProfile(data)
     }
@@ -559,6 +563,28 @@ class gen {
         })
         inputs.clear = (a) => { a ? this.clear(a) : this.clear(inputs) }
         this[dFun[1]][dFun[0]](inputs, dBox)
+    }
+
+    async editProfile() {
+        var tokenReq = await F.getToken(),
+            newEmail = F.G.id('newEmail').value.toLowerCase(),
+            newName = F.G.id('newName').value
+        try {
+            var update = await axios.post(`${BASE_URL}/updateProfile`, {
+                newName: newName,
+                newEmail: newEmail
+            }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } })
+            console.log('update', update)
+            if (update.data.success) {
+                alert('Saved Changes Successfully.')
+                return
+            }
+            alert(update.data.msg)
+        } catch (err) {
+            console.log('err', err)
+            alert(err.msg)
+        }
+        
     }
 
     checkValidity(f) {
