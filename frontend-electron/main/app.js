@@ -233,7 +233,7 @@ class fileSharing {
             file = this.file,
             layers = {},
             tokenReq = await F.getToken()
-        let rTo, eTo, to;
+        let rTo, eTo, to, type;
         if (dBox.classList.contains('groupShare')) {
             var isFile = dBox.received.type == 'file',
             fileContent
@@ -241,10 +241,12 @@ class fileSharing {
             fileContent = await readFileAsText(rTo)
             console.log('file content: ', fileContent)
             var src = isFile ? fileContent : rTo
-            console.log('src', src)
+            type="grpShare"
             eTo = src.split(',').map(e => e.trim())
         } else {
-            rTo = F.G.id('tChat')?.con?.convId
+            var context = F.G.id('tChat')?.con
+            type = context.type
+            rTo = context.convId
             eTo = rTo.split(',').map(e => e.trim())
         }
         
@@ -257,25 +259,44 @@ class fileSharing {
         }
 
         try {
-            const userCheck = await axios.post(`${BASE_URL}/search`, {
-                collection: "Users",
-                query: { email: { $in: eTo } },
-                method: "find"
-            }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } });
+            if (type !== 'group') {
+                const userCheck = await axios.post(`${BASE_URL}/search`, {
+                    collection: "Users",
+                    query: { email: { $in: eTo } },
+                    method: "find"
+                }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } });
 
-            if (!userCheck.data.success) {
-                dBox.closeE && dBox.closeE()
-                return (alert("Server error."), false)
-            }
+                if (!userCheck.data.success) {
+                    dBox.closeE && dBox.closeE()
+                    return (alert("Server error."), false)
+                }
+                    
+                if (userCheck.data.success && userCheck.data.result.length !== eTo.length) {
+                    dBox.closeE && dBox.closeE()
+                    const missingEmails = eTo.filter(email => !userCheck.result.some(u => u.email === email));
+                    alert(`Given user(s) ${missingEmails.join(', ')} do not exist.`)
+                    return
+                }
+
+                to = userCheck.data.result.map(user => ({user: user._id}));
+            } else {
+                const userCheck = await axios.post(`${BASE_URL}/search`, {
+                    collection: "group",
+                    query: { _id: rTo },
+                    method: "findOne"
+                }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } });
                 
-            if (userCheck.data.success && userCheck.data.result.length !== eTo.length) {
-              dBox.closeE && dBox.closeE()
-              const missingEmails = eTo.filter(email => !userCheck.result.some(u => u.email === email));
-              alert(`Given user(s) ${missingEmails.join(', ')} do not exist.`)
-              return
-            }
+                if (!userCheck.data.success) {
+                    dBox.closeE && dBox.closeE()
+                    return (alert("Server error."), false)
+                }
 
-            to = userCheck.data.result.map(user => ({user: user._id}));
+                var members = userCheck.data.result.members;
+
+                to = members
+                .filter(m => m.user !== tokenReq.user._id)
+                .map(m => ({ user: m.user }));
+            }
         } catch (err) {
             dBox.close && dBox.close()
             dBox.closeE && dBox.closeE()
