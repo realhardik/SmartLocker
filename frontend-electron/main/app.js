@@ -496,9 +496,9 @@ class gen {
                 var tag = f[j].tagName,
                     span = 'DIV' === tag ? F.Cr('span') : f[j]
                 console.log(span)
-                tag === 'INPUT' && (span.setAttribute('placeholder', value))
+                tag === 'INPUT' && (f[j].value = "", span.setAttribute('placeholder', value))
                 tag === 'SPAN' && (span.innerText = value)
-                tag === 'DIV' && (span.innerText = value, f[j].appendChild(span))
+                tag === 'DIV' && (f[j].innerHTML = "", span.innerText = value, f[j].appendChild(span))
             }
         }
     }
@@ -570,21 +570,27 @@ class gen {
             newEmail = F.G.id('newEmail').value.toLowerCase(),
             newName = F.G.id('newName').value
         try {
-            var update = await axios.post(`${BASE_URL}/updateProfile`, {
+            var updateRes = await axios.post(`${BASE_URL}/updateProfile`, {
                 newName: newName,
                 newEmail: newEmail
             }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } })
-            console.log('update', update)
-            if (update.data.success) {
+            console.log('update', updateRes)
+            if (updateRes.data.userUpdate.success) {
                 alert('Saved Changes Successfully.')
+                if (updateRes.data.update.hasOwnProperty('email')) {
+                    alert('Since you changed email, you need to login again.')
+                    ipcRenderer.invoke('logout')
+                    return
+                }
+                console.log(updateRes.data.userUpdate.result)
+                this.setupProfile(updateRes.data.userUpdate.result)
                 return
             }
-            alert(update.data.msg)
+            alert(updateRes.data.msg)
         } catch (err) {
             console.log('err', err)
             alert(err.msg)
         }
-        
     }
 
     checkValidity(f) {

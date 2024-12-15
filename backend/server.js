@@ -877,7 +877,8 @@ app.post('/search', authenticateJWT, async (req, res) => {
 app.post('/updateProfile', authenticateJWT, async (req, res) => {
   let { newEmail, newName, newProfPic } = req.body
   const updateFields = {};
-  if (newEmail && newEmail.trim() !== "") updateFields.email = newEmail.trim();
+  console.log(req.user.data)
+  if (newEmail && newEmail.trim() !== "" && newEmail !== req.user.data.email) updateFields.email = newEmail.trim();
   if (newName && newName.trim() !== "") updateFields.name = newName.trim();
 
 
@@ -901,7 +902,7 @@ app.post('/updateProfile', authenticateJWT, async (req, res) => {
         _id: req.user.data._id
     }, 'findOneAndUpdate', { $set: updateFields });
     console.log("ipdate prof", response)
-    return res.json(response);
+    return res.json({ update: updateFields, userUpdate: response});
   } catch (error) {
       return res.status(500).json({ msg: "Database update failed" });
   }
