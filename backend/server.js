@@ -30,8 +30,8 @@ app.use(cors())
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-      user: 'email', 
-      pass: 'password'
+      user: 'johnwickxh@gmail.com', 
+      pass: 'syky zwhr arud hpnt'
   }
 })
 
