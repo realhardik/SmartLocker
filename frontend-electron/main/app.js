@@ -227,7 +227,7 @@ class fileSharing {
             dBox.closeE && dBox.closeE()
         }
     }
-
+    
     async shareFile(i, dBox) {
         const formData = new FormData(),
             file = this.file,
