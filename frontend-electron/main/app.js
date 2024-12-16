@@ -238,7 +238,7 @@ class fileSharing {
             var isFile = dBox.received.type == 'file',
             fileContent
             rTo =  isFile ? dBox.received.files[0] : dBox.received.value
-            fileContent = await readFileAsText(rTo)
+            fileContent = isFile ? await readFileAsText(rTo) : false
             console.log('file content: ', fileContent)
             var src = isFile ? fileContent : rTo
             type="grpShare"
@@ -413,9 +413,23 @@ class fileSharing {
     }
 
     async oRender(e) {
-        var f = e.target
-        console.log(f.fCon)
-        // ipcRenderer.invoke('render', f["fCon"])
+        var t = e.target,
+            f = !1
+        for (; t;) {
+            console.log(t)
+            if ("TR" === t.tagName) {
+                f = !0;
+                break
+            }
+            if ('TABLE' === t.tagName)
+                break
+            t = t.parentNode
+        }
+        console.log('out', t)
+        if (f && t) {
+            var fileContext = t.fCon
+            console.log(fileContext)
+        }
     }
 }
 
