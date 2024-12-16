@@ -227,7 +227,7 @@ class fileSharing {
             dBox.closeE && dBox.closeE()
         }
     }
-    
+
     async shareFile(i, dBox) {
         const formData = new FormData(),
             file = this.file,
@@ -303,7 +303,7 @@ class fileSharing {
             alert("Unexpected error occured. Try again later")
             return
         }
-        
+
         if (file && file.type === "application/pdf" && file.name.toLowerCase().endsWith(".pdf")) {
             var layerTypes = Object.values(layers).map(item => item.type),
             pass = Object.values(layers).map(item => item.passPhrase)
