@@ -724,10 +724,12 @@ async function generateFileHash(filePath) {
 
 app.post('/received', authenticateJWT, async (req, res) => {
   let recipient = req.user.data._id,
-      { from, all } = req.body,
+      { from, query } = req.body
+  if (query) {
+    query.to =  { $elemMatch: { user: recipient } }
+  } else {
       query = { from: from, to: { $elemMatch: { user: recipient } } }
-  if (all)
-    query = { to: { $elemMatch: { user: recipient } } }
+  }
   console.log(recipient)
   console.log(from)
   console.log('search received')
