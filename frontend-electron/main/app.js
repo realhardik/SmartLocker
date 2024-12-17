@@ -313,7 +313,6 @@ class fileSharing {
             formData.append('layers', JSON.stringify(layers))
             formData.append('file', file)
             formData.append('data', JSON.stringify({
-                layers: layers.length,
                 selected_algos: layerTypes,
                 all_passphrases: pass,
                 filename: file?.name || file?.originalName
@@ -401,6 +400,7 @@ class fileSharing {
                 listItem.appendChild(exp)
                 fileList.appendChild(listItem);
                 listItem.fCon = {
+                    fId: file._id,
                     from: file.from,
                     fName: file.fName,
                     hash: file.fileHash
