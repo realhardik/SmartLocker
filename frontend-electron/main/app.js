@@ -241,7 +241,7 @@ class fileSharing {
             fileContent = isFile ? await readFileAsText(rTo) : false
             console.log('file content: ', fileContent)
             var src = isFile ? fileContent : rTo
-            type="grpShare"
+            type = "grpShare"
             eTo = src.split(',').map(e => e.trim())
         } else {
             var context = F.G.id('tChat')?.con
@@ -260,27 +260,9 @@ class fileSharing {
         console.log(eTo)
 
         try {
-            if (type !== 'group') {
-                const userCheck = await axios.post(`${BASE_URL}/search`, {
-                    collection: "Users",
-                    query: { _id: { $in: eTo } },
-                    method: "find"
-                }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } });
-
-                if (!userCheck.data.success) {
-                    dBox.closeE && dBox.closeE()
-                    return (alert("Server error."), false)
-                }
-                    
-                if (userCheck.data.success && userCheck.data.result.length !== eTo.length) {
-                    dBox.closeE && dBox.closeE()
-                    const missingEmails = eTo.filter(email => !userCheck.result.some(u => u.email === email));
-                    alert(`Given user(s) ${missingEmails.join(', ')} do not exist.`)
-                    return
-                }
-
-                to = userCheck.data.result.map(user => ({user: user._id}));
-            } else {
+            console.log(type)
+            console.log(eTo)
+            if (type === 'group') {
                 const userCheck = await axios.post(`${BASE_URL}/search`, {
                     collection: "group",
                     query: { _id: rTo },
@@ -297,6 +279,28 @@ class fileSharing {
                 to = members
                 .filter(m => m.user !== tokenReq.user._id)
                 .map(m => ({ user: m.user }));
+            }
+            if (type === 'solo' || type === 'grpShare') {
+                var field = 'solo' === type ? '_id' : 'email'
+                const userCheck = await axios.post(`${BASE_URL}/search`, {
+                    collection: "Users",
+                    query: { [field]: { $in: eTo } },
+                    method: "find"
+                }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } });
+
+                if (!userCheck.data.success) {
+                    dBox.closeE && dBox.closeE()
+                    return (alert("Server error."), false)
+                }
+                    
+                if (userCheck.data.success && userCheck.data.result.length !== eTo.length) {
+                    dBox.closeE && dBox.closeE()
+                    const missingEmails = eTo.filter(email => !userCheck.result.some(u => u.email === email));
+                    alert(`Given user(s) ${missingEmails.join(', ')} do not exist.`)
+                    return
+                }
+
+                to = userCheck.data.result.map(user => ({user: user._id}));
             }
         } catch (err) {
             dBox.close && dBox.close()
