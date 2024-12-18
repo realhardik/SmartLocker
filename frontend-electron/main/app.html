@@ -392,7 +392,7 @@
                         </div>
                     </div>
                 </section>
-                <section id="f-eDet" class="disable">
+                <section id="f-eDet" class="">
                     <div id="algOpt">
                         <div id="gnil">
                             <span>Number of layers of Encryption: </span>
@@ -437,7 +437,7 @@
                                 </div>
                                 <div id="oExpChk">
                                     <span>Limit Number of Views: </span>
-                                    <input type="checkbox" id="enableMaxViews">
+                                    <input type="checkbox" name="max_views" id="enableMaxViews">
                                 </div>
                             </div>
                             <div id="oExp">
@@ -449,6 +449,35 @@
                         </div>
                     </div>
                 </section>
+                <div id="watermark_options">
+                    <div id="watermark_opt">
+                        <span>Watermark Options</span>
+                        <label for="add_watermark">
+                            <input type="checkbox" name="watermark" id="add_watermark">
+                            <span>Add Watermark</span>
+                        </label>
+                        <span id="w_note" class="target">* Receiving user's email will be used as watermark by default.</span>
+                        <label for="custom_watermark">
+                            <input type="text" class="target" id="custom_watermark" maxlength="15" placeholder="Custom Watermark">
+                        </label>
+                    </div>
+                    <div id="watermark_display_opt">
+                        <span>Watermark Appearance</span>
+                        <label for="watermark_color">
+                            <span>Watermark Color:</span>
+                            <input type="color" id="watermark_color" name="" id="">
+                        </label>
+                        <label for="watermark_rows">
+                            <span>Rows for watermark:</span>
+                            <input type="number" id="watermark_rows" min="1" max="7">
+                        </label>
+                        <label for="watermark_columns">
+                            <span>Columns for watermark:</span>
+                            <input type="number" id="watermark_columns" min="1" max="7">
+                        </label>
+                    </div>
+                    
+                </div>
                 <div id="fButtons">
                     <button id="cButton" class="c" data-dialog="fileSharing" type="reset">Cancel</button>
                     <button id="sButton" type="submit" class="i disable" data-dialog="fileSharing" data-p="shareFile;fileSharing" data-i='["nLayers", "expiry_date", "expiry_time", "enableMaxViews", "max_views"]'>Share</button>
@@ -559,6 +588,7 @@
                     <th>File Name</th>
                     <th>Date</th>
                     <th>Expiry</th>
+                    <th>Status</th>
                   </tr>
                 </thead>
                 <tbody>

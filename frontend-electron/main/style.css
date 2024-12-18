@@ -558,6 +558,7 @@ nav>section:first-child .button.active {
     color: white;
     box-sizing: border-box;
     border-radius: 17px;
+    padding: 20px 25px;
     z-index: 5;
 }
 
@@ -682,8 +683,8 @@ button {
 /* file sharing */
 
 #fileSharing {
-    display: none;
-    pointer-events: none;
+    display: block;
+    pointer-events: all;
 	width: 65vw;
 	background: #161b22;
     color: white;
@@ -804,7 +805,7 @@ button {
     border-bottom: solid 1px #565656;
 }
 
-#f-eDet {
+#f-eDet, #watermark_options {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 	font-size: 17px;
@@ -815,7 +816,11 @@ button {
     transition: filter 200ms ease;
 }
 
-#algOpt, #othOpt {
+#f-eDet {
+    border-bottom: solid 1px #565656;
+}
+
+#algOpt, #othOpt, #watermark_options>div {
     position: relative;
 	padding: 17px 15px;
 }
@@ -853,7 +858,7 @@ button {
 #cLayers {
 	padding: 10px 0;
 	font-size: 15px;
-	height: 200px;
+	max-height: 200px;
 	overflow: scroll;
 }
 
@@ -915,7 +920,7 @@ select.inp {
 	-moz-appearance: none;
 }
 
-#fileSharing input, #editProfile input {
+#fileSharing input, #editProfile input, #custom_watermark {
     background-color: #30363d;
     border: thin solid #444c56;
 }
@@ -930,7 +935,7 @@ select:-moz-focusring {
 	text-shadow: 0 0 0 #000;
 }
 
-.passPhrase input, #grpNameField input[type="text"] {
+.passPhrase input, #grpNameField input[type="text"], #custom_watermark {
 	border-radius: 6px;
 	line-height: 1.5em;
 	padding: 0.3em 0.3em 0.3em 0.4em;
@@ -986,7 +991,7 @@ select:-moz-focusring {
     transition: opacity 400ms ease;
 }
 
-#expOpt:has(input[type="checkbox"]:checked) #oExp {
+#expOpt:has(input[name="max_views"]:checked) #oExp {
     opacity: 1;
     pointer-events: all;
     transition: opacity 400ms ease;
@@ -998,6 +1003,60 @@ select:-moz-focusring {
 	justify-content: space-between;
 	align-items: center;
 	align-content: center;
+}
+
+#watermark_options>div {
+    padding-top: 8px;
+    font-size: 16px;
+}
+
+#watermark_options>div:first-child {
+    border-right: thin solid #444c56;
+}
+
+#f-eDet>div:last-child {
+    border-left: thin solid #444c56;
+}
+
+#watermark_options>div>span {
+    font-size: 18px;
+}
+
+#watermark_options>div:last-child label {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 5px;
+}
+
+#watermark_options>div:first-child label input {
+    float: left;
+}
+
+#watermark_options>div:last-child label span {
+    float: left;
+}
+
+#w_note {
+    font-size: 14px !important;
+}
+
+#custom_watermark {
+    width: max-content;
+    max-width: 200px;
+    transition: opacity 500ms ease;
+    margin-top: 7px;
+    font-size: 15px;
+}
+
+#custom_watermark, #w_note {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#watermark_opt:has(input[name="watermark"]:checked) .target {
+    opacity: 1;
+    pointer-events: all;
 }
 
 #fButtons {
@@ -1294,6 +1353,8 @@ main.disable {
 /* receive files */
 
 #receiveFiles {
+    /* display: block;
+    pointer-events: all; */
     width: 40vw;
     min-width: 420px;
 }
@@ -1359,7 +1420,7 @@ main.disable {
 }
 
 #receivedFiles {
-    display: block;
+    /* display: block; */
     /* pointer-events: none; */
     border: solid 1px rgba(255, 255, 255, 0.4);
     border-radius: 12px;
@@ -1419,10 +1480,16 @@ tbody tr:nth-child(even) {
     background-color: rgba(36, 45, 62, 0.6); 
 }
 
-@media (max-width: 923px)  {
+@media (max-width: 927px)  {
+
+    #fileSharing {
+        height: 500px;
+        overflow: scroll;
+        overscroll-behavior: none;
+    }
 
     #cLayers {
-        height: 120px;
+        max-height: 120px;
     }
 
 	#gnil {

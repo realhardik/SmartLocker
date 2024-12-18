@@ -391,19 +391,23 @@ class fileSharing {
                     expiry = file.expiry
                 var fName = F.Cr('td'),
                     rec_at = F.Cr('td'),
-                    exp = F.Cr('td')
+                    exp = F.Cr('td'),
+                    status = F.Cr('td')
                 fName.innerText = file.fName
                 rec_at.innerText = recieved_at
+                status.innerText = file.status
                 exp.innerText = expiry
                 listItem.appendChild(fName)
                 listItem.appendChild(rec_at)
                 listItem.appendChild(exp)
+                listItem.appendChild(status)
                 fileList.appendChild(listItem);
                 listItem.fCon = {
                     fId: file._id,
                     from: file.from,
                     fName: file.fName,
-                    hash: file.fileHash
+                    hash: file.fileHash,
+                    status: file.status
                 }
                 F.l('click', listItem, this.oRender)
             })

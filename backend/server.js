@@ -160,7 +160,9 @@ const db = new class {
       rView: { type: Boolean, default: false },
       maxViews: { type: Number, default: 2 },
       expiry: { type: Date },
-      active: { type: Boolean, default: true },
+      status: { type: String, enum:['Active', 'Expired'], default: 'Active' },
+      watermark: { type: String, enum:['None', 'Default', 'Custom'], default: 'Default' },
+      custom_watermark: { type: String, default: '' }
     });
 
     this.otpSchema = new mongoose.Schema({
@@ -974,7 +976,7 @@ const deleteExpiredFiles = async () => {
   const date = new Date(),
         today = date.toISOString(),
         expiredFiles = await db.search('Files', { expiry: { $lt: today } }, 
-          'updateMany', {  active: false }
+          'updateMany', {  status: 'Expired' }
         )
 
     // var files = await db.add('chat', {
