@@ -328,12 +328,13 @@ class fileSharing {
                     wCol = F.G.id('watermark_columns'),
                     wOpacity = F.G.id('watermark_opacity'),
                     wVal = {}
-                wVal.custom = wCustom.value > 0 ? wCustom.value : 'Default'
+                wVal.custom = wCustom.value.length > 0 ? wCustom.value : 'Default'
                 wVal.color = wColor.value
                 wVal.rows = wRows.value
                 wVal.columns = wCol.value
-                wVal.size = wSize
-                wVal.opacity = wOpacity
+                wVal.size = wSize.value
+                wVal.opacity = wOpacity.value
+                console.log('waterma: ', wVal)
                 formData.append('watermark_options', JSON.stringify(wVal))
             } else {
                 formData.append('watermark', false)

@@ -707,7 +707,7 @@ app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => 
         }
     console.log(otherData.watermark_options)
     if (otherData.watermark) {
-      fileEntry.watermark_options = otherData.watermark_options
+      fileEntry.watermark_options = JSON.parse(otherData.watermark_options)
     }
     var result = await db.addFile(fileEntry)
     console.log("new file: ", fileEntry)
