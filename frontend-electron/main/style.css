@@ -683,8 +683,8 @@ button {
 /* file sharing */
 
 #fileSharing {
-    /* display: block;
-    pointer-events: all; */
+    display: none;
+    pointer-events: none;
 	width: 65vw;
 	background: #161b22;
     color: white;
