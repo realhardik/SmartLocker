@@ -1010,11 +1010,7 @@ select:-moz-focusring {
     font-size: 16px;
 }
 
-#watermark_options>div:first-child {
-    border-right: thin solid #444c56;
-}
-
-#f-eDet>div:last-child {
+#f-eDet>div:last-child, #watermark_options>div:last-child {
     border-left: thin solid #444c56;
 }
 
@@ -1044,7 +1040,6 @@ select:-moz-focusring {
 #custom_watermark {
     width: max-content;
     max-width: 200px;
-    transition: opacity 500ms ease;
     margin-top: 7px;
     font-size: 15px;
 }
@@ -1054,7 +1049,12 @@ select:-moz-focusring {
     pointer-events: none;
 }
 
-#watermark_opt:has(input[name="watermark"]:checked) .target {
+#watermark_display_opt {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+#watermark_options:has(input[name="watermark"]:checked) .target {
     opacity: 1;
     pointer-events: all;
 }

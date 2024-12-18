@@ -13,6 +13,7 @@ const http = require('http')
 const { Server } = require('socket.io')
 const nodemailer = require('nodemailer')
 const otpGen = require('otp-generator')
+const { type } = require('os')
 
 const app = express()
 const server = http.createServer(app)
@@ -161,8 +162,16 @@ const db = new class {
       maxViews: { type: Number, default: 2 },
       expiry: { type: Date },
       status: { type: String, enum:['Active', 'Expired'], default: 'Active' },
-      watermark: { type: String, enum:['None', 'Default', 'Custom'], default: 'Default' },
-      custom_watermark: { type: String, default: '' }
+      watermark: { type: Boolean, default: false },
+      watermark_options: {
+        custom: { type: String, default: "" },
+        color: { type: String, default: "#FF0000" },
+        size: { type: Number, default: 40 },
+        rows: { type: Number, default: 3 },
+        columns: { type: Number, default: 3 },
+        opacity: { type: Number, default: 50 }
+      },
+
     });
 
     this.otpSchema = new mongoose.Schema({
@@ -693,9 +702,14 @@ app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => 
           fileHash: filehash,
           expiry: otherData.expiry,
           rView: otherData.limit_views,
-          maxViews: otherData.max_views || -1
-        },
-        result = await db.addFile(fileEntry)
+          maxViews: otherData.max_views || -1,
+          watermark: otherData.watermark
+        }
+    console.log(otherData.watermark_options)
+    if (otherData.watermark) {
+      fileEntry.watermark_options = otherData.watermark_options
+    }
+    var result = await db.addFile(fileEntry)
     console.log("new file: ", fileEntry)
     res.status(201).json(result);
   } catch (err) {
@@ -1023,7 +1037,7 @@ const deleteExpiredFiles = async () => {
     // console.log(user)
     // var user = await db.addUser('Ash', 'ash@gmail.com', '123')
     // console.log(user)
-    // var user = await db.addUser('John', 'john@gmail.com', '123')
+    // var user = await db.addUser('Jash', 'jash@gmail.com', '123')
     // console.log(user)
     console.log("exp files fn: ", expiredFiles)
   // for (const file of expiredFiles) {

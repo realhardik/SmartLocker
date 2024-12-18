@@ -257,12 +257,13 @@ class fileSharing {
                 passPhrase: F.G.class('passPh', temp)[0].value
             }
         }
+        console.log(eTo)
 
         try {
             if (type !== 'group') {
                 const userCheck = await axios.post(`${BASE_URL}/search`, {
                     collection: "Users",
-                    query: { email: { $in: eTo } },
+                    query: { _id: { $in: eTo } },
                     method: "find"
                 }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } });
 
@@ -285,7 +286,7 @@ class fileSharing {
                     query: { _id: rTo },
                     method: "findOne"
                 }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } });
-                
+                console.log(userCheck)
                 if (!userCheck.data.success) {
                     dBox.closeE && dBox.closeE()
                     return (alert("Server error."), false)
@@ -318,6 +319,26 @@ class fileSharing {
                 filename: file?.name || file?.originalName
             }));
 
+            if (i.add_watermark.value) {
+                formData.append('watermark', true)
+                var wCustom = F.G.id('custom_watermark'),
+                    wColor = F.G.id('watermark_color'),
+                    wSize = F.G.id('watermark_size'),
+                    wRows = F.G.id('watermark_rows'),
+                    wCol = F.G.id('watermark_columns'),
+                    wOpacity = F.G.id('watermark_opacity'),
+                    wVal = {}
+                wVal.custom = wCustom.value > 0 ? wCustom.value : 'Default'
+                wVal.color = wColor.value
+                wVal.rows = wRows.value
+                wVal.columns = wCol.value
+                wVal.size = wSize
+                wVal.opacity = wOpacity
+                formData.append('watermark_options', JSON.stringify(wVal))
+            } else {
+                formData.append('watermark', false)
+            }
+            
             const userInputDateTime = `${i.expiry_date.value}T${i.expiry_time.value}:00`;
             const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
             const dateInUserTimeZone = new Date(

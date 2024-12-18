@@ -461,26 +461,36 @@
                             <input type="text" class="target" id="custom_watermark" maxlength="15" placeholder="Custom Watermark">
                         </label>
                     </div>
-                    <div id="watermark_display_opt">
-                        <span>Watermark Appearance</span>
-                        <label for="watermark_color">
-                            <span>Watermark Color:</span>
-                            <input type="color" id="watermark_color" name="" id="">
-                        </label>
-                        <label for="watermark_rows">
-                            <span>Rows for watermark:</span>
-                            <input type="number" id="watermark_rows" min="1" max="7">
-                        </label>
-                        <label for="watermark_columns">
-                            <span>Columns for watermark:</span>
-                            <input type="number" id="watermark_columns" min="1" max="7">
-                        </label>
+                    <div id="watermark_display_opt" class="target">
+                        <span>Watermark Appearance (Optional)</span>
+                        <div>
+                            <label for="watermark_color">
+                                <span>Watermark Color:</span>
+                                <input type="color" id="watermark_color" value="#ff0000" name="">
+                            </label>
+                            <label for="watermark_opacity">
+                                <span>Watermark Opacity (%):</span>
+                                <input type="number" id="watermark_opacity" value="50" min="1" max="100">
+                            </label>
+                            <label for="watermark_size">
+                                <span>Watermark Size:</span>
+                                <input type="number" id="watermark_size" value="40" min="1" max="99">
+                            </label>
+                            <label for="watermark_rows">
+                                <span>Rows for watermark:</span>
+                                <input type="number" id="watermark_rows" value="3" min="1" max="7">
+                            </label>
+                            <label for="watermark_columns">
+                                <span>Columns for watermark:</span>
+                                <input type="number" id="watermark_columns" value="3" min="1" max="7">
+                            </label>
+                        </div>
                     </div>
                     
                 </div>
                 <div id="fButtons">
                     <button id="cButton" class="c" data-dialog="fileSharing" type="reset">Cancel</button>
-                    <button id="sButton" type="submit" class="i disable" data-dialog="fileSharing" data-p="shareFile;fileSharing" data-i='["nLayers", "expiry_date", "expiry_time", "enableMaxViews", "max_views"]'>Share</button>
+                    <button id="sButton" type="submit" class="i disable" data-dialog="fileSharing" data-p="shareFile;fileSharing" data-i='["nLayers", "expiry_date", "expiry_time", "enableMaxViews", "max_views", "add_watermark"]'>Share</button>
                 </div>
             </form>
         </div>
