@@ -993,52 +993,7 @@ const deleteExpiredFiles = async () => {
           'updateMany', {  status: 'Expired' }
         )
 
-    // var files = await db.add('chat', {
-    //   sender: "673862264a4c42d533ceff44",
-    //   receiver: "672f9d597d4158f3e7170458"
-    // })
-    // var files = await db.add('chat', {
-    //   sender: "672f9d597d4158f3e7170458",
-    //   receiver: "673862264a4c42d533ceff44"
-    // })
-    // var files = await db.add('chatLog', {
-    //   from: "673862264a4c42d533ceff44",
-    //   to: "672f9d597d4158f3e7170458",
-    //   content: "Hi"
-    // })
-    // var files = await db.add('chatLog', {
-    //   from: "672f9d597d4158f3e7170458",
-    //   to: "673862264a4c42d533ceff44",
-    //   content: "Hello"
-    // })
-    // var files = await db.add('chatLog', {
-    //   from: "673862264a4c42d533ceff44",
-    //   to: "672f9d597d4158f3e7170458",
-    //   content: "How are you!"
-    // })
-    // var files = await db.remove('chat', {}, 'multiple')
-    // console.log("files fn: ", files)
-    // var files = await db.remove('chatLog', {}, 'multiple')
-    // console.log("files fn: ", files)
-    // var files = await db.remove('Users', {}, 'multiple')
-    // console.log(files)
-    // var files = await db.remove('group', {}, 'multiple')
-    // console.log(files)
-    // var files = await db.remove('Files', {}, 'multiple')
-    // console.log(files)
-    // var files = await db.remove('Users', {
-    //   email: "ujc183@gmail.com"
-    // }, 'multiple')
-    // console.log(files)
-
-    // var user = await db.addUser('Tobey', 'tobey@gmail.com', '123')
-    // console.log(user)
-    // var user = await db.addUser('Brock', 'brock@gmail.com', '123')
-    // console.log(user)
-    // var user = await db.addUser('Ash', 'ash@gmail.com', '123')
-    // console.log(user)
-    // var user = await db.addUser('Jash', 'jash@gmail.com', '123')
-    // console.log(user)
+    
     console.log("exp files fn: ", expiredFiles)
   // for (const file of expiredFiles) {
     // if (fs.existsSync(file.fPath)) fs.unlinkSync(file.fPath);
