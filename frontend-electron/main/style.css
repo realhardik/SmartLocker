@@ -683,8 +683,8 @@ button {
 /* file sharing */
 
 #fileSharing {
-    display: block;
-    pointer-events: all;
+    /* display: block;
+    pointer-events: all; */
 	width: 65vw;
 	background: #161b22;
     color: white;
@@ -1431,6 +1431,15 @@ main.disable {
     height: 35vh;
     min-height: 250px;
     overflow: hidden;
+}
+
+#closeReceived {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 25px;
+    height: 25px;
+    margin: 5px;
 }
 
 table {
