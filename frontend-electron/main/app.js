@@ -135,13 +135,14 @@ class fileSharing {
                 ? Array.from(this.cLayers.children).slice(1).forEach(child => child.remove())
                 : true;
             }
-        } else if (e === 'receiveFiles') {
+
+            F.G.id('cButton').closeE = close
+        } else if (e === 'receivedFiles') {
             this.rLayers.children.length > 1
                 ? Array.from(this.rLayers.children).slice(1).forEach(child => child.remove())
                 : true;
         }
         F.G.id(e).closeE = close
-        F.G.id('cButton').closeE = close
     }
 
     handleUpload(e) {
@@ -367,8 +368,6 @@ class fileSharing {
     }
 
     async renderFile(i, dBox) {
-        console.log(i)
-        console.log(dBox)
         let nLayers = i.decryptLayerNumber.value,
             data = {},
             layers = [],
@@ -390,7 +389,7 @@ class fileSharing {
         if (file.watermark) {
             data.watermark_options = file.watermark_options
         }
-        console.log(data)
+        F.hide(dBox)
         ipcRenderer.invoke('render', data)
     }
 
@@ -477,12 +476,13 @@ class fileSharing {
                     if (!uFile) {
                         console.log('Cant find file')
                     }
-                    console.log(uFile)
-                    if (file.rView && uFile.views > file.maxViews) {
+                    if (file.rView && (uFile.views >= file.maxViews)) {
+                        alert('maximum view exceeded')
                         console.log('Max views exceeded.')
                         return
                     }
                     F.G.id('receiveFiles').fileContext = file
+                    F.hide(F.G.id('receivedFiles'))
                     F.hide(F.G.id('receiveFiles'), !0)
                     return
                 }
@@ -585,6 +585,7 @@ class gen {
             dBox = F.G.id(dBoxId)
         console.log("actual id", dBoxId)
         dts.c && this[dts.c].init && this[dts.c].init(dBoxId, e.target)
+        dBox.classList.remove('disable')
         dBox && F.hide(dBox, !0)
         dBox.close = () => this.closeDialog(F.G.class('c', dBox)[0]);
         F.class([F.G.id('app')], ["disable"])

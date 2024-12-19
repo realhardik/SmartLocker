@@ -72,6 +72,8 @@ class oRender {
                 console.log(responseData);
                 if (!responseData.success) {
                     console.log(responseData.msg);
+                    alert(responseData.msg || "Some error occured.")
+                    ipcRenderer.invoke('close-render')
                 }
                 const contentDisposition = response.headers.get('content-disposition');
                 const filename = contentDisposition ? contentDisposition.split('filename=')[1].replace(/['"]/g, '') : 'downloaded-file.pdf';
@@ -83,19 +85,18 @@ class oRender {
                 var loadingTask = pdfjsLib.getDocument(fileUrl),
                 pdfDoc = await loadingTask.promise;
 
-            this.pdfDoc = pdfDoc;
-            console.log(pdfDoc)
-            this.renderPage(this.pageNum);
-            this.pageNumSpan.textContent = `Page ${this.pageNum} of ${this.pdfDoc.numPages}`;
-
-              } else {
-                var msg = temp.msg || "Some Error occured. Please try again later."
-                    alert(msg)
-                    ipcRenderer.invoke('close-render')
-                    return
-              }
+                this.pdfDoc = pdfDoc;
+                console.log(pdfDoc)
+                this.renderPage(this.pageNum);
+                this.pageNumSpan.textContent = `Page ${this.pageNum} of ${this.pdfDoc.numPages}`;
+            } else {
+                alert("Some Error occured. Please try again later.")
+                ipcRenderer.invoke('close-render')
+                return
+            }
         } catch (error) {
             console.error('Error loading PDF:', error);
+            ipcRenderer.invoke('close-render');
         }
     }
 
