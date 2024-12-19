@@ -672,34 +672,10 @@ async function encrypt(file, data) {
 }
 
 async function decrypt(file, data) {
+  console.log(file)
   console.log(data)
-  if (!file || !data.selected_algos || !data.all_passphrases || !data.filename) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
-
-  const formData = new FormData();
-  formData.append('encrypted_files.zip', fs.createReadStream(req.file.path));
-  formData.append('data', JSON.stringify(data));
-
-  try {
-    const response = await axios.post('http://127.0.0.1:5000/decrypt', formData, {
-      headers: {
-        ...formData.getHeaders()
-      },
-      responseType: 'arraybuffer'
-    });
-    console.log(response)
-
-    // fs.unlinkSync(req.file.path);
-
-    // res.setHeader('Content-Type', 'application/pdf');
-    // res.setHeader('Content-Disposition', `attachment; filename=${otherData.fileName}_decrypted_file.pdf`);
-    // res.send(response.data);
-
-  } catch (error) {
-    console.error("Error decrypting PDF:", error);
-    res.status(500).json({ error: "Failed to decrypt PDF" });
-  }
+  console.log(typeof data)
+  
 }
 
 app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => {
@@ -842,8 +818,9 @@ app.get('/chatLog/:convId', authenticateJWT, async (req, res) => {
 app.post('/download/:fileId', authenticateJWT, async (req, res) => {
   const { fileId } = req.params;
   const { to } = req.user.data._id;
-  const { data } = req.body
-
+  const data = req.body
+  console.log(data)
+  console.log('download')
   if (!fileId) {
     return res.status(400).json({ success: false, msg: 'File id required' });
   }
@@ -856,7 +833,10 @@ app.post('/download/:fileId', authenticateJWT, async (req, res) => {
     }
     fileEntry = fileEntry.result
 
-    decrypt()
+    if (!file || !data.selected_algos || !data.all_passphrases || !data.filename) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
     if (fileEntry.rView) {
       const userIndex = fileEntry.to.findIndex(entry => entry.user === to);
       if (userIndex === -1) {
@@ -875,13 +855,26 @@ app.post('/download/:fileId', authenticateJWT, async (req, res) => {
       }
     }
 
-    const filePath = fileEntry.fPath;
-    res.download(filePath, fileEntry.fName, (err) => {
-      if (err) {
-        console.log('Error downloading file:', err);
-        res.status(500).json({ success: false, msg: 'Error downloading file' });
-      }
+    const formData = new FormData();
+    formData.append('encrypted_files.zip', fs.createReadStream(file.fPath));
+    formData.append('data', JSON.stringify(data));
+  
+    const response = await axios.post('http://127.0.0.1:5000/decrypt', formData, {
+      headers: {
+        ...formData.getHeaders()
+      },
+      responseType: 'arraybuffer'
     });
+    console.log(response)
+    const contentType = response.headers['content-type'];
+    const contentDisposition = response.headers['content-disposition'];
+  
+    res.set({
+      'Content-Type': contentType,
+      'Content-Disposition': contentDisposition,
+    });
+  
+    res.send(response.data);
   } catch (error) {
     console.log('Error accessing file:', error);
     res.json({ success: false, msg: 'Error accessing file' });

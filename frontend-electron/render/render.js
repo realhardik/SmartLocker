@@ -44,16 +44,28 @@ class oRender {
     async loadPDF(e) {
         try {
             console.log(e)
-            var fId = e._id,
+            var { fId } = e,
+            watermark_opt = e.watermark_options,
             tokenReq = await F.getToken()
             const response = await fetch(`${BASE_URL}/download/${fId}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${tokenReq.token}`,
                     'Content-Type': 'application/json'
-                }
+                },
+                body: JSON.stringify({
+                    "selected_algos": e.layers,
+                    "all_passphrases": e.passwords,
+                    "filename": "encrypted",
+                    "watermark_text": e.watermark ? watermark_opt.custom : "",
+                    "watermark_color": e.watermark ? watermark_opt.color : "",
+                    "watermark_size": e.watermark ? watermark_opt.size : 40,
+                    "watermark_opacity": e.watermark ? watermark_opt.size : 0,
+                    "watermark_row": e.watermark ? watermark_opt.size : 3,
+                    "watermark_column": e.watermark ? watermark_opt.size : 3
+                })
             });
-
+            console.log(response.body)
             let temp = response.headers.get("Content-Type");
             if (temp && temp.includes("application/json")) {
                 temp = await response.json()

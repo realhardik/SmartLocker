@@ -39,7 +39,7 @@ ipcRenderer.on('rec-profile', (event, { email, name }) => {
 
 class fileSharing {
     constructor() {
-        F.BM(this, ["init", "handleUpload", "fetchFiles", "oRender", "shareFile"])
+        F.BM(this, ["init", "handleUpload", "fetchFiles", "oRender", "shareFile", "renderFile"])
         this.dropArea = F.G.id('dropArea'),
         this.fInput = F.G.id('fileInput')
         this.lTemp = F.G.id('encLayers').content.firstElementChild.cloneNode(true)
@@ -370,21 +370,27 @@ class fileSharing {
         console.log(i)
         console.log(dBox)
         let nLayers = i.decryptLayerNumber.value,
-            formData = {},
-            layers = {},
-            passPhrases = {};
+            data = {},
+            layers = [],
+            passPhrases = [];
         
-        for (var l = 0; l<i.nLayers.value; l++) {
+        for (var l = 0; l<nLayers; l++) {
             var temp = this.rLayers.children[l]
             layers[l] = F.G.class('eType', temp)[0].value.toLowerCase().replace(" ", "");
             passPhrases[l] = F.G.class('passPh', temp)[0].value
         }
 
+        var file = F.G.id('receiveFiles')?.fileContext
+
         data.no_layers = nLayers
         data.layers = layers
         data.passwords = passPhrases
-        
-        ipcRenderer.invoke('render-file')
+        data.fId = file._id
+        if (file.watermark) {
+            data.watermark_options = file.watermark_options
+        }
+        console.log(data)
+        ipcRenderer.invoke('render', data)
     }
 
     async fetchFiles() {
