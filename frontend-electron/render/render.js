@@ -68,13 +68,19 @@ class oRender {
             });
 
             if (response.ok) {
-                const responseData = await response.json();
-                console.log(responseData);
-                if (!responseData.success) {
+                const contentType = response.headers.get('content-type');
+
+                if (contentType && contentType.includes('application/json')) {
+                    const responseData = await response.json();
+                    console.log(responseData);
+
+                    if (!responseData.success) {
                     console.log(responseData.msg);
-                    alert(responseData.msg || "Some error occured.")
-                    ipcRenderer.invoke('close-render')
+                    alert(responseData.msg || "Some error occurred.");
+                    return;
+                    }
                 }
+
                 const contentDisposition = response.headers.get('content-disposition');
                 const filename = contentDisposition ? contentDisposition.split('filename=')[1].replace(/['"]/g, '') : 'downloaded-file.pdf';
                 
@@ -82,6 +88,7 @@ class oRender {
                 
                 const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
                 const fileUrl = URL.createObjectURL(blob);
+                console.log(fileUrl)
                 var loadingTask = pdfjsLib.getDocument(fileUrl),
                 pdfDoc = await loadingTask.promise;
 
@@ -91,12 +98,12 @@ class oRender {
                 this.pageNumSpan.textContent = `Page ${this.pageNum} of ${this.pdfDoc.numPages}`;
             } else {
                 alert("Some Error occured. Please try again later.")
-                ipcRenderer.invoke('close-render')
+                // ipcRenderer.invoke('close-render')
                 return
             }
         } catch (error) {
             console.error('Error loading PDF:', error);
-            ipcRenderer.invoke('close-render');
+            // ipcRenderer.invoke('close-render');
         }
     }
 

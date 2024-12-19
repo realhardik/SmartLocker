@@ -753,9 +753,6 @@ app.post('/received', authenticateJWT, async (req, res) => {
   } else {
       query = { from: from, to: { $elemMatch: { user: recipient } } }
   }
-  console.log(recipient)
-  console.log(from)
-  console.log('search received')
   if (!recipient) {
     return res.status(400).json({ success: false, msg: 'Username is required' });
   }
@@ -837,7 +834,6 @@ app.post('/download/:fileId', authenticateJWT, async (req, res) => {
       return res.status(400).json({ error: "Missing required fields" });
     }
     console.log('js before rView')
-
     if (fileEntry.rView) {
       console.log(fileEntry)
       console.log(to)
@@ -857,10 +853,14 @@ app.post('/download/:fileId', authenticateJWT, async (req, res) => {
         return res.json({ success: false, msg: "Max Views Reached." });
       }
     }
+    console.log(fileEntry)
     console.log('js before formdata')
+    console.log(data)
+    console.log(typeof data)
     const formData = new FormData();
     formData.append('encrypted_files.zip', fs.createReadStream(fileEntry.fPath));
     formData.append('data', JSON.stringify(data));
+    console.log(JSON.stringify(data))
     console.log('js before req')
     const response = await axios.post('http://127.0.0.1:5000/decrypt', formData, {
       headers: {
@@ -868,7 +868,6 @@ app.post('/download/:fileId', authenticateJWT, async (req, res) => {
       },
       responseType: 'arraybuffer'
     });
-    console.log(response)
     const contentType = response.headers['content-type'];
     const contentDisposition = response.headers['content-disposition'];
   
