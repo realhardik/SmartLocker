@@ -65,28 +65,29 @@ class oRender {
                     "watermark_column": e.watermark ? watermark_opt.size : 3
                 })
             });
-            console.log(response.body)
-            let temp = response.headers.get("Content-Type");
-            if (temp && temp.includes("application/json")) {
-                temp = await response.json()
-                if ((F.has('success', temp) && !temp.success) || !response.ok) {
-                    var msg = temp.msg || "Some Error occured. Please try again later."
-                    alert(msg)
-                    ipcRenderer.invoke('close-render')
-                    return
-                }
-            }
-            
 
-            var blob = await response.blob(),
-                url = URL.createObjectURL(blob),
-                loadingTask = pdfjsLib.getDocument(url),
+            if (response.ok) {
+                const contentDisposition = response.headers.get('content-disposition');
+                const filename = contentDisposition ? contentDisposition.split('filename=')[1].replace(/['"]/g, '') : 'downloaded-file.pdf';
+                
+                const arrayBuffer = await response.arrayBuffer();
+                
+                const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+                const fileUrl = URL.createObjectURL(blob);
+                var loadingTask = pdfjsLib.getDocument(fileUrl),
                 pdfDoc = await loadingTask.promise;
 
             this.pdfDoc = pdfDoc;
             console.log(pdfDoc)
             this.renderPage(this.pageNum);
             this.pageNumSpan.textContent = `Page ${this.pageNum} of ${this.pdfDoc.numPages}`;
+
+              } else {
+                var msg = temp.msg || "Some Error occured. Please try again later."
+                    alert(msg)
+                    ipcRenderer.invoke('close-render')
+                    return
+              }
         } catch (error) {
             console.error('Error loading PDF:', error);
         }

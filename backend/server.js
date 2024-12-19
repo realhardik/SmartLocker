@@ -833,7 +833,7 @@ app.post('/download/:fileId', authenticateJWT, async (req, res) => {
     }
     fileEntry = fileEntry.result
 
-    if (!file || !data.selected_algos || !data.all_passphrases || !data.filename) {
+    if (!data.selected_algos || !data.all_passphrases || !data.filename) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -856,7 +856,7 @@ app.post('/download/:fileId', authenticateJWT, async (req, res) => {
     }
 
     const formData = new FormData();
-    formData.append('encrypted_files.zip', fs.createReadStream(file.fPath));
+    formData.append('encrypted_files.zip', fs.createReadStream(fileEntry.fPath));
     formData.append('data', JSON.stringify(data));
   
     const response = await axios.post('http://127.0.0.1:5000/decrypt', formData, {
