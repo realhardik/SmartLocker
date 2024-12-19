@@ -260,8 +260,6 @@ class fileSharing {
         console.log(eTo)
 
         try {
-            console.log(type)
-            console.log(eTo)
             if (type === 'group') {
                 const userCheck = await axios.post(`${BASE_URL}/search`, {
                     collection: "group",
@@ -371,9 +369,8 @@ class fileSharing {
     async renderFile(i, dBox) {
         console.log(i)
         console.log(dBox)
-        let tokenReq = await F.getToken(),
-            nLayers = i.decryptLayerNumber.value,
-            formData = new FormData(),
+        let nLayers = i.decryptLayerNumber.value,
+            formData = {},
             layers = {},
             passPhrases = {};
         
@@ -383,10 +380,11 @@ class fileSharing {
             passPhrases[l] = F.G.class('passPh', temp)[0].value
         }
 
-        formData.append('noOfLayers', nLayers)
-        formData.append('layers', layers)
-        formData.append('passwords', passPhrases)
-            
+        data.no_layers = nLayers
+        data.layers = layers
+        data.passwords = passPhrases
+        
+        ipcRenderer.invoke('render-file')
     }
 
     async fetchFiles() {
@@ -444,9 +442,9 @@ class fileSharing {
 
     async oRender(e) {
         var t = e.target,
-            f = !1
+            f = !1,
+            tokenReq = await F.getToken()
         for (; t;) {
-            console.log(t)
             if ("TR" === t.tagName) {
                 f = !0;
                 break
@@ -455,10 +453,36 @@ class fileSharing {
                 break
             t = t.parentNode
         }
-        console.log('out', t)
         if (f && t) {
             var fileContext = t.fCon
             console.log(fileContext)
+            try {
+                const chkFile = await axios.post(`${BASE_URL}/received`, {
+                    query: { _id: fileContext.fId }
+                }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } });
+                var res = chkFile.data
+                console.log(chkFile.data);
+                if (res.success && res.result) {
+                    var file = res.result[0]
+                    if (file.status === 'Expired')
+                        return
+                    var uFile = file.to.find(entry => entry.user === tokenReq.user._id)
+                    if (!uFile) {
+                        console.log('Cant find file')
+                    }
+                    console.log(uFile)
+                    if (file.rView && uFile.views > file.maxViews) {
+                        console.log('Max views exceeded.')
+                        return
+                    }
+                    F.G.id('receiveFiles').fileContext = file
+                    F.hide(F.G.id('receiveFiles'), !0)
+                    return
+                }
+                console.log('not received')
+            } catch (error) {
+                console.error('Error during file check:', error);
+            }
         }
     }
 }

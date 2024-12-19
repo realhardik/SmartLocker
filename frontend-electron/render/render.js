@@ -1,6 +1,12 @@
 const { ipcRenderer } = require("electron/renderer");
 const BASE_URL = "http://localhost:3000"
 
+F.getToken = async () => {
+    var t = await ipcRenderer.invoke('isAuthorized')
+    console.log("got token", t)
+    return t
+}
+
 class oRender {
     constructor(resp) {
         this.pdfContainer = F.G.id('pdf-container'),
@@ -37,14 +43,15 @@ class oRender {
 
     async loadPDF(e) {
         try {
-            var { from, to, token, fName } = e
-            const response = await fetch(`${BASE_URL}/download/${fName}`, {
+            console.log(e)
+            var fId = e._id,
+            tokenReq = await F.getToken()
+            const response = await fetch(`${BASE_URL}/download/${fId}`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
+                    'Authorization': `Bearer ${tokenReq.token}`,
                     'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ from, to })
+                }
             });
 
             let temp = response.headers.get("Content-Type");

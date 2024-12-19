@@ -205,13 +205,9 @@ ipcMain.on('user-active', () => {
 });
 
 ipcMain.handle('render', async (e, d) => {
-  var token = await keytar.getPassword('ElectronApp', 'auth-token')
-  if (!token) {
-    return { success: false, msg: "Failed to authorize. Try to sign in again."}
-  }
   createRenderWindow();
   renderWindow.once('ready-to-show', () => {
-    renderWindow.webContents.send('render-file', { ...d, token: token});
+    renderWindow.webContents.send('render-file', d);
   });
 });
 

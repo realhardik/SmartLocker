@@ -671,6 +671,37 @@ async function encrypt(file, data) {
   }
 }
 
+async function decrypt(file, data) {
+  console.log(data)
+  if (!file || !data.selected_algos || !data.all_passphrases || !data.filename) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  const formData = new FormData();
+  formData.append('encrypted_files.zip', fs.createReadStream(req.file.path));
+  formData.append('data', JSON.stringify(data));
+
+  try {
+    const response = await axios.post('http://127.0.0.1:5000/decrypt', formData, {
+      headers: {
+        ...formData.getHeaders()
+      },
+      responseType: 'arraybuffer'
+    });
+    console.log(response)
+
+    // fs.unlinkSync(req.file.path);
+
+    // res.setHeader('Content-Type', 'application/pdf');
+    // res.setHeader('Content-Disposition', `attachment; filename=${otherData.fileName}_decrypted_file.pdf`);
+    // res.send(response.data);
+
+  } catch (error) {
+    console.error("Error decrypting PDF:", error);
+    res.status(500).json({ error: "Failed to decrypt PDF" });
+  }
+}
+
 app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => {
   console.log(req.body)
   const from = req.user.data._id,
@@ -762,37 +793,6 @@ app.post('/received', authenticateJWT, async (req, res) => {
   }
 });
 
-app.get('/decrypt', authenticateJWT, upload.single('encrypted_zip'), async (req, res) => {
-  var otherData = JSON.parse(req.body.data)
-  console.log(otherData)
-  if (!req.file || !otherData.selected_algos || !otherData.all_passphrases || !otherData.filename) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
-
-  const formData = new FormData();
-  formData.append('encrypted_files.zip', fs.createReadStream(req.file.path));
-  formData.append('data', JSON.stringify(otherData));
-
-  try {
-    const response = await axios.post('http://127.0.0.1:5000/decrypt', formData, {
-      headers: {
-        ...formData.getHeaders()
-      },
-      responseType: 'arraybuffer'
-    });
-
-    fs.unlinkSync(req.file.path);
-
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=${otherData.fileName}_decrypted_file.pdf`);
-    res.send(response.data);
-
-  } catch (error) {
-    console.error("Error decrypting PDF:", error);
-    res.status(500).json({ error: "Failed to decrypt PDF" });
-  }
-})
-
 app.get('/chat', authenticateJWT, async (req, res) => {
   try {
     var user = req.user.data._id
@@ -839,24 +839,26 @@ app.get('/chatLog/:convId', authenticateJWT, async (req, res) => {
   return res.json({ success: true, result: history.result });
 });
 
-app.post('/download/:filename', authenticateJWT, async (req, res) => {
-  const { filename } = req.params;
-  const { from, to } = req.body;
+app.post('/download/:fileId', authenticateJWT, async (req, res) => {
+  const { fileId } = req.params;
+  const { to } = req.user.data._id;
+  const { data } = req.body
 
-  if (!from || !to) {
-    return res.status(400).json({ success: false, msg: 'Both "from" and "to" fields are required' });
+  if (!fileId) {
+    return res.status(400).json({ success: false, msg: 'File id required' });
   }
 
   try {
-    let fileEntry = await db.search('Files', { fName: filename, from: from, to: { $elemMatch: { email: to } } }, 'findOne');
+    let fileEntry = await db.search('Files', { _id: fileId }, 'findOne');
 
     if (!fileEntry.success || !fileEntry.result) {
       return res.json({ success: false, msg: 'File not found or access denied' });
     }
     fileEntry = fileEntry.result
 
+    decrypt()
     if (fileEntry.rView) {
-      const userIndex = fileEntry.to.findIndex(entry => entry.email === to);
+      const userIndex = fileEntry.to.findIndex(entry => entry.user === to);
       if (userIndex === -1) {
         return res.json({ success: false, msg: "User not authorized to access this file." });
       }
@@ -874,7 +876,7 @@ app.post('/download/:filename', authenticateJWT, async (req, res) => {
     }
 
     const filePath = fileEntry.fPath;
-    res.download(filePath, filename, (err) => {
+    res.download(filePath, fileEntry.fName, (err) => {
       if (err) {
         console.log('Error downloading file:', err);
         res.status(500).json({ success: false, msg: 'Error downloading file' });
@@ -993,7 +995,52 @@ const deleteExpiredFiles = async () => {
           'updateMany', {  status: 'Expired' }
         )
 
-    
+    // var files = await db.add('chat', {
+    //   sender: "673862264a4c42d533ceff44",
+    //   receiver: "672f9d597d4158f3e7170458"
+    // })
+    // var files = await db.add('chat', {
+    //   sender: "672f9d597d4158f3e7170458",
+    //   receiver: "673862264a4c42d533ceff44"
+    // })
+    // var files = await db.add('chatLog', {
+    //   from: "673862264a4c42d533ceff44",
+    //   to: "672f9d597d4158f3e7170458",
+    //   content: "Hi"
+    // })
+    // var files = await db.add('chatLog', {
+    //   from: "672f9d597d4158f3e7170458",
+    //   to: "673862264a4c42d533ceff44",
+    //   content: "Hello"
+    // })
+    // var files = await db.add('chatLog', {
+    //   from: "673862264a4c42d533ceff44",
+    //   to: "672f9d597d4158f3e7170458",
+    //   content: "How are you!"
+    // })
+    // var files = await db.remove('chat', {}, 'multiple')
+    // console.log("files fn: ", files)
+    // var files = await db.remove('chatLog', {}, 'multiple')
+    // console.log("files fn: ", files)
+    // var files = await db.remove('Users', {}, 'multiple')
+    // console.log(files)
+    // var files = await db.remove('group', {}, 'multiple')
+    // console.log(files)
+    // var files = await db.remove('Files', {}, 'multiple')
+    // console.log(files)
+    // var files = await db.remove('Users', {
+    //   email: "ujc183@gmail.com"
+    // }, 'multiple')
+    // console.log(files)
+
+    // var user = await db.addUser('Tobey', 'tobey@gmail.com', '123')
+    // console.log(user)
+    // var user = await db.addUser('Brock', 'brock@gmail.com', '123')
+    // console.log(user)
+    // var user = await db.addUser('Ash', 'ash@gmail.com', '123')
+    // console.log(user)
+    // var user = await db.addUser('Jash', 'jash@gmail.com', '123')
+    // console.log(user)
     console.log("exp files fn: ", expiredFiles)
   // for (const file of expiredFiles) {
     // if (fs.existsSync(file.fPath)) fs.unlinkSync(file.fPath);
