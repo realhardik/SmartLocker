@@ -817,7 +817,7 @@ app.get('/chatLog/:convId', authenticateJWT, async (req, res) => {
 
 app.post('/download/:fileId', authenticateJWT, async (req, res) => {
   const { fileId } = req.params;
-  const { to } = req.user.data._id;
+  const to = req.user.data._id;
   const data = req.body
   console.log(data)
   console.log('download')
@@ -836,17 +836,20 @@ app.post('/download/:fileId', authenticateJWT, async (req, res) => {
     if (!data.selected_algos || !data.all_passphrases || !data.filename) {
       return res.status(400).json({ error: "Missing required fields" });
     }
+    console.log('js before rView')
 
     if (fileEntry.rView) {
-      const userIndex = fileEntry.to.findIndex(entry => entry.user === to);
-      if (userIndex === -1) {
+      console.log(fileEntry)
+      console.log(to)
+      const userIndex = fileEntry.to.findIndex(entry => entry.user.toString() === to.toString());
+      if (userIndex == -1) {
         return res.json({ success: false, msg: "User not authorized to access this file." });
       }
     
       if (fileEntry.to[userIndex].views < fileEntry.maxViews) {
         var upd = await db.search(
           'Files', 
-          { _id: fileEntry._id, "to.email": to }, 
+          { _id: fileEntry._id, "to.user": to }, 
           "findOneAndUpdate", 
           { $inc: { "to.$.views": 1 } }
         );
@@ -854,11 +857,11 @@ app.post('/download/:fileId', authenticateJWT, async (req, res) => {
         return res.json({ success: false, msg: "Max Views Reached." });
       }
     }
-
+    console.log('js before formdata')
     const formData = new FormData();
     formData.append('encrypted_files.zip', fs.createReadStream(fileEntry.fPath));
     formData.append('data', JSON.stringify(data));
-  
+    console.log('js before req')
     const response = await axios.post('http://127.0.0.1:5000/decrypt', formData, {
       headers: {
         ...formData.getHeaders()

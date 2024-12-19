@@ -386,6 +386,7 @@ class fileSharing {
         data.layers = layers
         data.passwords = passPhrases
         data.fId = file._id
+        data.watermark = file.watermark
         if (file.watermark) {
             data.watermark_options = file.watermark_options
         }
