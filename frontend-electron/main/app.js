@@ -141,6 +141,11 @@ class fileSharing {
             this.rLayers.children.length > 1
                 ? Array.from(this.rLayers.children).slice(1).forEach(child => child.remove())
                 : true;
+            F.G.id('receiveFiles').closeE = () => {
+                F.G.id('receivedFiles').classList.remove('disable')
+                F.hide(F.G.id('receivedFiles'), !0)
+            }
+            console.log('yes here')
         }
         F.G.id(e).closeE = close
     }
@@ -395,7 +400,9 @@ class fileSharing {
 
     async fetchFiles() {
         console.log('fetchFIles')
+        F.G.id('receivedFiles').classList.remove('disable')
         F.hide(F.G.id('receivedFiles'), !0)
+        this.init('receivedFiles')
         var tokenReq = await F.getToken(),
             sender = F.G.id('tChat').con.convId || "",
             token = tokenReq.token
@@ -441,6 +448,9 @@ class fileSharing {
                 }
                 F.l('click', listItem, this.oRender)
             })
+            F.G.id('receiveFiles').closeE = () => {
+
+            }
         } catch (error) {
             console.error('Error fetching files:', error);
         }
@@ -601,6 +611,7 @@ class gen {
             e.value = ""
         })
         element.closeE && element.closeE()
+        dBox.closeE && dBox.closeE()
         F.hide(dBox)
         F.class([F.G.id('app'), dBox], ["disable"], !0)
     }
