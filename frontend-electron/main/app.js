@@ -145,7 +145,6 @@ class fileSharing {
                 F.G.id('receivedFiles').classList.remove('disable')
                 F.hide(F.G.id('receivedFiles'), !0)
             }
-            console.log('yes here')
         }
         F.G.id(e).closeE = close
     }
@@ -448,9 +447,6 @@ class fileSharing {
                 }
                 F.l('click', listItem, this.oRender)
             })
-            F.G.id('receiveFiles').closeE = () => {
-
-            }
         } catch (error) {
             console.error('Error fetching files:', error);
         }
@@ -608,7 +604,7 @@ class gen {
             dBox = F.G.id(dBoxVar),
             ifA = F.G.query('input', dBox, "a")
         Array.from(ifA).forEach(e => {
-            e.value = ""
+            e.value = e?.defaultValue || ""
         })
         element.closeE && element.closeE()
         dBox.closeE && dBox.closeE()

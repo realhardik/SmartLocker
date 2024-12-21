@@ -292,6 +292,24 @@ nav>section:first-child .button.active {
 #tFileL {
     flex-grow: 1;
     flex-direction: column;
+    background: rgba(203, 203, 203, 0.1); 
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 45px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+#tFileL table * {
+    background-color: transparent;
+}
+
+#tFileL table tr th:first-child, #tFileL table tr td:first-child {
+    padding-left: 25px;
+}
+
+#tFileL table tr th:last-child, #tFileL table tr td:last-child {
+    padding-right: 25px;
 }
 
 #tFileH>div:first-child {
@@ -317,6 +335,7 @@ nav>section:first-child .button.active {
     position: relative;
     height: 100%;
     padding: 16px 17px;
+    cursor: pointer;
     /* min-width: max-content; */
 }
 
@@ -324,15 +343,10 @@ nav>section:first-child .button.active {
     height: 100%;
 }
 
-#switch {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 50%;
-    background-color: rgba(255, 255, 255, 0.3);
-    filter: blur(37px);
-    clip-path: polygon(18% 0, 80% 0, 100% 100%, 0 100%);
+.switch {
+    background-color: rgba(255, 255, 255, 0.2);
+    /* filter: blur(37px); */
+    clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%);
 }
 
 #chatSection {
@@ -563,7 +577,7 @@ nav>section:first-child .button.active {
     -o-background-size: cover;
     background-size: cover;
     filter: brightness(40%);
-    z-index: 0; 
+    z-index: 0;
     pointer-events: none;
 }
 
