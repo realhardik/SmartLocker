@@ -1120,14 +1120,14 @@ class dashboard {
         this.fileSR = F.G.query('span', F.G.id('filesSR'), !0)[1]
         this.fileRR = F.G.query('span', F.G.id('filesRR'), !0)[1]
         this.fileES = F.G.query('span', F.G.id('filesES'), !0)[1]
-        this.table = F.G.query('span', F.G.id('tFileL'))
+        this.table = F.G.query('tbody', F.G.id('tFileL'))
         this.varCol = F.G.query('th:nth-child(2)', F.G.id('tFileL'))
         this.prevTab = F.G.query('div:first-child', F.G.id('tSwitch'))
         this.prevTab.con = 'shared'
         console.log(this.prevTab)
         F.G.query('div:last-child', F.G.id('tSwitch')).con = 'received'
         F.l('click', F.G.id('tSwitch'), this.switchTabs)
-        // this.fetchFiles()
+        this.fetchFiles()
     }
 
     switchTabs(e) {
@@ -1137,8 +1137,9 @@ class dashboard {
         this.prevTab && this.prevTab.classList.remove('switch')
         target.classList.add('switch')
         this.prevTab = target
+        this.table.innerHTML = ""
         this.varCol.innerText = target.con === 'received' ? 'From' : ' Receivers'
-        // this.fetchFiles(target.con)
+        this.fetchFiles(target.con)
     }
 
     async fetchFiles(e) {
@@ -1171,16 +1172,16 @@ class dashboard {
     }
 
     renderFiles(data, e) {
-        // var type = 
         data.forEach((file, ind)=> {
-            tableBodyHTML += `
+            var varColT = e === 'received' ? file.from.email : (file.to.map(u => u.user.email))
+            this.table.innerHTML += `
                 <tr>
                 <td>${ind + 1}</td>
-                <td>${file.typeCon}</td>
-                <td>${file.filename}</td>
-                <td>${file.dateShared}</td>
+                <td>${varColT}</td>
+                <td>${file.fName}</td>
+                <td>${file.timestamp}</td>
                 <td>${file.expiry}</td>
-                <td>${file.options}</td>
+                <td>--</td>
                 </tr>
             `;
         })

@@ -747,11 +747,20 @@ async function generateFileHash(filePath) {
 
 app.post('/files', authenticateJWT, async (req, res) => {
   let user = req.user.data._id,
-      { type, query } = req.body
-  if (type === 'sent') {
-    query.from =  { from: user }
+      { type, query } = req.body,
+      populate = null;
+  !query && (query = {})
+  if (type === 'shared') {
+    console.log(user)
+    query.from = user
+    populate = [
+      { field: 'to.user', select: '_id email' }
+    ]
   } else if (type === 'received') {
     query.to =  { $elemMatch: { user: user } }
+    populate = [
+      { field: 'from', select: '_id email' }
+    ]
   } else {
     query = {
       $or: [
@@ -764,9 +773,10 @@ app.post('/files', authenticateJWT, async (req, res) => {
   if (!user) {
     return res.status(400).json({ success: false, msg: 'Username is required' });
   }
+  console.log(query)
 
   try {
-    const filesForUser = await db.search('Files', query);
+    const filesForUser = await db.search('Files', query, 'find', null, populate);
     console.log('searched received')
     res.status(200).json({ success: true, result: filesForUser.result });
   } catch (error) {
