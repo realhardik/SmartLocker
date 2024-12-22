@@ -24,6 +24,14 @@ F.getToken = async () => {
     return t
 }
 
+F.getLocalTime = (d, c) => {
+    var utcDate = new Date(d);
+    var ret = c === "date" ? utcDate.toLocaleDateString() :
+            c === 'time' ? utcDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 
+            utcDate.toLocaleString()
+    return ret
+}
+
 socket.on('connect', () => {
     console.log('Connected to the server with ID:', socket.id);
 });
@@ -544,6 +552,8 @@ class gen {
                 tabButtons = Array.from(F.G.query('[data-tab]', document, "all"))
             F.G.id(s)["style"].opacity = '0'
             F.G.id(s)["style"].pointerEvents = 'none'
+            // F.hide(F.G.id(s))
+            // F.hide(F.G.id(tab), !0)
             F.G.id(tab).style.opacity = '1'
             F.G.id(tab).style.pointerEvents = "all"
             target.classList.add('active')
@@ -1173,14 +1183,14 @@ class dashboard {
 
     renderFiles(data, e) {
         data.forEach((file, ind)=> {
-            var varColT = e === 'received' ? file.from.email : (file.to.map(u => u.user.email))
+            var varColT = e === 'received' ? file.from.email : (file.to.map(u => u.user.email).join(',<br>'))
             this.table.innerHTML += `
                 <tr>
                 <td>${ind + 1}</td>
                 <td>${varColT}</td>
                 <td>${file.fName}</td>
-                <td>${file.timestamp}</td>
-                <td>${file.expiry}</td>
+                <td>${F.getLocalTime(file.timestamp, 'date')}</td>
+                <td>${F.getLocalTime(file.timestamp, 'date')}, ${F.getLocalTime(file.timestamp, 'time')}</td>
                 <td>--</td>
                 </tr>
             `;

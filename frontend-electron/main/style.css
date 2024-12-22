@@ -137,6 +137,7 @@ nav>section:first-child .button.active {
     z-index: 4;
     gap: 40px;
     flex-direction: column;
+    overflow: scroll;
 }
 
 #dSum {
