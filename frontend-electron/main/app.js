@@ -1116,31 +1116,74 @@ class chat {
 
 class dashboard {
     constructor() {
+        F.BM(this, ['fetchFiles', 'renderFiles', 'switchTabs'])
         this.fileSR = F.G.query('span', F.G.id('filesSR'), !0)[1]
         this.fileRR = F.G.query('span', F.G.id('filesRR'), !0)[1]
         this.fileES = F.G.query('span', F.G.id('filesES'), !0)[1]
         this.table = F.G.query('span', F.G.id('tFileL'))
-        F.BM(this, ['fetchFiles'])
-        this.fetchFiles()
+        this.varCol = F.G.query('th:nth-child(2)', F.G.id('tFileL'))
+        this.prevTab = F.G.query('div:first-child', F.G.id('tSwitch'))
+        this.prevTab.con = 'shared'
+        console.log(this.prevTab)
+        F.G.query('div:last-child', F.G.id('tSwitch')).con = 'received'
+        F.l('click', F.G.id('tSwitch'), this.switchTabs)
+        // this.fetchFiles()
     }
 
-    async fetchFiles() {
+    switchTabs(e) {
+        var target = e.target
+        if (target.tagName !== 'DIV' || !target?.con)
+            return
+        this.prevTab && this.prevTab.classList.remove('switch')
+        target.classList.add('switch')
+        this.prevTab = target
+        this.varCol.innerText = target.con === 'received' ? 'From' : ' Receivers'
+        // this.fetchFiles(target.con)
+    }
+
+    async fetchFiles(e) {
         var tokenReq = await F.getToken()
         this.token = tokenReq.token
         this.user = tokenReq.user
+        let result;
+        e = e || "shared"
         try {
-            var filesReq = await axios.post(`${BASE_URL}/files`, {
-                type: "received"
-            }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } }),
-                allReceivedFiles = filesReq.data?.result,
-                filesReq2 = await axios.post(`${BASE_URL}/files`, {
-                    type: "shared"
+            if (e) {
+                var filesReq = await axios.post(`${BASE_URL}/files`, {
+                    type: e
+                }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } })
+                result = filesReq.data?.result
+            } else {
+                var filesReq = await axios.post(`${BASE_URL}/files`, {
+                    type: "received"
                 }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } }),
-                allSharedFiles = filesReq2.data?.result
+                    allReceivedFiles = filesReq.data?.result,
+                    filesReq2 = await axios.post(`${BASE_URL}/files`, {
+                        type: "shared"
+                    }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } })
+                result = filesReq2.data?.result
+            }
+            this.renderFiles(result, e)
         } catch (err) {
             console.error('error: ', err)
             alert("Couldn't fetch files at the moment.")
         }
+    }
+
+    renderFiles(data, e) {
+        // var type = 
+        data.forEach((file, ind)=> {
+            tableBodyHTML += `
+                <tr>
+                <td>${ind + 1}</td>
+                <td>${file.typeCon}</td>
+                <td>${file.filename}</td>
+                <td>${file.dateShared}</td>
+                <td>${file.expiry}</td>
+                <td>${file.options}</td>
+                </tr>
+            `;
+        })
     }
 }
 

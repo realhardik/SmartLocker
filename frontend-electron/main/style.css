@@ -341,6 +341,7 @@ nav>section:first-child .button.active {
 
 #tSwitch span {
     height: 100%;
+    pointer-events: none;
 }
 
 .switch {
