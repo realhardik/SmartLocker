@@ -406,8 +406,11 @@ class fileSharing {
             sender = F.G.id('tChat').con.convId || "",
             token = tokenReq.token
         try {
-            const response = await axios.post(`${BASE_URL}/received`, {
-                from: sender
+            const response = await axios.post(`${BASE_URL}/files`, {
+                type: "received",
+                query: {
+                    from: sender
+                }
             }, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -469,7 +472,8 @@ class fileSharing {
             var fileContext = t.fCon
             console.log(fileContext)
             try {
-                const chkFile = await axios.post(`${BASE_URL}/received`, {
+                const chkFile = await axios.post(`${BASE_URL}/files`, {
+                    type: "received",
                     query: { _id: fileContext.fId }
                 }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } });
                 var res = chkFile.data
@@ -1110,6 +1114,36 @@ class chat {
     }
 }
 
+class dashboard {
+    constructor() {
+        this.fileSR = F.G.query('span', F.G.id('filesSR'), !0)[1]
+        this.fileRR = F.G.query('span', F.G.id('filesRR'), !0)[1]
+        this.fileES = F.G.query('span', F.G.id('filesES'), !0)[1]
+        this.table = F.G.query('span', F.G.id('tFileL'))
+        F.BM(this, ['fetchFiles'])
+        this.fetchFiles()
+    }
+
+    async fetchFiles() {
+        var tokenReq = await F.getToken()
+        this.token = tokenReq.token
+        this.user = tokenReq.user
+        try {
+            var filesReq = await axios.post(`${BASE_URL}/files`, {
+                type: "received"
+            }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } }),
+                allReceivedFiles = filesReq.data?.result,
+                filesReq2 = await axios.post(`${BASE_URL}/files`, {
+                    type: "shared"
+                }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } }),
+                allSharedFiles = filesReq2.data?.result
+        } catch (err) {
+            console.error('error: ', err)
+            alert("Couldn't fetch files at the moment.")
+        }
+    }
+}
+
 new class {
     constructor () {
         this.auth = this.auth.bind(this)
@@ -1126,6 +1160,7 @@ new class {
             ipcRenderer.send('profile');
             socket.emit('joinRoom', isAuthorized.user._id);
             new gen(isAuthorized.user)
+            new dashboard
         }
     }
 

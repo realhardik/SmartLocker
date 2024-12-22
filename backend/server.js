@@ -745,15 +745,23 @@ async function generateFileHash(filePath) {
   });
 }
 
-app.post('/received', authenticateJWT, async (req, res) => {
-  let recipient = req.user.data._id,
-      { from, query } = req.body
-  if (query) {
-    query.to =  { $elemMatch: { user: recipient } }
+app.post('/files', authenticateJWT, async (req, res) => {
+  let user = req.user.data._id,
+      { type, query } = req.body
+  if (type === 'sent') {
+    query.from =  { from: user }
+  } else if (type === 'received') {
+    query.to =  { $elemMatch: { user: user } }
   } else {
-      query = { from: from, to: { $elemMatch: { user: recipient } } }
+    query = {
+      $or: [
+        { from: user },
+        { to: { $elemMatch: { user: user } } },
+      ],
+    }
   }
-  if (!recipient) {
+
+  if (!user) {
     return res.status(400).json({ success: false, msg: 'Username is required' });
   }
 

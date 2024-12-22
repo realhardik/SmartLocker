@@ -334,7 +334,7 @@ nav>section:first-child .button.active {
 #tSwitch>div {
     position: relative;
     height: 100%;
-    padding: 16px 17px;
+    padding: 12px 17px;
     cursor: pointer;
     /* min-width: max-content; */
 }
