@@ -562,7 +562,7 @@ class gen {
             this.logout()
         }
     }
-
+    
     setupProfile(user) {
         var name = user.name,
             email = user.email,
