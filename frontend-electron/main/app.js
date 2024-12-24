@@ -542,7 +542,7 @@ class gen {
         F.l('click', F.G.id('nav'), this.handleNav)
         this.setupProfile(data)
     }
-
+    
     async handleNav(e) {
         e.stopPropagation()
         var target = e.target,
