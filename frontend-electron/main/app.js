@@ -924,11 +924,15 @@ class chat {
                 }
             }),
             user = res.data
-        console.log(user)
+            
         if (!user.success) {
             alert("User not found.")
             dBox.close && dBox.close()
             return false
+        }
+        if(user.result._id === this.userData.user._id) {
+            dBox.close && dBox.close()
+            return (alert('You cannot add yourself.'), false)
         }
         if (this.chatUsers.has(user.result._id)) {
             dBox.close && dBox.close()
