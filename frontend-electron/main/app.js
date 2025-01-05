@@ -68,7 +68,7 @@ class fileSharing {
             F.G.id('fileUplName').value = ""
             F.hide(F.G.id('aUpl'))
             F.hide(F.G.id('bUpl'), !0)
-            F.class([F.G.id('f-eDet'), F.G.id('sButton')], ['disable'])
+            F.class([F.G.id('f-eDet'), F.G.id('sButton'), F.G.id('watermark_options')], ['disable'])
         })
         let fileInput = F.G.id('recipientListFile'),
             textInput = F.G.id('recipientListEmails'),
@@ -136,7 +136,7 @@ class fileSharing {
                 F.G.id('fileInput').value = ""
                 F.G.id('fileSharing').className = ''
                 F.class([F.G.id('app'), F.G.id('fileSharing')], ["disable"], !0)
-                F.class([F.G.id('f-eDet'), F.G.id('sButton')], ['disable'])
+                F.class([F.G.id('f-eDet'), F.G.id('sButton'), F.G.id('watermark_options')], ['disable'])
                 F.hide(F.G.id('bUpl'), !0)
                 F.hide(F.G.id('aUpl'))
                 this.cLayers.children.length > 1
@@ -182,7 +182,7 @@ class fileSharing {
         fNameIF.innerHTML = fName
         F.hide(bUpl)
         F.hide(aUpl, !0, 'flex')
-        F.class([F.G.id('f-eDet'), F.G.id('sButton')], ['disable'], !0)
+        F.class([F.G.id('f-eDet'), F.G.id('sButton'), F.G.id('watermark_options')], ['disable'], !0)
     }
 
     handleLayers(e, t) {
@@ -1161,7 +1161,6 @@ class dashboard {
         this.token = tokenReq.token
         this.user = tokenReq.user
         let result;
-        e = e || "shared"
         try {
             if (e) {
                 var filesReq = await axios.post(`${BASE_URL}/files`, {
@@ -1177,12 +1176,57 @@ class dashboard {
                         type: "shared"
                     }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } })
                 result = filesReq2.data?.result
+                this.getNumbers(filesReq2.data?.result, filesReq.data?.result)
             }
             this.renderFiles(result, e)
         } catch (err) {
-            console.error('error: ', err)
             alert("Couldn't fetch files at the moment.")
+        } finally {
         }
+    }
+
+    async getNumbers(shared, received) {
+        var sRecCnt = this.fileSR.count || 0,
+            RRecCnt = this.fileRR.count || 0,
+            EXsnCnt = this.fileES.count || 0,
+            today = new Date(),
+            sevenDaysAgo = new Date(),
+            fiveDaysFromNow = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        fiveDaysFromNow.setDate(fiveDaysFromNow.getDate() + 5);
+        const filteredShared = shared.filter(doc => {
+            var docDate = new Date(doc.timestamp);
+            return docDate >= sevenDaysAgo;
+        });
+        const filteredReceived = received.filter(doc => {
+            var docDate = new Date(doc.timestamp);
+            return docDate >= sevenDaysAgo;
+        });
+        const expiringSoon = received.filter(doc => {
+            const expiryDate = new Date(doc.expiry);
+            return expiryDate >= today && expiryDate <= fiveDaysFromNow;
+        });
+        
+        this.fileSR.count = filteredShared.length
+        this.fileRR.count = filteredReceived.length
+        this.fileES.count = expiringSoon.length
+
+        this.animateNumber(this.fileSR, sRecCnt, this.fileSR.count, 200)
+        this.animateNumber(this.fileRR, RRecCnt, this.fileRR.count, 200)
+        this.animateNumber(this.fileES, EXsnCnt, this.fileES.count, 200)
+    }
+
+    animateNumber(element, start, end, delay) {
+        let currentNumber = start;
+        const increment = start < end ? 1 : -1;
+        const interval = setInterval(() => {
+          element.textContent = currentNumber;
+          if (currentNumber === end) {
+            clearInterval(interval);
+          } else {
+            currentNumber += increment;
+          }
+        }, delay);
     }
 
     renderFiles(data, e) {
