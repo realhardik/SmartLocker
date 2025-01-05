@@ -1130,7 +1130,7 @@ class chat {
 
 class dashboard {
     constructor() {
-        F.BM(this, ['fetchFiles', 'renderFiles', 'switchTabs'])
+        F.BM(this, ['fetchFiles', 'renderFiles', 'switchTabs', 'handleLoadMore'])
         this.fileSR = F.G.query('span', F.G.id('filesSR'), !0)[1]
         this.fileRR = F.G.query('span', F.G.id('filesRR'), !0)[1]
         this.fileES = F.G.query('span', F.G.id('filesES'), !0)[1]
@@ -1140,6 +1140,10 @@ class dashboard {
         this.prevTab = F.G.query('div:first-child', F.G.id('tSwitch'))
         this.prevTab.con = 'shared';
         this.loadMore = F.G.id('loadMoreFiles')
+        this.observer = new IntersectionObserver(this.handleLoadMore, {
+            root: null, 
+            threshold: 0.5
+        });
         F.G.query('div:last-child', F.G.id('tSwitch')).con = 'received'
         this.currentRequestSource = null;
         this.currentTab = 'shared'
@@ -1191,6 +1195,7 @@ class dashboard {
             }
             this.tablebody.innerHTML = ""
             this.data = result
+            console.log(result)
             this.renderFiles(e || 'shared')
         } catch (err) {
             if (axios.isCancel(err)) {
@@ -1271,11 +1276,23 @@ class dashboard {
             this.tablebody.innerHTML += rows
             if (this.data.length > rest) {
                 F.hide(this.loadMore, !0, 'flex')
+                this.observer.observe(this.loadMore)
+            } else {
+                F.hide(this.loadMore)
+                this.observer.unobserve(this.loadMore)
             }
             F.hide(F.G.id('loadFiles'))
             F.hide(this.table, !0, 'table')
         }
     }
+
+    handleLoadMore(entries, observer) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                this.renderFiles(this.currentTab)
+            }
+        });
+    };
 }
 
 new class {
