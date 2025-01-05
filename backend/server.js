@@ -996,7 +996,7 @@ const deleteExpiredFiles = async () => {
         expiredFiles = await db.search('Files', { expiry: { $lt: today } }, 
           'updateMany', {  status: 'Expired' }
         )
-
+  console.log(today)
     // var files = await db.add('chat', {
     //   sender: "673862264a4c42d533ceff44",
     //   receiver: "672f9d597d4158f3e7170458"

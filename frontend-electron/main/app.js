@@ -1139,6 +1139,7 @@ class dashboard {
         this.varCol = F.G.query('th:nth-child(2)', F.G.id('tFileL'))
         this.prevTab = F.G.query('div:first-child', F.G.id('tSwitch'))
         this.prevTab.con = 'shared';
+        this.loadMore = F.G.id('loadMoreFiles')
         F.G.query('div:last-child', F.G.id('tSwitch')).con = 'received'
         this.currentRequestSource = null;
         this.currentTab = 'shared'
@@ -1209,6 +1210,7 @@ class dashboard {
             fiveDaysFromNow = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
         fiveDaysFromNow.setDate(fiveDaysFromNow.getDate() + 5);
+        console.log(received)
         const filteredShared = shared.filter(doc => {
             var docDate = new Date(doc.timestamp);
             return docDate >= sevenDaysAgo;
@@ -1260,15 +1262,16 @@ class dashboard {
                 <td>${varColT}</td>
                 <td>${file.fName}</td>
                 <td>${F.getLocalTime(file.timestamp, 'date')}</td>
-                <td>${F.getLocalTime(file.timestamp, 'date')}, ${F.getLocalTime(file.timestamp, 'time')}</td>
+                <td>${F.getLocalTime(file.expiry, 'date')}, ${F.getLocalTime(file.expiry, 'time')}</td>
                 <td>--</td>
                 </tr>
             `;
         }
-        console.log(this.currentTab)
-        console.log(e)
         if (this.currentTab === e) {
             this.tablebody.innerHTML += rows
+            if (this.data.length > rest) {
+                F.hide(this.loadMore, !0, 'flex')
+            }
             F.hide(F.G.id('loadFiles'))
             F.hide(this.table, !0, 'table')
         }

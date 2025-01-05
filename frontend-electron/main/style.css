@@ -344,6 +344,12 @@ nav>section:first-child .button.active {
     transform: translate(-50%, -50%);
 }
 
+#loadMoreFiles {
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
 .spinner-4 {
     width: 50px;
     aspect-ratio: 1;
@@ -1688,6 +1694,10 @@ tbody tr:hover {
 
 tbody tr:first-child td {
     padding-top: 12px;
+}
+
+tbody tr:last-child td {
+    padding-bottom: 15px;
 }
 
 tbody tr:nth-child(even) {
