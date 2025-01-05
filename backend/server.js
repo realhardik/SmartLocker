@@ -245,7 +245,7 @@ const db = new class {
       return { success: true, session: { user: user.result, token: session.token } };
     } catch (err) {
       console.log("Error Creating Session: ", err)
-      return { success: false }
+      return { success: false, message: "Error creating new session." }
     }
   }
 
@@ -542,7 +542,7 @@ app.get('/signup', async (req, res) => {
     
     var sendotp = await h.sendMail({
       to: email,
-      subject: 'Forgot Password - OTP',
+      subject: 'Email Verification - OTP',
       text: `Your OTP for verification is: ${otp}`,
       html: `<h2>Your OTP for verification is: <b>${otp}</b></h2>\n<h4>OTP is valid for 5 minutes.</h4>`
     })
@@ -587,12 +587,12 @@ app.post('/login', async (req, res) => {
   let pass;
 
   if (!user.success || !user.result || !user.result.password ) {
-    return res.json({ success: false, msg: 'Invalid credentials.' });
+    return res.json({ success: false, message: 'Invalid credentials.' });
   }
 
   pass = await bcrypt.compare(password, user.result.password);
   if (!pass) {
-    return res.json({ success: false, msg: 'Invalid credentials.' });
+    return res.json({ success: false, message: 'Invalid credentials.' });
   }
 
   var s = await db.newSession(email);

@@ -139,11 +139,13 @@ ipcMain.handle('login', async (event, credentials) => {
     });
       loginWindow.close();
       createMainWindow();
+      return { success: true, result: data }
+    } else {
+      return { success: false, message: data?.message || "Error with the server. Please try again later." }
     }
-    return data
   } catch (error) {
-    console.error('Login failed:', error);
-    return { success: false, error: 'Login failed' };
+    console.error('Login failed:', error.message || error);
+    return { success: false, message: error.response?.data?.message || error.message || "An unexpected error occurred" };
   }
 });
 

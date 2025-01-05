@@ -49,7 +49,7 @@ class login {
             password = F.G.id('lPass').value,
             result = await ipcRenderer.invoke('login', { email, password })
         F.G.id('lPass').value = ""
-        if (!result.success || !result.success) {
+        if (!result.success) {
             alert("Invalid Login Credentials.")
         }
     }
