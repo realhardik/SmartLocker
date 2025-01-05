@@ -321,6 +321,10 @@ nav>section:first-child .button.active {
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
 
+#tFileL table {
+    display: none;
+}
+
 #tFileL table * {
     background-color: transparent;
 }
@@ -331,6 +335,42 @@ nav>section:first-child .button.active {
 
 #tFileL table tr th:last-child, #tFileL table tr td:last-child {
     padding-right: 25px;
+}
+
+#loadFiles {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.spinner-4 {
+    width: 50px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 8px solid #0000;
+    border-right-color: #3DA0F0;
+    position: relative;
+    animation: s4 1s infinite linear;
+}
+
+.spinner-4:before,
+.spinner-4:after {
+    content: "";
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: inherit;
+    animation: inherit;
+    animation-duration: 2s;
+}
+
+.spinner-4:after {
+    animation-duration: 4s;
+}
+
+@keyframes s4 {
+    100% {transform: rotate(1turn)}
 }
 
 #tFileH>div:first-child {

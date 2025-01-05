@@ -1134,12 +1134,14 @@ class dashboard {
         this.fileSR = F.G.query('span', F.G.id('filesSR'), !0)[1]
         this.fileRR = F.G.query('span', F.G.id('filesRR'), !0)[1]
         this.fileES = F.G.query('span', F.G.id('filesES'), !0)[1]
-        this.table = F.G.query('tbody', F.G.id('tFileL'))
+        this.table = F.G.query('table', F.G.id('tFileL'))
+        this.tablebody = F.G.query('tbody', F.G.id('tFileL'))
         this.varCol = F.G.query('th:nth-child(2)', F.G.id('tFileL'))
         this.prevTab = F.G.query('div:first-child', F.G.id('tSwitch'))
-        this.prevTab.con = 'shared'
-        console.log(this.prevTab)
+        this.prevTab.con = 'shared';
         F.G.query('div:last-child', F.G.id('tSwitch')).con = 'received'
+        this.currentRequestSource = null;
+        this.currentTab = 'shared'
         F.l('click', F.G.id('tSwitch'), this.switchTabs)
         this.fetchFiles()
     }
@@ -1151,16 +1153,24 @@ class dashboard {
         this.prevTab && this.prevTab.classList.remove('switch')
         target.classList.add('switch')
         this.prevTab = target
-        this.table.innerHTML = ""
         this.varCol.innerText = target.con === 'received' ? 'From' : ' Receivers'
+        this.currentTab = target.con
         this.fetchFiles(target.con)
     }
 
     async fetchFiles(e) {
+        F.hide(F.G.id('loadFiles'), !0)
+        F.hide(this.table)
         var tokenReq = await F.getToken()
         this.token = tokenReq.token
         this.user = tokenReq.user
         let result;
+
+        if (this.currentRequestSource) {
+            this.currentRequestSource.cancel('Operation canceled due to a new request.');
+        }
+        this.currentRequestSource = axios.CancelToken.source();
+    
         try {
             if (e) {
                 var filesReq = await axios.post(`${BASE_URL}/files`, {
@@ -1178,10 +1188,15 @@ class dashboard {
                 result = filesReq2.data?.result
                 this.getNumbers(filesReq2.data?.result, filesReq.data?.result)
             }
-            this.renderFiles(result, e)
+            this.tablebody.innerHTML = ""
+            this.data = result
+            this.renderFiles(e || 'shared')
         } catch (err) {
-            alert("Couldn't fetch files at the moment.")
-        } finally {
+            if (axios.isCancel(err)) {
+                console.log('Request canceled:', err.message);
+            } else {
+                console.error('Error:', err);
+            }
         }
     }
 
@@ -1203,8 +1218,10 @@ class dashboard {
             return docDate >= sevenDaysAgo;
         });
         const expiringSoon = received.filter(doc => {
-            const expiryDate = new Date(doc.expiry);
-            return expiryDate >= today && expiryDate <= fiveDaysFromNow;
+            if (doc.status !== 'Expired') {
+                const expiryDate = new Date(doc.expiry);
+                return expiryDate >= today && expiryDate <= fiveDaysFromNow;
+            }
         });
         
         this.fileSR.count = filteredShared.length
@@ -1229,12 +1246,17 @@ class dashboard {
         }, delay);
     }
 
-    renderFiles(data, e) {
-        data.forEach((file, ind)=> {
+    renderFiles(e, num) {
+        var start = this.tablebody.children.length || 0,
+            rest =  Math.min(num || start + 15, this.data.length);
+        let rows = '';
+        for (var f = start; f<rest; f++) {
+            var file = this.data[f]
+            if (!file) break;
             var varColT = e === 'received' ? file.from.email : (file.to.map(u => u.user.email).join(',<br>'))
-            this.table.innerHTML += `
+            rows += `
                 <tr>
-                <td>${ind + 1}</td>
+                <td>${f + 1}</td>
                 <td>${varColT}</td>
                 <td>${file.fName}</td>
                 <td>${F.getLocalTime(file.timestamp, 'date')}</td>
@@ -1242,7 +1264,14 @@ class dashboard {
                 <td>--</td>
                 </tr>
             `;
-        })
+        }
+        console.log(this.currentTab)
+        console.log(e)
+        if (this.currentTab === e) {
+            this.tablebody.innerHTML += rows
+            F.hide(F.G.id('loadFiles'))
+            F.hide(this.table, !0, 'table')
+        }
     }
 }
 
