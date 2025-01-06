@@ -8,7 +8,11 @@
 }
 
 body{
-    background-color: #0d1117;
+    /*background-color: #0d1117;*/
+    background: url(https://png.pngtree.com/background/20230827/original/pngtree-neon-blue-wave-hexagonal-frame-technology-background-with-digital-structure-3d-picture-image_4840646.jpg)no-repeat;
+    background-size: cover;
+    background-position: center;
+
     color: #ffffff;
     display: flex;
     align-items: center;
@@ -19,6 +23,9 @@ body{
 
 .container{
     background-color: #161b22;
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.1);
+
     color: #ffffff;
     border-radius: 30px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
@@ -39,7 +46,7 @@ body{
 
 .container span{
     font-size: 12px;
-    color: #8b949e;
+    color: #ffffff;
 }
 
 .container a{
@@ -70,7 +77,7 @@ body{
 }
 
 .container form{
-    background-color: #161b22;
+    /*background-color: #161b22;*/
     display: flex;
     align-items: center;
     justify-content: center;
@@ -91,6 +98,13 @@ body{
     color: #ffffff;
 }
 
+.container.active .sign-in {
+    opacity: 0;
+    pointer-events: none;
+}
+
+
+
 .form-container{
     position: absolute;
     top: 0;
@@ -101,25 +115,40 @@ body{
 .sign-in{
     left: 0;
     width: 50%;
-    z-index: 2;
+    opacity: 1;
+    z-index: 5;
+    transform: translateX(0%);
+    transition: transform 0.6s ease-out, opacity 0.3s ease-out 0.3s;
+    pointer-events: all;
 }
 
 .container.active .sign-in{
     transform: translateX(100%);
+    opacity: 0;
+    z-index: 1;
+    transition: transform 0.6s ease-out, opacity 0.3s ease-out;
 }
 
-.sign-up{
+.sign-up {
     left: 0;
     width: 50%;
     opacity: 0;
-    z-index: 1;
+    pointer-events: none;
+    z-index: 5;
+    transform: translateX(0%);
+    transition: transform 0.6s ease-out, opacity 0.3s ease-out;
 }
 
 .container.active .sign-up{
     transform: translateX(100%);
     opacity: 1;
-    z-index: 5;
-    animation: move 0.6s;
+    pointer-events: all;
+    transition: transform 0.6s ease-out, opacity 0.3s ease-out 0.3s;
+}
+
+.container.active-forgot .sign-up {
+    opacity: 0 !important;
+    pointer-events: none !important;
 }
 
 @keyframes move{
@@ -131,22 +160,6 @@ body{
         opacity: 1;
         z-index: 5;
     }
-}
-
-.social-icons{
-    margin: 20px 0;
-}
-
-.social-icons a{
-    border: 1px solid #58a6ff;
-    color: #ffffff;
-    border-radius: 20%;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    margin: 0 3px;
-    width: 40px;
-    height: 40px;
 }
 
 .toggle-container{
@@ -216,16 +229,27 @@ body{
 }
 
 .forgot-password {
-    left: 0;
+    right: 0;
     width: 50%;
     opacity: 0;
     z-index: 1;
+    pointer-events: none;
+}
+
+.forgot-password form {
+    transform: translateX(100%);
+    animation: move 0.6s;
 }
 
 .container.active-forgot .forgot-password {
-    transform: translateX(100%);
+    opacity: 1;
+}
+
+.container.active-forgot .forgot-password form {
+    transform: translateX(0%);
     opacity: 1;
     z-index: 5;
+    pointer-events: all;
     animation: move 0.6s;
 }
 
@@ -280,3 +304,6 @@ body{
     animation: move 0.6s;
 }
 
+.g_id_signin {
+    margin: 20px 0;
+}

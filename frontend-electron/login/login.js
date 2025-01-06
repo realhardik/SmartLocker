@@ -7,17 +7,10 @@ class login {
         this.regBtn = F.G.id("sBtn")
         F.l("click", this.loginBtn, async (e) => { e.preventDefault(); this.login() })
         F.l("click", this.regBtn, async (e) => { e.preventDefault(); this.signUp() })
-        this.sToReg = F.G.id('register');
-        this.sToLog = F.G.id('login');
+        this.sToReg = F.G.id('registerSwitch');
+        this.sToLog = F.G.id('loginSwitch');
         var container = F.G.id('container')
-        F.l("click", this.sToReg, (e) => { e.preventDefault();
-            container.classList.add("active");
-            container.classList.remove("active-forgot");
-        })
-        F.l("click", this.sToLog, (e) => { e.preventDefault();
-            container.classList.remove("active");
-            container.classList.remove("active-forgot");
-        })
+        F.l('click', F.G.class('toggle-container')[0], this.switchTabs)
         F.l("click", F.G.id('forgot-password-btn'), (e) => { 
             e.preventDefault();
             container.classList.add("active");
@@ -42,6 +35,17 @@ class login {
             container.classList.add("active-otp-register");
             this.sendOtp("signUp")
         })
+    }
+
+    switchTabs(e) {
+        var targ = e.target
+        if (targ.tagName !== 'BUTTON')
+            return
+        e.preventDefault()
+        var container = F.G.id('container'),
+            actClass = targ.id === 'loginSwitch' ? 'remove' : 'add'
+        container.classList[actClass]('active')
+        container.classList['remove']('active-forgot')
     }
 
     async login() {

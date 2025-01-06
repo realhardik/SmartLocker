@@ -35,40 +35,6 @@
 </head>
 <body>
     <div class="container" id="container">
-        <div class="form-container sign-up">
-            <form>
-                <h1>Create Account</h1>
-                <div class="social-icons">
-                    <a href="#" class="icon" id="goL"><i class="fa-brands fa-google-plus-g"></i></a>
-                    <a href="#" class="icon" id="faL"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#" class="icon" id="giL"><i class="fa-brands fa-github"></i></a>
-                    <a href="#" class="icon" id="liL"><i class="fa-brands fa-linkedin-in"></i></a>
-                </div>
-                <span>or use your email for registeration</span>
-                <input type="text" placeholder="Name" id="sName">
-                <input type="email" id="sEmail" placeholder="Email">
-                <input type="password" id="sPass" placeholder="Password">
-                <button id="signUp" type="submit">Sign Up</button>
-            </form>
-        </div>
-        
-        <div class="form-container sign-in">
-            <form>
-                <h1>Sign In</h1>
-                <div class="social-icons">
-                    <a href="#" class="icon"><i class="fa-brands fa-google-plus-g"></i></a>
-                    <a href="#" class="icon"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#" class="icon"><i class="fa-brands fa-github"></i></a>
-                    <a href="#" class="icon"><i class="fa-brands fa-linkedin-in"></i></a>
-                </div>
-                <span>or use your email password</span>
-                <input type="email" id="lEmail" placeholder="Email">
-                <input type="password" id="lPass" placeholder="Password">
-                <a href="#" id="forgot-password-btn">Forgot Password?</a>
-                <button id="lBtn">Sign In</button>
-            </form>
-        </div>
-
         <div class="form-container otp-register">
             <form>
                 <h1>Verification</h1>
@@ -81,8 +47,8 @@
         
         <div class="form-container forgot-password">
             <form>
-                <h1>Forgot Password</h1>
-                <p>Enter your email address, and we'll send you a link to reset your password.</p>
+                <h1>Forgot Your Password?</h1>
+                <p>Enter your email address, and we'll send you an OTP.</p>
                 <input type="email" placeholder="Email" id="resetEmail">
                 <button id="sendOTP">Send OTP</button>
             </form>
@@ -99,17 +65,68 @@
             </form>
         </div>
 
+        <div class="form-container sign-up">
+            <form>
+                <h1>Create Account</h1>
+                <script src="https://accounts.google.com/gsi/client" async></script>
+                <div id="g_id_onload"
+                    data-client_id="YOUR_GOOGLE_CLIENT_ID"
+                    data-login_uri="https://your.domain/your_login_endpoint"
+                    data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin"
+                    data-type="standard"
+                    data-size="large"
+                    data-theme="filled_black"
+                    data-text="Sign up with"
+                    data-shape="pill"
+                    data-logo_alignment="left">
+                </div>
+                <span>Or register with your email</span>
+                <input type="text" placeholder="Name" id="sName">
+                <input type="email" id="sEmail" placeholder="Email">
+                <input type="password" id="sPass" placeholder="Password">
+                <button id="signUp" type="submit">Sign Up</button>
+            </form>
+        </div>
+        
+        <div class="form-container sign-in">
+            <form>
+                <h1>Sign In</h1>
+                <script src="https://accounts.google.com/gsi/client" async></script>
+                <div id="g_id_onload"
+                    data-client_id="YOUR_GOOGLE_CLIENT_ID"
+                    data-login_uri="https://your.domain/your_login_endpoint"
+                    data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin"
+                    data-type="standard"
+                    data-size="large"
+                    data-theme="filled_black"
+                    data-text="Continue with"
+                    data-shape="pill"
+                    data-logo_alignment="left">
+                </div>
+
+                <span>Or log in with your email and password</span>
+                <input type="email" id="lEmail" placeholder="Email Address">
+                <input type="password" id="lPass" placeholder="Password">
+                <a href="#" id="forgot-password-btn">Forgot Password?</a>
+                <button id="lBtn">Sign In</button>
+            </form>
+        </div>
+
         <div class="toggle-container">
             <div class="toggle">
                 <div class="toggle-panel toggle-left">
                     <h1>Welcome Back!</h1>
                     <p>Enter your personal details to use all of site features</p>
-                    <button class="hidden" id="login">Sign In</button>
+                    <button class="hidden" id="loginSwitch">Sign In</button>
                 </div>
                 <div class="toggle-panel toggle-right">
                     <h1>Smart Locker</h1>
                     <p>Register with your personal details to use all of site features</p>
-                    <button class="hidden" id="register">Sign Up</button>
+                    <button class="hidden" id="registerSwitch">Sign Up</button>
                 </div>
             </div>
         </div>
