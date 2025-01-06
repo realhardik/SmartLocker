@@ -521,7 +521,7 @@ app.get('/signup', async (req, res) => {
     console.log("email", email)
     console.log(prevUser)
     if (prevUser.success && prevUser.result.length > 0) {
-      res.status(401).json({ success: false, msg: "User already exists."})
+      res.status(401).json({ success: false, message: "User already exists."})
       return
     }
     console.log(prevUser)
@@ -533,7 +533,7 @@ app.get('/signup', async (req, res) => {
     if (prevReq.success) {
       const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
       if (new Date(prevReq.result.createdAt) > oneMinuteAgo) {
-          res.status(401).json({ success: false, msg: "OTP was created less than a minute ago."})
+          res.status(401).json({ success: false, message: "OTP was created less than a minute ago."})
           return
       }
   }
@@ -548,13 +548,13 @@ app.get('/signup', async (req, res) => {
     })
     if (!sendotp.success) {
       alert(sendotp.msg || "Couldn't send otp at the moment. \nTry again later.")
-      return res.status(401).json({ success: false, msg: "Couldn't send email at the moment. \n Try again later" })
+      return res.status(401).json({ success: false, message: "Couldn't send email at the moment. \n Try again later" })
     }
     await db.add('otp', { email: email, otp: hashedOTP, type: "signUp" })
-    return res.status(201).json({ success: true, msg: "OTP sent successfully"})
+    return res.status(201).json({ success: true, message: "OTP sent successfully"})
   } catch (err) {
     console.log("error signing up: ", err)
-    return res.status(401).json({ success: false, msg: "Error signing up."})
+    return res.status(401).json({ success: false, message: "Error signing up."})
   }
 });
 
@@ -562,7 +562,7 @@ app.post('/signup', async (req, res) => {
   try {
     var { name, email, password, otp } = req.body
     if (!name || !email || !password || !otp) {
-      return res.status(401).json({ success: false, msg: "Some Error Occured." });
+      return res.status(401).json({ success: false, message: "Some Error Occured." });
     }
     var storedOtp = await db.search('otp', {
           email: email,
@@ -570,14 +570,14 @@ app.post('/signup', async (req, res) => {
         }, 'findOne')
     var checkOTP = await bcrypt.compare(otp, storedOtp.result.otp)
     if (!checkOTP) {
-      return res.status(401).json({ success: false, msg: "Invalid OTP." });
+      return res.status(401).json({ success: false, message: "Invalid OTP." });
     }
     await db.remove('otp', { email: email }, 'multiple')
     await db.addUser(name, email, password)
-    res.status(200).json({ success: true, msg: "OTP verified successfully." });
+    res.status(200).json({ success: true, message: "OTP verified successfully." });
   } catch (err) {
     console.log("error signing up: ", err)
-    return res.json({ success: false, msg: "Error signing up."})
+    return res.json({ success: false, message: "Error signing up."})
   }
 });
 
@@ -996,7 +996,6 @@ const deleteExpiredFiles = async () => {
         expiredFiles = await db.search('Files', { expiry: { $lt: today } }, 
           'updateMany', {  status: 'Expired' }
         )
-  console.log(today)
     // var files = await db.add('chat', {
     //   sender: "673862264a4c42d533ceff44",
     //   receiver: "672f9d597d4158f3e7170458"
@@ -1030,10 +1029,10 @@ const deleteExpiredFiles = async () => {
     // console.log(files)
     // var files = await db.remove('Files', {}, 'multiple')
     // console.log(files)
-    // var files = await db.remove('Users', {
-    //   email: "ujc183@gmail.com"
-    // }, 'multiple')
-    // console.log(files)
+    var files = await db.remove('Users', {
+      email: "ujc183@gmail.com"
+    }, 'multiple')
+    console.log(files)
 
     // var user = await db.addUser('Tobey', 'tobey@gmail.com', '123')
     // console.log(user)

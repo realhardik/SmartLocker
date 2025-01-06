@@ -31,8 +31,6 @@ class login {
 
         F.l("click", F.G.id('signUp'), (e) => { 
             e.preventDefault();
-            container.classList.remove("active");
-            container.classList.add("active-otp-register");
             this.sendOtp("signUp")
         })
     }
@@ -81,12 +79,20 @@ class login {
                 result = await ipcRenderer.invoke('sendOtp', e, email)
             console.log(result)
             if (result?.success) {
+                alert(result?.message || "OTP sent successfully.")
                 container.classList.remove("active");
                 container.classList.remove("active-forgot");
+                container.classList.add("active-otp-register");
             } else {
-                alert(result.msg || "Couldn't send otp at the moment.")
-                F.G.id("sName").value = ""
-                F.G.id('sEmail').value = ""
+                alert(result?.message || "Couldn't send otp at the moment.")
+                if (result?.message?.includes('invalid')) {
+                    F.G.id('signupOTP').value = ""
+                } else {
+                    F.G.id("sName").value = ""
+                    F.G.id('sEmail').value = ""
+                    F.G.id('sPass').value = ""
+                    F.G.id('signupOTP').value = ""
+                }
             }
         } else if (e === 'forgotPass') {
             var email = F.G.id('resetEmail').value,
@@ -97,7 +103,7 @@ class login {
                 container.classList.remove("active-forgot");
                 container.classList.add("active-otp-reset");
             } else {
-                alert(result.msg || "Couldn't send otp at the moment.")
+                alert(result?.message || "Couldn't send otp at the moment.")
                 F.G.id('resetOTP').value = ""
                 F.G.id('resetEmail').value = ""
             }
@@ -107,7 +113,7 @@ class login {
             if (result?.success) {
                 alert('OTP resent successfully.')
             } else {
-                alert(result.msg || "Couldn't send otp at the moment.")
+                alert(result?.message || "Couldn't send otp at the moment.")
                 F.G.id('resetEmail').value = ""
             }
         }
@@ -120,14 +126,17 @@ class login {
             otp = F.G.id('otp').value,
             result = await ipcRenderer.invoke('signup', { name, email, password, otp }),
             container = F.G.id('container')
-        F.G.id("sName").value = ""
-        F.G.id('sEmail').value = ""
-        F.G.id('sPass').value = ""
-        F.G.id('otp').value = ""
-        alert(result.msg)
+        alert(result.message)
+        console.log(result)
         if (result.success) {
+            F.G.id("sName").value = ""
+            F.G.id('sEmail').value = ""
+            F.G.id('sPass').value = ""
+            F.G.id('otp').value = ""
             container.classList.remove("active");
-            container.classList.add("active-otp-register");
+            container.classList.remove("active-otp-register");
+        } else {
+            F.G.id('otp').value = ""
         }
     }
 }

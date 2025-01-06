@@ -109,10 +109,11 @@ body{
     position: absolute;
     top: 0;
     height: 100%;
+    opacity: 0;
     transition: all 0.6s ease-in-out;
 }
 
-.sign-in{
+.sign-in {
     left: 0;
     width: 50%;
     opacity: 1;
@@ -229,28 +230,30 @@ body{
 }
 
 .forgot-password {
-    right: 0;
+    left: 0;
     width: 50%;
     opacity: 0;
     z-index: 1;
+    transform: translateX(0%);
+    transition: transform 0.6s ease-out, opacity 0.3s ease-out;
     pointer-events: none;
 }
 
-.forgot-password form {
-    transform: translateX(100%);
-    animation: move 0.6s;
+.container.active.active-forgot .form-container, .container.active-otp-reset .form-container, .container.active-otp-register .form-container {
+    opacity: 0;
+    pointer-events: none;
 }
 
 .container.active-forgot .forgot-password {
-    opacity: 1;
+    transform: translateX(100%) !important;
+    opacity: 1 !important;
+    pointer-events: all !important;
+    transition: transform 0.6s ease-out, opacity 0.3s ease-out 0.3s;
 }
 
-.container.active-forgot .forgot-password form {
-    transform: translateX(0%);
-    opacity: 1;
-    z-index: 5;
+.container.active-otp-reset .otp-reset, .container.active-otp-register .otp-register {
     pointer-events: all;
-    animation: move 0.6s;
+    opacity: 1;
 }
 
 /* Registration OTP */

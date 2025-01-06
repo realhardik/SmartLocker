@@ -84,11 +84,11 @@ ipcMain.handle('sendOtp', async (e, event, email) => {
     console.log("response: ", response)
     if (response.data.success)
       return { success: true, result: response.data };
-    return { success: false, msg: response.data.msg }
+    return { success: false, message: response.data.message }
 
   } catch (error) {
-    console.error("Signup failed:", error.response ? error.response.data.msg : "Server not working at the moment.");
-    return { success: false, msg: (error.response.data.msg || "Server not working at the moment.") };
+    console.error("Signup failed:", error.response ? error.response?.data?.message : "Server not working at the moment.");
+    return { success: false, message: (error?.response?.data?.message || "Server not working at the moment.") };
   }
 });
 
@@ -114,12 +114,12 @@ ipcMain.handle('forgotPassword', async (e, data) => {
 ipcMain.handle('signup', async (event, credentials) => {
   try {
     const response = await axios.post(`${apiBaseUrl}/signup`, credentials);
-    console.log(response)
-    return response.data;
-    
+    if (response.data.success)
+      return { success: true, result: response.data, message: "User Created successfully." };
+    return { success: false, message: response.data.message }
   } catch (error) {
-    console.error("Signup failed:", error.response ? error.response.data : error.message);
-    return { success: false, error: 'Signup failed' };
+    console.error('Signup failed:', error.message || error);
+    return { success: false, message: error.response?.data?.message || error.message || "An unexpected error occurred" };
   }
 });
 
