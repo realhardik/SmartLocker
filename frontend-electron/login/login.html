@@ -29,6 +29,16 @@
                 var s = e.length;
                 for (let t = 0; t < s; t++)
                     r[e[t]] = r[e[t]].bind(r)
+            },
+            
+            class: (e, v, t) => {
+                try {
+                    e.forEach(element => {
+                        t ? element.classList.remove(...v) : element.classList.add(...v)
+                    });
+                } catch (err) {
+                    
+                } 
             }
         }
     </script>

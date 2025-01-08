@@ -43,8 +43,13 @@ class login {
         var container = F.G.id('container'),
             classList = targ.classList
         
-        if (classList.includes('back')) {
-
+        if (classList.contains('back')) {
+            var cAdd = ['active'],
+            cRem = Array.from(container.classList).filter(e => e !== 'container');
+            if (container.classList.contains('active-otp-reset'))
+                cAdd.push('active-forgot')
+            F.class([container], cAdd)
+            F.class([container], cRem, !0)
         } else {
             var actClass = targ.id === 'loginSwitch' ? 'remove' : 'add'
             container.classList[actClass]('active')
