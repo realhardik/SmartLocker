@@ -123,20 +123,20 @@ class login {
         var name = F.G.id("sName").value,
             email = F.G.id('sEmail').value,
             password = F.G.id('sPass').value,
-            otp = F.G.id('otp').value,
+            otp = F.G.id('signupOtp').value,
             result = await ipcRenderer.invoke('signup', { name, email, password, otp }),
             container = F.G.id('container')
         alert(result.message)
-        console.log(result)
+        
         if (result.success) {
             F.G.id("sName").value = ""
             F.G.id('sEmail').value = ""
             F.G.id('sPass').value = ""
-            F.G.id('otp').value = ""
+            F.G.id('signupOtp').value = ""
             container.classList.remove("active");
             container.classList.remove("active-otp-register");
         } else {
-            F.G.id('otp').value = ""
+            F.G.id('signupOtp').value = ""
         }
     }
 }

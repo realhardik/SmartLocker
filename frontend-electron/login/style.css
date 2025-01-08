@@ -70,14 +70,18 @@ body{
     cursor: pointer;
 }
 
-.container button.hidden{
+.container button.hidden, .toggle-container button.back{
     background-color: transparent;
     border-color: #ffffff;
     color: #ffffff;
 }
 
-.container form{
-    /*background-color: #161b22;*/
+.toggle-container button.back {
+    display: none;
+    pointer-events: none;
+}
+
+.container form {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -86,7 +90,7 @@ body{
     height: 100%;
 }
 
-.container input{
+.container input {
     background-color: #21262d;
     border: none;
     margin: 8px 0;
@@ -103,9 +107,7 @@ body{
     pointer-events: none;
 }
 
-
-
-.form-container{
+.form-container {
     position: absolute;
     top: 0;
     height: 100%;
@@ -123,7 +125,7 @@ body{
     pointer-events: all;
 }
 
-.container.active .sign-in{
+.container.active .sign-in {
     transform: translateX(100%);
     opacity: 0;
     z-index: 1;
@@ -140,7 +142,7 @@ body{
     transition: transform 0.6s ease-out, opacity 0.3s ease-out;
 }
 
-.container.active .sign-up{
+.container.active .sign-up {
     transform: translateX(100%);
     opacity: 1;
     pointer-events: all;
@@ -152,7 +154,7 @@ body{
     pointer-events: none !important;
 }
 
-@keyframes move{
+@keyframes move {
     0%, 49.99%{
         opacity: 0;
         z-index: 1;
@@ -163,7 +165,7 @@ body{
     }
 }
 
-.toggle-container{
+.toggle-container {
     position: absolute;
     top: 0;
     left: 50%;
@@ -175,12 +177,12 @@ body{
     z-index: 1000;
 }
 
-.container.active .toggle-container{
+.container.active .toggle-container {
     transform: translateX(-100%);
     border-radius: 0 150px 100px 0;
 }
 
-.toggle{
+.toggle {
     background-color: #0055ff;
     height: 100%;
     background: linear-gradient(288deg, #0055ff, #043873);
@@ -193,11 +195,11 @@ body{
     transition: all 0.6s ease-in-out;
 }
 
-.container.active .toggle{
+.container.active .toggle {
     transform: translateX(50%);
 }
 
-.toggle-panel{
+.toggle-panel {
     position: absolute;
     width: 50%;
     height: 100%;
@@ -212,20 +214,20 @@ body{
     transition: all 0.6s ease-in-out;
 }
 
-.toggle-left{
+.toggle-left {
     transform: translateX(-200%);
 }
 
-.container.active .toggle-left{
+.container.active .toggle-left {
     transform: translateX(0);
 }
 
-.toggle-right{
+.toggle-right {
     right: 0;
     transform: translateX(0);
 }
 
-.container.active .toggle-right{
+.container.active .toggle-right {
     transform: translateX(200%);
 }
 

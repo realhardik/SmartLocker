@@ -74,7 +74,7 @@ const h = {
 
 const JWT_SECRET = 'your_jwt_secret_key';
 
-const mongoURI = 'mongodb+srv://harshchan02:rlFWyv0f22LD5rHJ@cluster0.irubh1u.mongodb.net/smart_locker?retryWrites=true&w=majority&appName=Cluster0';
+const mongoURI = 'mongodb+srv://hail:mrg_001@cluster0.916e9.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 
 const pythonURL = 'http://127.0.0.1:5000'
 
@@ -1029,10 +1029,10 @@ const deleteExpiredFiles = async () => {
     // console.log(files)
     // var files = await db.remove('Files', {}, 'multiple')
     // console.log(files)
-    var files = await db.remove('Users', {
-      email: "ujc183@gmail.com"
-    }, 'multiple')
-    console.log(files)
+    // var files = await db.remove('Users', {
+    //   email: "hail@gmail.com"
+    // }, 'multiple')
+    // console.log(files)
 
     // var user = await db.addUser('Tobey', 'tobey@gmail.com', '123')
     // console.log(user)
@@ -1040,7 +1040,7 @@ const deleteExpiredFiles = async () => {
     // console.log(user)
     // var user = await db.addUser('Ash', 'ash@gmail.com', '123')
     // console.log(user)
-    // var user = await db.addUser('Jash', 'jash@gmail.com', '123')
+    // var user = await db.addUser('test', 'hail@gmail.com', '123')
     // console.log(user)
     console.log("exp files fn: ", expiredFiles)
   // for (const file of expiredFiles) {
