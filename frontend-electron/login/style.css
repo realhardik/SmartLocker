@@ -309,6 +309,40 @@ body{
     animation: move 0.6s;
 }
 
+.container.active-otp-register .back, .container.active-otp-reset .back {
+    display: block;
+    pointer-events: all;
+}
+
+.container.active-otp-register .toggle-container .hidden, .container.active-otp-reset .toggle-container .hidden {
+    display: none;
+    pointer-events: none;
+}
+
 .g_id_signin {
     margin: 20px 0;
 }
+
+#load {
+    z-index: 99;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    pointer-events: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.spinner-1 {
+    width: 70px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 8px solid;
+    border-color: #fff #0000;
+    animation: s1 1s infinite;
+}
+@keyframes s1 {to{transform: rotate(.5turn)}}

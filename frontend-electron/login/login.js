@@ -41,9 +41,15 @@ class login {
             return
         e.preventDefault()
         var container = F.G.id('container'),
-            actClass = targ.id === 'loginSwitch' ? 'remove' : 'add'
-        container.classList[actClass]('active')
-        container.classList['remove']('active-forgot')
+            classList = targ.classList
+        
+        if (classList.includes('back')) {
+
+        } else {
+            var actClass = targ.id === 'loginSwitch' ? 'remove' : 'add'
+            container.classList[actClass]('active')
+            container.classList['remove']('active-forgot')
+        }
     }
 
     async login() {
@@ -138,6 +144,10 @@ class login {
         } else {
             F.G.id('signupOtp').value = ""
         }
+    }
+
+    load() {
+
     }
 }
 
