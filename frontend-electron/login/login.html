@@ -30,6 +30,11 @@
                 for (let t = 0; t < s; t++)
                     r[e[t]] = r[e[t]].bind(r)
             },
+
+            hide: (e, t, c) => {
+                e.style.pointerEvents = t ? "all" : "none"
+                e.style.display = t ? (c || "block") : "none"
+            },
             
             class: (e, v, t) => {
                 try {

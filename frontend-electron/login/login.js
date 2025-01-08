@@ -58,10 +58,12 @@ class login {
     }
 
     async login() {
+        this.load(!0)
         var email = F.G.id('lEmail').value,
             password = F.G.id('lPass').value,
             result = await ipcRenderer.invoke('login', { email, password })
         F.G.id('lPass').value = ""
+        this.load()
         if (!result.success) {
             alert("Invalid Login Credentials.")
         }
@@ -69,10 +71,12 @@ class login {
 
     async forgotPassword(e) {
         if (e === 'verify') {
+            this.load(!0)
             var rEmail = F.G.id('resetEmail').value,
             otp = F.G.id('resetOTP').value,
             newPass = F.G.id('newPassword').value,
             response = await ipcRenderer.invoke('forgotPassword', { email: rEmail, otp: otp, newPass: newPass })
+            this.load()
             if (response.success) {
                 F.G.id('container').classList.remove('active-otp-reset')
                 alert('Updated Password Successfully.')
@@ -81,14 +85,16 @@ class login {
             alert(response.msg)
             return
         }
+        this.load()
     }
 
     async sendOtp(e) {
         const container = F.G.id('container')
+        this.load(!0)
         if (e === 'signUp') {
             var email = F.G.id('sEmail').value,
                 result = await ipcRenderer.invoke('sendOtp', e, email)
-            console.log(result)
+            this.load()
             if (result?.success) {
                 alert(result?.message || "OTP sent successfully.")
                 container.classList.remove("active");
@@ -109,6 +115,7 @@ class login {
             var email = F.G.id('resetEmail').value,
                 result = await ipcRenderer.invoke('sendOtp', e, email)
             console.log(result)
+            this.load()
             if (result?.success) {
                 container.classList.remove("active");
                 container.classList.remove("active-forgot");
@@ -121,6 +128,7 @@ class login {
         } else if (e === "resendForgot") {
             var email = F.G.id('resetEmail').value,
                 result = await ipcRenderer.invoke('sendOtp', 'forgotPass', email)
+            this.load()
             if (result?.success) {
                 alert('OTP resent successfully.')
             } else {
@@ -128,15 +136,18 @@ class login {
                 F.G.id('resetEmail').value = ""
             }
         }
+        this.load()
     }
 
     async signUp() {
+        this.load(!0)
         var name = F.G.id("sName").value,
             email = F.G.id('sEmail').value,
             password = F.G.id('sPass').value,
             otp = F.G.id('signupOtp').value,
             result = await ipcRenderer.invoke('signup', { name, email, password, otp }),
             container = F.G.id('container')
+        this.load()
         alert(result.message)
         
         if (result.success) {
@@ -151,8 +162,8 @@ class login {
         }
     }
 
-    load() {
-
+    load(s) {
+        F.hide(F.G.id('load'), (s || !1), 'flex')
     }
 }
 
