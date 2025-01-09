@@ -24,6 +24,10 @@ class login {
             event.preventDefault();
             this.sendOtp('resendForgot')
         });
+        F.G.id('resendSignupOTP').addEventListener('click', (event) => {
+            event.preventDefault();
+            this.sendOtp('resendSignup')
+        });
         F.G.id('setNewPassword').addEventListener('click', (event) => {
             event.preventDefault();
             this.forgotPassword('verify')
@@ -103,20 +107,20 @@ class login {
             } else {
                 alert(result?.message || "Couldn't send otp at the moment.")
                 if (result?.message?.includes('invalid')) {
-                    F.G.id('signupOTP').value = ""
+                    F.G.id('signupOtp').value = ""
                 } else {
                     F.G.id("sName").value = ""
                     F.G.id('sEmail').value = ""
                     F.G.id('sPass').value = ""
-                    F.G.id('signupOTP').value = ""
+                    F.G.id('signupOtp').value = ""
                 }
             }
         } else if (e === 'forgotPass') {
             var email = F.G.id('resetEmail').value,
                 result = await ipcRenderer.invoke('sendOtp', e, email)
-            console.log(result)
             this.load()
             if (result?.success) {
+                alert(result?.message || "OTP sent successfully.")
                 container.classList.remove("active");
                 container.classList.remove("active-forgot");
                 container.classList.add("active-otp-reset");
@@ -134,6 +138,15 @@ class login {
             } else {
                 alert(result?.message || "Couldn't send otp at the moment.")
                 F.G.id('resetEmail').value = ""
+            }
+        } else if (e === 'resendSignup') {
+            var email = F.G.id('sEmail').value,
+                result = await ipcRenderer.invoke('sendOtp', 'signUp', email)
+            this.load()
+            if (result?.success) {
+                alert('OTP resent successfully.')
+            } else {
+                alert(result?.message || "Couldn't send otp at the moment.")
             }
         }
         this.load()

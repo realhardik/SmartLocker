@@ -44,12 +44,19 @@ const h = {
   },
   sendMail: async (data) => {
     try {
+      const templatePath = path.join(__dirname, "static", 'otpTemplate.html');
+      let htmlContent = fs.readFileSync(templatePath, 'utf-8');
+      
+      htmlContent = htmlContent
+      .replace(/{{content}}/g, data.content || '')
+      .replace(/{{currentYear}}/g, new Date().getFullYear());
+
       let mailOptions = {
         from: '"Smart Locker noreply" <noreply@gmail.com>',
         to: data.to,
         subject: data.subject,
         text: data.text,
-        html: data.html
+        html: htmlContent
       };
   
       const result = await new Promise((resolve, reject) => {
@@ -544,8 +551,11 @@ app.get('/signup', async (req, res) => {
       to: email,
       subject: 'Email Verification - OTP',
       text: `Your OTP for verification is: ${otp}`,
-      html: `<h2>Your OTP for verification is: <b>${otp}</b></h2>\n<h4>OTP is valid for 5 minutes.</h4>`
+      content: `<p>Use the OTP below to Sign up:</p>
+      <div class="otp">${otp}</div>
+      <p>This OTP is valid for the next 5 minutes. Please do not share it with anyone.</p>`
     })
+
     if (!sendotp.success) {
       alert(sendotp.msg || "Couldn't send otp at the moment. \nTry again later.")
       return res.status(401).json({ success: false, message: "Couldn't send email at the moment. \n Try again later" })
@@ -935,8 +945,21 @@ app.post('/forgotPassword', async (req, res) => {
     chkE = await db.search('Users', { email: email }, 'findOne')
 
   if (!chkE.success || !chkE.result)
-    return res.status(401).json({ success: false, msg: "Couldn't find the user." })
-        
+    return res.status(401).json({ success: false, message: "Couldn't find the user." })
+  
+  var prevReq = await db.search('otp', {
+    email: email,
+    type: "forgotPass"
+  }, 'findOne')
+
+  if (prevReq.success) {
+    const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+    if (new Date(prevReq.result.createdAt) > oneMinuteAgo) {
+        res.status(401).json({ success: false, message: "OTP was created less than a minute ago."})
+        return
+    }
+  }
+  
   let otp = otpGen.generate(6, { specialChars: false })
 
   try {
@@ -946,7 +969,10 @@ app.post('/forgotPassword', async (req, res) => {
       to: email,
       subject: 'Forgot Password - OTP',
       text: `Your OTP for resetting password: ${otp}`,
-      html: `<h2>Your OTP for resetting password is: <b>${otp}</b></h2>\n<h4>OTP is valid for 5 minutes.</h4>`
+      content: `<p>Hi ${chkE.result.name || "User"},</p>
+      <p>Use the OTP below to Reset Password:</p>
+      <div class="otp">${otp}</div>
+      <p>This OTP is valid for the next 5 minutes. Please do not share it with anyone.</p>`
     })
     if (!sendotp.success) {
       alert(sendotp.msg || "Couldn't send otp at the moment. \nTry again later.")
@@ -955,7 +981,7 @@ app.post('/forgotPassword', async (req, res) => {
     res.status(200).json(sendotp);
   } catch (err) {
     console.error('Server error:', err);
-    res.status(500).json({ success: false, msg: "Server error." });
+    res.status(500).json({ success: false, message: "Server error." });
   }
 })
 
@@ -1029,10 +1055,10 @@ const deleteExpiredFiles = async () => {
     // console.log(files)
     // var files = await db.remove('Files', {}, 'multiple')
     // console.log(files)
-    // var files = await db.remove('Users', {
-    //   email: "hail@gmail.com"
-    // }, 'multiple')
-    // console.log(files)
+    var files = await db.remove('Users', {
+      email: "ujc183@gmail.com"
+    }, 'multiple')
+    console.log(files)
 
     // var user = await db.addUser('Tobey', 'tobey@gmail.com', '123')
     // console.log(user)

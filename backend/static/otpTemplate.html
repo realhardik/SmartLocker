@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333333;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      background: #ffffff;
+      border: 1px solid #dddddd;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(288deg, #0055ff, #043873);
+      color: white;
+      text-align: center;
+      padding: 20px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .content {
+      padding: 20px;
+    }
+    .otp {
+      font-size: 32px;
+      font-weight: bold;
+      color: #0055ff;
+      text-align: center;
+      margin: 20px 0;
+    }
+    .note {
+      font-size: 14px;
+      color: #777777;
+    }
+    .footer {
+      background-color: #f1f1f1;
+      text-align: center;
+      padding: 10px;
+      font-size: 12px;
+      color: #888888;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      Smart Locker
+    </div>
+    <div class="content">
+      {{content}}
+    </div>
+    <div class="footer">
+      &copy; {{currentYear}} Smart Locker | All rights reserved.
+    </div>
+  </div>
+</body>
+</html>
