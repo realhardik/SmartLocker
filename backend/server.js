@@ -727,6 +727,15 @@ app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => 
       fileEntry.watermark_options = JSON.parse(otherData.watermark_options)
     }
     var result = await db.addFile(fileEntry)
+    to.forEach(async (o) => {
+      await db.add('chatLog', {
+        from: from,
+        to: o.user,
+        mType: 'file',
+        content: otherData.fileName,
+        cType: 'solo'
+      })
+    })
     console.log("new file: ", fileEntry)
     res.status(201).json(result);
   } catch (err) {
