@@ -725,7 +725,7 @@ nav>section:first-child .button.active {
 
 .pUser {
     justify-content: flex-end; 
-    text-align: right;
+    text-align: left;
 }
 
 .sUser>span, .pUser>span {
@@ -761,15 +761,30 @@ nav>section:first-child .button.active {
     position: relative;
     height: 100%;
     max-width: 35%;
-    padding: 3px 5px;
+    padding: 5px 8px;
     border-radius: 3px;
+    display: flex;
+    flex-direction: column;
+}
+
+.cContent>div:first-child {
+    color: #45e06a;
+    font-size: 15px;
+}
+
+.sUser .cContent.g>div:first-child::before {
+    content: "~";
+    float: left;
+}
+
+.cContent>div:last-child {
     display: flex;
     flex-direction: row;
     align-items: flex-end;
     justify-content: space-between;
 }
 
-.cContent>span {
+.mContent {
     margin-bottom: 4px;
     margin-right: 3px;
     overflow-wrap: break-word;
@@ -781,6 +796,26 @@ nav>section:first-child .button.active {
 
 .pUser .cContent {
     background-color: #415a77;
+}
+
+.sUser .cContent.file .filename {
+    background-color:  #004a50;
+}
+
+.pUser .cContent.file .filename {
+    background-color:  #2e4156;
+}
+
+.cContent.file .filename {
+    text-align: left;
+    color: white;
+    padding: 10px 10px;
+    min-width: 100px;
+    border-radius: 3px;
+}
+
+.cContent.file .mHeader {
+    cursor: pointer;
 }
 
 #addChat, #addGroup, #receiveFiles, #receivedFiles {

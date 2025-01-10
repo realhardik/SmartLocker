@@ -738,7 +738,8 @@ class chat {
         this.profS = F.G.id("profS"),
         this.aProfChat = F.G.id("sChat"),
         this.profTemp = F.G.id("profile").content.firstElementChild.cloneNode(true),
-        this.msgTemp = F.G.id("message").content.firstElementChild.cloneNode(true),
+        this.pmsgTemp = F.G.id("pUser").content.firstElementChild.cloneNode(true),
+        this.smsgTemp = F.G.id("sUser").content.firstElementChild.cloneNode(true),
         this.grpTemp = F.G.id("grpMemListProf").content.firstElementChild.cloneNode(true)
         this.load = F.G.id('loadChat')
         this.chatS = F.G.id('chat')
@@ -1001,6 +1002,7 @@ class chat {
             alert("Couldn't fech chats at the moment. Try again Later.")
             return
         }
+        console.log(history.data.result)
         var response = history.data.result,
             chats = response.map(e => {
                 var from = data.type === 'group' ? e.from._id : e.from
@@ -1017,35 +1019,33 @@ class chat {
             lastM = !1,
             type = data.type,
             chats = data.chats
-        chats.forEach(c => {
-            var tempDiv = F.Cr('div'),
-                tempSpan = F.Cr('span'),
-                sCon;
-            if (c.context === "sent") {
-                tempDiv.classList.add('pUser')
-            } else if ('received' === c.context) {
-                tempDiv.classList.add('sUser')
-            }
-
-            if (type === "group" && c.context === "received") {
-                tempDiv.appendChild(tempSpan)
-                sCon = F.G.query('span', tempDiv)
-                tempSpan = F.Cr('span')
-                tempSpan.classList.add('gUserName')
-                tempSpan.innerText = c.name
-                tempDiv.classList.add('g')
-                sCon.appendChild(tempSpan)
-                tempSpan = F.Cr('span')
-                tempSpan.innerText = c.content
-                sCon.appendChild(tempSpan)
-            } else {
-                tempSpan.innerText = c.content
-                tempDiv.appendChild(tempSpan)
-            }
-            !lastM && cSection.appendChild(tempDiv)
-            lastM && cSection.insertBefore(tempDiv, lastM)
-            lastM = tempDiv
-        })
+            console.log(chats)
+            chats.forEach(c => {
+                var tempName = c.context === 'sent' ? "pmsgTemp" : "smsgTemp",
+                    template = this[tempName].cloneNode(true),
+                    message = F.G.class('mContent', template)[0],
+                    time = F.G.class('cTime', template)[0],
+                    mHeader = F.G.class('mHeader', template)[0]
+                if (type === "group") {
+                    var tField = F.G.class('cContent', template)[0]
+                    tField.classList.add('g')
+                    if (c.context === 'received')
+                        F.G.class('grpName', template)[0].textContent = c.name
+                }
+                if (c.type.toLowerCase() === 'file') {
+                    var tField = F.G.class('cContent', template)[0]
+                    tField.classList.add('file')
+                    var tSpan = F.Cr('span')
+                    tSpan.classList.add('filename')
+                    tSpan.textContent = c.content || "Couldn't load file."
+                    mHeader.appendChild(tSpan)
+                }
+                message.textContent = c.type === "file" ? "" : (c.content || "couldn't load chats. Sign in again.")
+                time.textContent = c?.time || "12:24"
+                !lastM && cSection.appendChild(template)
+                lastM && cSection.insertBefore(template, lastM)
+                lastM = template
+            })
         if (data?.new) {
             F.hide(F.G.id('chat'), !0, "flex")
             F.hide(this.load)

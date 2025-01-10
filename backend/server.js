@@ -399,7 +399,7 @@ io.on('connection', (socket) => {
     var anc = await db.add('chatLog', {
         from: senderId,
         to: convId,
-        mType:  mType || "text",
+        type:  mType || "text",
         content: message,
         cType: cType || 'solo'
     })
@@ -728,13 +728,15 @@ app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => 
     }
     var result = await db.addFile(fileEntry)
     to.forEach(async (o) => {
-      await db.add('chatLog', {
+      var fileLog = await db.add('chatLog', {
         from: from,
         to: o.user,
-        mType: 'file',
+        type: 'file',
         content: otherData.fileName,
         cType: 'solo'
       })
+      console.log(fileLog)
+      console.log('new')
     })
     console.log("new file: ", fileEntry)
     res.status(201).json(result);
