@@ -224,6 +224,9 @@ class fileSharing {
                 F.class([F.G.id('app')], ["disable"], !0)
                 return
             } else {
+                console.log('emiting')
+                console.log(data)
+                socket.emit('sharedFile', data)
                 alert(data.msg);
             }
             F.class([F.G.id('app')], ["disable"], !0)
@@ -397,10 +400,6 @@ class fileSharing {
         data.layers = layers
         data.passwords = passPhrases
         data.fId = file._id
-        data.watermark = file.watermark
-        if (file.watermark) {
-            data.watermark_options = file.watermark_options
-        }
         F.hide(dBox)
         ipcRenderer.invoke('render', data)
     }
@@ -550,12 +549,12 @@ class gen {
         if (tab) {
             var s = tab === 'dashboard' ? 'chatSection' : 'dashboard',
                 tabButtons = Array.from(F.G.query('[data-tab]', document, "all"))
-            F.G.id(s)["style"].opacity = '0'
-            F.G.id(s)["style"].pointerEvents = 'none'
-            // F.hide(F.G.id(s))
-            // F.hide(F.G.id(tab), !0)
-            F.G.id(tab).style.opacity = '1'
-            F.G.id(tab).style.pointerEvents = "all"
+            // F.G.id(s)["style"].opacity = '0'
+            // F.G.id(s)["style"].pointerEvents = 'none'
+            F.hide(F.G.id(s))
+            F.hide(F.G.id(tab), !0, 'flex')
+            // F.G.id(tab).style.opacity = '1'
+            // F.G.id(tab).style.pointerEvents = "all"
             target.classList.add('active')
             tabButtons.forEach(e => e !== target && e.classList.remove('active'));
         } else if (logout) {
@@ -1006,9 +1005,10 @@ class chat {
         var response = history.data.result,
             chats = response.map(e => {
                 var from = data.type === 'group' ? e.from._id : e.from
-                if (from !== tokenReq.user._id) return { context: "received", type: e.type, content: e.content, name: e.from?.name || "solo" }
-                if (from === tokenReq.user._id) return { context: "sent", type: e.type, content: e.content }
-                return null
+                if (from !== tokenReq.user._id) { data = {context: "received", type: e.type, content: e.content, name: e.from?.name || "solo"} }
+                if (from === tokenReq.user._id) { data = {context: "sent", type: e.type, content: e.content} }
+                if (e.type === 'file') { data.file = e?.otherData }
+                return data
             })
         F.G.id('sChat').innerHTML = ""
         this.renderMessages({ type: data.type, chats: chats, new: !0 })
@@ -1037,10 +1037,17 @@ class chat {
                     tField.classList.add('file')
                     var tSpan = F.Cr('span')
                     tSpan.classList.add('filename')
-                    tSpan.textContent = c.content || "Couldn't load file."
+                    tSpan.textContent = c.file.fName || "Couldn't load file."
                     mHeader.appendChild(tSpan)
+                    mHeader.fCon = {
+                        fId: c.file._id,
+                        from: c.file.from,
+                        fName: c.file.fName,
+                        expriy: F.getLocalTime(c.file.expiry),
+                        status: c.file.status
+                    }
                 }
-                message.textContent = c.type === "file" ? "" : (c.content || "couldn't load chats. Sign in again.")
+                message.textContent = c.content || ""
                 time.textContent = c?.time || "12:24"
                 !lastM && cSection.appendChild(template)
                 lastM && cSection.insertBefore(template, lastM)

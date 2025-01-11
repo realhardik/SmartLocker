@@ -150,7 +150,8 @@ const db = new class {
       from: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
       to: { type: mongoose.Schema.Types.ObjectId, required: true },
       type: { type: String, enum: ['file', 'text'], default: 'text' },
-      content: String
+      content: String,
+      otherData: { type: mongoose.Schema.Types.ObjectId }
     });
     
     this.fileLog = new mongoose.Schema({
@@ -270,9 +271,13 @@ const db = new class {
           let originalResults = await queryObj.clone(); 
 
           if (populate) {
-              for (const { field, select } of populate) {
-                  queryObj = queryObj.populate(field, select);
+            for (const { field, select, modelCol } of populate) {
+              if (modelCol) {
+                queryObj = queryObj.populate({ path: field, select, model: modelCol });
+              } else {
+                queryObj = queryObj.populate(field, select);
               }
+            }
           }
           result = await queryObj;
           // populate &&  (result = {
@@ -514,6 +519,20 @@ io.on('connection', (socket) => {
     await db.search('chatLog', { _id: message._id }, 'findOneAndUpdate', { read: true })
   });
 
+  socket.on('sharedFile', async (data) => {
+    console.log('file shared')
+    console.log(data)
+    var { file } = data
+    file.to.forEach(u => {
+      if (u.user.equals(file.from)) {
+        console.log('emitting');
+        socket.emit('sharedFile', file);
+      } else {
+        socket.to(u.user).emit('sharedFile', file);
+      }
+    })
+  })
+
   socket.on('disconnect', () => {
       console.log('Socket disconnected:', socket.id);
   });
@@ -728,17 +747,15 @@ app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => 
     }
     var result = await db.addFile(fileEntry)
     to.forEach(async (o) => {
-      var fileLog = await db.add('chatLog', {
+      var chatlog = await db.add('chatLog', {
         from: from,
         to: o.user,
         type: 'file',
-        content: otherData.fileName,
-        cType: 'solo'
+        content: "",
+        otherData: result?.file?._id
       })
-      console.log(fileLog)
-      console.log('new')
+      console.log(chatlog)
     })
-    console.log("new file: ", fileEntry)
     res.status(201).json(result);
   } catch (err) {
     console.log(err)
@@ -837,12 +854,15 @@ app.get('/chatLog/:convId', authenticateJWT, async (req, res) => {
         { from: userId, to: otherUser },
         { from: otherUser, to: userId }
       ]
-    })
+    }, 'find', null, [
+      { field: 'otherData', modelCol: 'fileLogs', select: '_id fName from expiry status' }
+    ])
   } else if (type === 'group') {
     history = await db.search('chatLog', {
       to: otherUser
     }, 'find', null, [
-      { field: 'from', select: '_id name' }
+      { field: 'from', select: '_id name' },
+      { field: 'otherData', modelCol: 'fileLogs', select: '_id fName from expiry status' }
     ])
   }
   
@@ -867,9 +887,10 @@ app.post('/download/:fileId', authenticateJWT, async (req, res) => {
     }
     fileEntry = fileEntry.result
 
-    if (!data.selected_algos || !data.all_passphrases || !data.filename) {
+    if (!data.selected_algos || !data.all_passphrases) {
       return res.status(400).json({ error: "Missing required fields" });
     }
+
     if (fileEntry.rView) {
       const userIndex = fileEntry.to.findIndex(entry => entry.user.toString() === to.toString());
       if (userIndex == -1) {
@@ -887,9 +908,21 @@ app.post('/download/:fileId', authenticateJWT, async (req, res) => {
         return res.json({ success: false, msg: "Max Views Reached." });
       }
     }
+
     const formData = new FormData();
     formData.append('encrypted_files.zip', fs.createReadStream(fileEntry.fPath));
-    formData.append('data', JSON.stringify(data));
+    formData.append('data', {
+      "selected_algos": data.layers,
+      "all_passphrases": data.passwords,
+      "filename": "encrypted",
+      "watermark_text": fileEntry.watermark || "",
+      "watermark_color": fileEntry.watermark || "",
+      "watermark_size": fileEntry.watermark || 40,
+      "watermark_opacity": fileEntry.watermark || 0,
+      "watermark_row": fileEntry.watermark || 3,
+      "watermark_column": fileEntry.watermark || 3
+    });
+    
     const response = await axios.post('http://127.0.0.1:5000/decrypt', formData, {
       headers: {
         ...formData.getHeaders()
@@ -1033,29 +1066,6 @@ const deleteExpiredFiles = async () => {
         expiredFiles = await db.search('Files', { expiry: { $lt: today } }, 
           'updateMany', {  status: 'Expired' }
         )
-    // var files = await db.add('chat', {
-    //   sender: "673862264a4c42d533ceff44",
-    //   receiver: "672f9d597d4158f3e7170458"
-    // })
-    // var files = await db.add('chat', {
-    //   sender: "672f9d597d4158f3e7170458",
-    //   receiver: "673862264a4c42d533ceff44"
-    // })
-    // var files = await db.add('chatLog', {
-    //   from: "673862264a4c42d533ceff44",
-    //   to: "672f9d597d4158f3e7170458",
-    //   content: "Hi"
-    // })
-    // var files = await db.add('chatLog', {
-    //   from: "672f9d597d4158f3e7170458",
-    //   to: "673862264a4c42d533ceff44",
-    //   content: "Hello"
-    // })
-    // var files = await db.add('chatLog', {
-    //   from: "673862264a4c42d533ceff44",
-    //   to: "672f9d597d4158f3e7170458",
-    //   content: "How are you!"
-    // })
     // var files = await db.remove('chat', {}, 'multiple')
     // console.log("files fn: ", files)
     // var files = await db.remove('chatLog', {}, 'multiple')
@@ -1070,7 +1080,6 @@ const deleteExpiredFiles = async () => {
       email: "ujc183@gmail.com"
     }, 'multiple')
     console.log(files)
-
     // var user = await db.addUser('Tobey', 'tobey@gmail.com', '123')
     // console.log(user)
     // var user = await db.addUser('Brock', 'brock@gmail.com', '123')

@@ -45,7 +45,6 @@ class oRender {
         try {
             console.log(e)
             var { fId } = e,
-            watermark_opt = e.watermark_options,
             tokenReq = await F.getToken()
             console.log(e)
             const response = await fetch(`${BASE_URL}/download/${fId}`, {
@@ -56,14 +55,7 @@ class oRender {
                 },
                 body: JSON.stringify({
                     "selected_algos": e.layers,
-                    "all_passphrases": e.passwords,
-                    "filename": "encrypted",
-                    "watermark_text": e.watermark ? watermark_opt.custom : "",
-                    "watermark_color": e.watermark ? watermark_opt.color : "",
-                    "watermark_size": e.watermark ? watermark_opt.size : 40,
-                    "watermark_opacity": e.watermark ? watermark_opt.opacity : 0,
-                    "watermark_row": e.watermark ? watermark_opt.rows : 3,
-                    "watermark_column": e.watermark ? watermark_opt.columns : 3
+                    "all_passphrases": e.passwords
                 })
             });
 
