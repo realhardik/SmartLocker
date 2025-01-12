@@ -818,6 +818,10 @@ nav>section:first-child .button.active {
     cursor: pointer;
 }
 
+.mHeader span {
+    pointer-events: none;
+}
+
 #addChat, #addGroup, #receiveFiles, #receivedFiles {
     display: none;
     pointer-events: none;

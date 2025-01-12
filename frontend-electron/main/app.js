@@ -352,7 +352,7 @@ class fileSharing {
                     wCol = F.G.id('watermark_columns'),
                     wOpacity = F.G.id('watermark_opacity'),
                     wVal = {}
-                wVal.custom = wCustom.value.length > 0 ? wCustom.value : 'Default'
+                wVal.text = wCustom.value.length > 0 ? wCustom.value : 'Default'
                 wVal.color = wColor.value
                 wVal.rows = wRows.value
                 wVal.columns = wCol.value
@@ -472,8 +472,9 @@ class fileSharing {
         var t = e.target,
             f = !1,
             tokenReq = await F.getToken()
+        console.log(t)
         for (; t;) {
-            if ("TR" === t.tagName) {
+            if ("TR" === t.tagName || t.classList.contains('mHeader')) {
                 f = !0;
                 break
             }
@@ -520,8 +521,8 @@ class fileSharing {
 class gen {
     constructor(data) {
         F.BM(this, ["closeDialog", "openDialog", "handleInputs", "handleNav", "logout"])
-        this.chat = new chat
         this.fileSharing = new fileSharing
+        this.chat = new chat(this.fileSharing)
         this.profileView = F.G.id('viewProfile')
         F.G.class('d').forEach(e => {
             F.l('click', e, this.openDialog)
@@ -739,7 +740,7 @@ class gen {
 }
 
 class chat {
-    constructor() {
+    constructor(file) {
         this.profS = F.G.id("profS"),
         this.aProfChat = F.G.id("sChat"),
         this.profTemp = F.G.id("profile").content.firstElementChild.cloneNode(true),
@@ -751,7 +752,7 @@ class chat {
         this.grpList = F.G.id('grpMemList')
         this.activeProfile = F.G.id('tChat')
         this.chatUsers = new Map()
-
+        this.fileSharingIns = file
         F.BM(this, ["addChat", "openChat", "addNewUser", "addNewGroup", "sendMessage", "createChat", "fetchMessages"])
         F.BM(this, ['init', 'leaveGroup', 'newMessageLog'])
         this.profS = F.G.id('profS')
@@ -1057,6 +1058,7 @@ class chat {
                 time.textContent = c?.time || "12:24"
                 !lastM && cSection.appendChild(template)
                 lastM && cSection.insertBefore(template, lastM)
+                c?.type === 'file' && c.context === 'received' && F.l('click', template, this.fileSharingIns.oRender)
                 lastM = template
             })
         if (data?.new) {

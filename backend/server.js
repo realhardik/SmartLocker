@@ -14,6 +14,7 @@ const { Server } = require('socket.io')
 const nodemailer = require('nodemailer')
 const otpGen = require('otp-generator')
 const { type } = require('os')
+const { text } = require('stream/consumers')
 
 const app = express()
 const server = http.createServer(app)
@@ -172,7 +173,7 @@ const db = new class {
       status: { type: String, enum:['Active', 'Expired'], default: 'Active' },
       watermark: { type: Boolean, default: false },
       watermark_options: {
-        custom: { type: String, default: "" },
+        text: { type: String, default: "" },
         color: { type: String, default: "#FF0000" },
         size: { type: Number, default: 40 },
         rows: { type: Number, default: 3 },
@@ -716,7 +717,6 @@ async function decrypt(file, data) {
 }
 
 app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => {
-  console.log(req.body)
   const from = req.user.data._id,
         file = req.file,
         data = typeof req.body.data === 'string' ? JSON.parse(req.body.data) : req.body.data,
@@ -736,7 +736,6 @@ app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => 
   let savedFileData;
   try {
     savedFileData = await encrypt(file, data)
-    console.log("saved file: ", savedFileData)
     var filehash = await generateFileHash(savedFileData.path),
         fileEntry = {
           from: from,
@@ -747,10 +746,10 @@ app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => 
           expiry: otherData.expiry,
           rView: otherData.limit_views,
           maxViews: otherData.max_views || -1,
-          watermark: otherData.watermark
+          watermark: otherData.watermark?.trim()?.toLowerCase() === 'true'
         }
-    console.log(otherData.watermark_options)
-    if (otherData.watermark) {
+    console.log(fileEntry)
+    if (fileEntry.watermark) {
       fileEntry.watermark_options = JSON.parse(otherData.watermark_options)
     }
     var result = await db.addFile(fileEntry)
@@ -883,18 +882,20 @@ app.post('/download/:fileId', authenticateJWT, async (req, res) => {
   const { fileId } = req.params;
   const to = req.user.data._id;
   const data = req.body
+  console.log(data)
   if (!fileId) {
     return res.status(400).json({ success: false, msg: 'File id required' });
   }
 
   try {
     let fileEntry = await db.search('Files', { _id: fileId }, 'findOne');
-
+    console.log(fileId)
     if (!fileEntry.success || !fileEntry.result) {
       return res.json({ success: false, msg: 'File not found or access denied' });
     }
+    console.log(fileEntry)
     fileEntry = fileEntry.result
-
+    console.log(fileEntry)
     if (!data.selected_algos || !data.all_passphrases) {
       return res.status(400).json({ error: "Missing required fields" });
     }
@@ -918,18 +919,22 @@ app.post('/download/:fileId', authenticateJWT, async (req, res) => {
     }
 
     const formData = new FormData();
+    var dataObj = {
+      "selected_algos": data.selected_algos,
+      "all_passphrases": data.all_passphrases,
+      "filename": "encrypted"
+    },
+    watermark_options = [
+      ["watermark_text", "text", ""], ["watermark_color", "color", ""], ["watermark_size", "size", 40],
+      ["watermark_opacity", "opacity", 0], ["watermark_row", "row", 3], ["watermark_column", "column", 3]
+    ],
+    watermark = fileEntry.watermark
+    for (let opt of watermark_options) {
+      dataObj[opt[0]] = watermark ? fileEntry.watermark_options[opt[1]] : opt[2];
+    }
+    console.log('sending data', dataObj)
     formData.append('encrypted_files.zip', fs.createReadStream(fileEntry.fPath));
-    formData.append('data', {
-      "selected_algos": data.layers,
-      "all_passphrases": data.passwords,
-      "filename": "encrypted",
-      "watermark_text": fileEntry.watermark || "",
-      "watermark_color": fileEntry.watermark || "",
-      "watermark_size": fileEntry.watermark || 40,
-      "watermark_opacity": fileEntry.watermark || 0,
-      "watermark_row": fileEntry.watermark || 3,
-      "watermark_column": fileEntry.watermark || 3
-    });
+    formData.append('data', JSON.stringify(dataObj));
     
     const response = await axios.post('http://127.0.0.1:5000/decrypt', formData, {
       headers: {
