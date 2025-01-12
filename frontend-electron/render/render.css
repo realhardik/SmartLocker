@@ -1,0 +1,117 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #e0f7fc;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh; 
+}
+  
+.main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 900px;
+    height: 100%;
+    justify-content: center;
+}
+
+.pdf-container {
+    position: relative;
+    border: 1px solid #ccc;
+    width: 90%;
+    height: 85vh; 
+    padding: 0;
+    background-color: #fff;
+    overflow: auto;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: center;
+}
+
+.top-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+  
+.input {
+    width: 100px;
+    padding: 6px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    outline: none;
+}
+  
+.input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+}
+  
+.btn {
+    padding: 6px 14px;
+    font-size: 15px; 
+    border-radius: 4px;
+    background-color: #007bff;
+    color: #fff;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+  
+.btn:hover {
+    background-color: #0056b3;
+}
+
+.bottom-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+  
+.page-num {
+    font-size: 14px;
+    font-weight: bold;
+    color: #007bff;
+}
+  
+.zoom-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+  
+.icon-btn {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    width: 35px;
+    height: 35px;
+    transition: transform 0.3s ease;
+}
+  
+.icon-btn:hover {
+    transform: scale(1.1);
+}
+  
+.icon {
+    width: 30px;
+    height: 30px;
+    stroke: #007bff;
+    fill: none;
+}
