@@ -216,18 +216,24 @@ class fileSharing {
                         'Authorization': `Bearer ${token}`
                     }
                 });
-            console.log(response)
-            data = response.data
-            console.log(data)
-            if (!data.success) {
-                alert('Error: ' + (data?.msg || "Try again later"));
+            response = response.data
+            if (!response.success) {
+                alert('Error: ' + (response?.msg || "Try again later"));
                 F.class([F.G.id('app')], ["disable"], !0)
                 return
             } else {
                 console.log('emiting')
-                console.log(data)
-                socket.emit('sharedFile', data)
-                alert(data.msg);
+                console.log({
+                    from: tokenReq.user._id,
+                    type: "file",
+                    otherData: response.file
+                })
+                socket.emit('sharedFile', {
+                    from: tokenReq.user._id,
+                    type: "file",
+                    otherData: response.file
+                })
+                alert(response.msg);
             }
             F.class([F.G.id('app')], ["disable"], !0)
         } catch (error) {
@@ -1063,8 +1069,10 @@ class chat {
         let refChat;
         let cInput = F.G.id('textMessage');
         let count;
+        console.log('new message', newChat)
         newChat.from === this.userData.user._id && (refChat = { context: "sent", type: newChat.type, content: newChat.content }) && (cInput.value = "")
         newChat.to === this.userData.user._id && (refChat = { context: "received", type: newChat.type, content: newChat.content })
+        newChat.type === 'file' && (refChat.file = newChat.otherData)
         if (type === "newMessage" && this.chatUsers.has(newChat.from)) {
             var context = this.chatUsers.get(newChat.from),
             element = context.el

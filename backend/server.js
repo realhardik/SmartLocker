@@ -522,14 +522,22 @@ io.on('connection', (socket) => {
   socket.on('sharedFile', async (data) => {
     console.log('file shared')
     console.log(data)
-    var { file } = data
+    var file = data.otherData
     file.to.forEach(u => {
-      if (u.user.equals(file.from)) {
-        console.log('emitting');
-        socket.emit('sharedFile', file);
-      } else {
-        socket.to(u.user).emit('sharedFile', file);
-      }
+        socket.to(u.user).emit('newMessage', {
+          from: data.from,
+          to: u.user,
+          type: 'file',
+          content: "",
+          otherData: file
+        });
+    })
+    socket.emit('newMessage', {
+      from: data.from,
+      to: file.to,
+      type: 'file',
+      content: "",
+      otherData: file
     })
   })
 
@@ -1075,6 +1083,10 @@ const deleteExpiredFiles = async () => {
     // var files = await db.remove('group', {}, 'multiple')
     // console.log(files)
     // var files = await db.remove('Files', {}, 'multiple')
+    // console.log(files)
+    // var files = await db.remove('chatLog', {
+    //   type: 'file'
+    // }, 'multiple')
     // console.log(files)
     var files = await db.remove('Users', {
       email: "ujc183@gmail.com"
