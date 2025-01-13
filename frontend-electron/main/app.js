@@ -27,7 +27,7 @@ F.getToken = async () => {
 F.getLocalTime = (d, c) => {
     var utcDate = new Date(d);
     var ret = c === "date" ? utcDate.toLocaleDateString() :
-            c === 'time' ? utcDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 
+            c === 'time' ? utcDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }) : 
             utcDate.toLocaleString()
     return ret
 }
@@ -419,10 +419,10 @@ class fileSharing {
         ipcRenderer.invoke('render', data)
     }
 
-    async fetchFiles() {
+    async fetchFiles(e) {
         F.G.id('receivedFiles').classList.remove('disable')
         F.hide(F.G.id('receivedFiles'), !0)
-        this.init('receivedFiles')
+        this.init('receivedFiles', e.target)
         var tokenReq = await F.getToken(),
             sender = F.G.id('tChat').con.convId || "",
             token = tokenReq.token
@@ -1000,6 +1000,7 @@ class chat {
     }
 
     async fetchMessages(data) {
+        console.log(data.type)
         var tokenReq = await F.getToken(),
             history = await axios.get(`${BASE_URL}/chatLog/${data.convId}`, {
                 params: {
@@ -1013,14 +1014,16 @@ class chat {
             alert("Couldn't fech chats at the moment. Try again Later.")
             return
         }
+        let chat;
         console.log(history.data.result)
         var response = history.data.result,
             chats = response.map(e => {
                 var from = data.type === 'group' ? e.from._id : e.from
-                if (from !== tokenReq.user._id) { data = {context: "received", type: e.type, content: e.content, name: e.from?.name || "solo"} }
-                if (from === tokenReq.user._id) { data = {context: "sent", type: e.type, content: e.content} }
-                if (e.type === 'file') { data.file = e?.otherData }
-                return data
+                if (from !== tokenReq.user._id) { chat = {context: "received", type: e.type, content: e.content, name: e.from?.name || "solo"} }
+                if (from === tokenReq.user._id) { chat = {context: "sent", type: e.type, content: e.content} }
+                if (e.type === 'file') { chat.file = e?.otherData }
+                chat.timestamp = e.timestamp
+                return chat
             })
         F.G.id('sChat').innerHTML = ""
         this.renderMessages({ type: data.type, chats: chats, new: !0 })
@@ -1031,6 +1034,7 @@ class chat {
             lastM = !1,
             type = data.type,
             chats = data.chats
+            console.log(data.type)
             console.log(chats)
             chats.forEach(c => {
                 var tempName = c.context === 'sent' ? "pmsgTemp" : "smsgTemp",
@@ -1038,9 +1042,13 @@ class chat {
                     message = F.G.class('mContent', template)[0],
                     time = F.G.class('cTime', template)[0],
                     mHeader = F.G.class('mHeader', template)[0]
+                message.textContent = c.content || ""
                 if (type === "group") {
                     var tField = F.G.class('cContent', template)[0]
                     tField.classList.add('g')
+                    console.log(c.context)
+                    console.log(F.G.class('grpName', template))
+                    console.log(template)
                     if (c.context === 'received')
                         F.G.class('grpName', template)[0].textContent = c.name
                 }
@@ -1058,12 +1066,17 @@ class chat {
                         expriy: F.getLocalTime(c.file.expiry),
                         status: c.file.status
                     }
+                    var expF = F.G.class('mContent', template)[0],
+                        notLoad = "Couldn't Load. Try logging in again."
+                    expF.innerHTML = `Status: ${c?.file?.status || notLoad}.`
+                    c?.file?.status === 'Active' && (expF.innerHTML += `<br>Expiry: ${F.getLocalTime(c.file.expiry, 'date')}, ${F.getLocalTime(c.file.expiry, 'time')}`)
                 }
-                message.textContent = c.content || ""
-                time.textContent = c?.time || "12:24"
+                console.log(c)
+                time.textContent = F.getLocalTime(c.timestamp, 'time') || "12:24"
                 !lastM && cSection.appendChild(template)
                 lastM && cSection.insertBefore(template, lastM)
-                c?.type === 'file' && c.context === 'received' && F.l('click', template, (e) => {this.fileSharingIns.init('receivedFiles'); this.fileSharingIns.oRender(e) })
+                console.log(c.file)
+                c?.type === 'file' && c.context === 'received' && c.file.status === 'Active' && F.l('click', template, (e) => {this.fileSharingIns.init('receivedFiles'); this.fileSharingIns.oRender(e) })
                 lastM = template
             })
         if (data?.new) {

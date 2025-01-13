@@ -816,6 +816,7 @@ nav>section:first-child .button.active {
 
 .cContent.file .mHeader {
     cursor: pointer;
+    margin-bottom: 5px;
 }
 
 .mHeader span {
