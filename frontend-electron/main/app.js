@@ -24,10 +24,11 @@ F.getToken = async () => {
     return t
 }
 
-F.getLocalTime = (d, c) => {
+F.getLocalTime = (d, c, opt) => {
     var utcDate = new Date(d);
-    var ret = c === "date" ? utcDate.toLocaleDateString() :
-            c === 'time' ? utcDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }) : 
+    opt = opt || (c === 'date' ? {} : { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+    var ret = c === "date" ? utcDate.toLocaleDateString([], opt) :
+            c === 'time' ? utcDate.toLocaleTimeString([], opt) : 
             utcDate.toLocaleString()
     return ret
 }
@@ -1033,10 +1034,22 @@ class chat {
         let cSection = F.G.id('sChat'),
             lastM = !1,
             type = data.type,
-            chats = data.chats
+            chats = data.chats,
+            date;
             console.log(data.type)
             console.log(chats)
-            chats.forEach(c => {
+            chats.forEach((c, index) => {
+                date = F.getLocalTime(c.timestamp, 'date')
+                if (index === 0 || date !== F.getLocalTime(chats[index-1].timestamp, 'date')) {
+                    var newDate = F.getLocalTime(c.timestamp, 'date', { month: 'long', day: 'numeric', year: 'numeric' })
+                    var dHtml = F.Cr('div'),
+                        sHtml = F.Cr('span')
+                    sHtml.textContent = newDate
+                    dHtml.appendChild(sHtml)
+                    dHtml.classList.add('newDate')
+                    !lastM && cSection.appendChild(dHtml)
+                    lastM && cSection.insertBefore(dHtml, lastM)
+                }
                 var tempName = c.context === 'sent' ? "pmsgTemp" : "smsgTemp",
                     template = this[tempName].cloneNode(true),
                     message = F.G.class('mContent', template)[0],
@@ -1046,9 +1059,6 @@ class chat {
                 if (type === "group") {
                     var tField = F.G.class('cContent', template)[0]
                     tField.classList.add('g')
-                    console.log(c.context)
-                    console.log(F.G.class('grpName', template))
-                    console.log(template)
                     if (c.context === 'received')
                         F.G.class('grpName', template)[0].textContent = c.name
                 }
@@ -1071,7 +1081,6 @@ class chat {
                     expF.innerHTML = `Status: ${c?.file?.status || notLoad}.`
                     c?.file?.status === 'Active' && (expF.innerHTML += `<br>Expiry: ${F.getLocalTime(c.file.expiry, 'date')}, ${F.getLocalTime(c.file.expiry, 'time')}`)
                 }
-                console.log(c)
                 time.textContent = F.getLocalTime(c.timestamp, 'time') || "12:24"
                 !lastM && cSection.appendChild(template)
                 lastM && cSection.insertBefore(template, lastM)

@@ -580,6 +580,7 @@ nav>section:first-child .button.active {
     grid-template-columns: auto 1fr auto;
     padding: 20px 25px;
     box-sizing: border-box;
+    background-color: #0D1225;
 }
 
 #tChat>* {
@@ -621,18 +622,17 @@ nav>section:first-child .button.active {
     position: relative;
     width: 100%;
     flex-grow: 1;
-    overflow-y: auto;
+    overflow-y: scroll;
     padding: 7px 25px;
     box-sizing: border-box;
     color: white;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
     font-size: 18px;
     gap: 10px;
 }
 
-#sChat::before {
+#chat::before {
     content: "";
     position: absolute;
     top: 0;
@@ -645,7 +645,7 @@ nav>section:first-child .button.active {
     -o-background-size: cover;
     background-size: cover;
     filter: brightness(40%);
-    z-index: 0;
+    z-index: -1;
     pointer-events: none;
 }
 
@@ -712,6 +712,10 @@ nav>section:first-child .button.active {
 #sChat>* {
     position: relative;
     z-index: 2;
+}
+
+#sChat>div:first-child {
+    margin-top: auto !important;
 }
 
 .pUser, .sUser {
@@ -821,6 +825,20 @@ nav>section:first-child .button.active {
 
 .mHeader span {
     pointer-events: none;
+}
+
+.newDate {
+    text-align: center;
+    margin: 15px 0;
+    font-size: 14px;
+    color: #555;
+}
+
+.newDate span {
+    background-color: #f1f1f1;
+    padding: 5px 10px;
+    border-radius: 10px;
+    display: inline-block;
 }
 
 #addChat, #addGroup, #receiveFiles, #receivedFiles {
