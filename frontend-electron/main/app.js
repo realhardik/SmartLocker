@@ -146,12 +146,17 @@ class fileSharing {
 
             F.G.id('cButton').closeE = close
         } else if (e === 'receivedFiles') {
+            console.log(t)
+            console.log(this.rLayers)
             this.rLayers.children.length > 1
                 ? Array.from(this.rLayers.children).slice(1).forEach(child => child.remove())
                 : true;
+            F.class([F.G.id('app')], ["disable"])
             F.G.id('receiveFiles').closeE = () => {
-                F.G.id('receivedFiles').classList.remove('disable')
-                F.hide(F.G.id('receivedFiles'), !0)
+                F.class([F.G.id('receivedFiles'), F.G.id('receiveFiles')], ['disable'], !0)
+                t && F.hide(F.G.id('receivedFiles'), !0)
+                F.class([F.G.id('app')], ["disable"], !0)
+                F.G.class('passPh', this.rLayers.children[0])[0].value = ""
             }
         }
         F.G.id(e).closeE = close
@@ -406,12 +411,15 @@ class fileSharing {
         data.layers = layers
         data.passwords = passPhrases
         data.fId = file._id
+        console.log('dbox ', dBox)
+        console.log('dbox ', dBox.closeE)
         F.hide(dBox)
+        F.class([F.G.id('receivedFiles'), F.G.id('receiveFiles')], ['disable'], !0)
+        dBox.closeE && dBox.closeE()
         ipcRenderer.invoke('render', data)
     }
 
     async fetchFiles() {
-        console.log('fetchFIles')
         F.G.id('receivedFiles').classList.remove('disable')
         F.hide(F.G.id('receivedFiles'), !0)
         this.init('receivedFiles')
@@ -484,14 +492,12 @@ class fileSharing {
         }
         if (f && t) {
             var fileContext = t.fCon
-            console.log(fileContext)
             try {
                 const chkFile = await axios.post(`${BASE_URL}/files`, {
                     type: "received",
                     query: { _id: fileContext.fId }
                 }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } });
                 var res = chkFile.data
-                console.log(chkFile.data);
                 if (res.success && res.result) {
                     var file = res.result[0]
                     if (file.status === 'Expired')
@@ -510,7 +516,6 @@ class fileSharing {
                     F.hide(F.G.id('receiveFiles'), !0)
                     return
                 }
-                console.log('not received')
             } catch (error) {
                 console.error('Error during file check:', error);
             }
@@ -609,7 +614,7 @@ class gen {
         var dts = e.target["dataset"],
             dBoxId = dts.dialog,
             dBox = F.G.id(dBoxId)
-        console.log("actual id", dBoxId)
+        console.log(e.target)
         dts.c && this[dts.c].init && this[dts.c].init(dBoxId, e.target)
         dBox.classList.remove('disable')
         dBox && F.hide(dBox, !0)
@@ -1058,7 +1063,7 @@ class chat {
                 time.textContent = c?.time || "12:24"
                 !lastM && cSection.appendChild(template)
                 lastM && cSection.insertBefore(template, lastM)
-                c?.type === 'file' && c.context === 'received' && F.l('click', template, this.fileSharingIns.oRender)
+                c?.type === 'file' && c.context === 'received' && F.l('click', template, (e) => {this.fileSharingIns.init('receivedFiles'); this.fileSharingIns.oRender(e) })
                 lastM = template
             })
         if (data?.new) {

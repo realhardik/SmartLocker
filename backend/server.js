@@ -748,7 +748,6 @@ app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => 
           maxViews: otherData.max_views || -1,
           watermark: otherData.watermark?.trim()?.toLowerCase() === 'true'
         }
-    console.log(fileEntry)
     if (fileEntry.watermark) {
       fileEntry.watermark_options = JSON.parse(otherData.watermark_options)
     }

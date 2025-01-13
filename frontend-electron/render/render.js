@@ -89,13 +89,13 @@ class oRender {
                 this.renderPage(this.pageNum);
                 this.pageNumSpan.textContent = `Page ${this.pageNum} of ${this.pdfDoc.numPages}`;
             } else {
+                ipcRenderer.invoke('close-render');
                 alert("Some Error occured. Please try again later.")
-                // ipcRenderer.invoke('close-render')
                 return
             }
         } catch (error) {
             console.error('Error loading PDF:', error);
-            // ipcRenderer.invoke('close-render');
+            ipcRenderer.invoke('close-render');
         }
     }
 
