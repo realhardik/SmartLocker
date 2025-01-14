@@ -399,7 +399,7 @@ io.on('connection', (socket) => {
     }
   })
 
-  socket.on('sendMessage', async ({ senderId, convId, mType, message, cType }) => {
+  socket.on('sendMessage', async ({ senderId, convId, mType, message, cType, senderName = null }) => {
     console.log(`Message in room ${convId} from ${senderId}: ${message}`);
     
     var anc = await db.add('chatLog', {
@@ -409,6 +409,7 @@ io.on('connection', (socket) => {
         content: message,
         cType: cType || 'solo'
     })
+    
     if (cType === 'group') {
       var group = await db.search('group', {
         _id: convId
@@ -429,7 +430,7 @@ io.on('connection', (socket) => {
       
       group.result.members.forEach(async (u) => {
         if (!u.user.equals(senderId)) {
-          socket.to(u.user.toString()).emit('newMessage', { ...anc.result._doc, chatType: 'group' })
+          socket.to(u.user.toString()).emit('newMessage', { ...anc.result._doc, chatType: 'group', sender: senderName })
         }
       })
       socket.emit('sentMessage', { ...anc.result._doc })

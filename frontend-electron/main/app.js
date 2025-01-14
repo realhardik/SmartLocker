@@ -1034,6 +1034,7 @@ class chat {
                 chat.timestamp = e.timestamp
                 return chat
             })
+            console.log(chats[0])
         F.G.id('sChat').innerHTML = ""
         this.renderMessages({ type: data.type, chats: chats, new: !0 })
     }
@@ -1110,14 +1111,15 @@ class chat {
         console.log(newChat)
         console.log(this.chatUsers)
         refChat = { timestamp: newChat.timestamp, type: newChat.type, content: newChat.content }
-        newChat.from === this.userData.user._id && (refChat.context = "sent") && (cInput.value = "")
+        newChat.from === this.userData.user._id && (refChat.context = "sent", cInput.value = "")
         newChat.to === this.userData.user._id && (refChat.context = "received")
         newChat.type === 'file' && (refChat.file = newChat.otherData)
         if (type === "newMessage") {
             var chat = newChat.chatType === 'group' ? newChat.to : newChat.from,
                 context = this.chatUsers.get(chat),
                 element = context.el
-            newChat.chatType === 'group' && (refChat.from = newChat?.from.name)
+            newChat.chatType === 'group' && (refChat.name = newChat.sender, refChat.context = 'received')
+            console.log(refChat)
             if (this.activeProfile.previous == context.el) {
                 this.renderMessages({
                     type: newChat.chatType,
@@ -1148,12 +1150,14 @@ class chat {
         var activeProfile = this.activeProfile?.con
         if (!activeProfile)
             return (alert("Unexpected error occured while connecting to the server.\nPlease log in again."))
-        socket.emit('sendMessage', {
+        var data = {
             senderId: this.userData.user._id,
             convId: activeProfile.convId,
             message: message,
             cType: activeProfile.type
-        });
+        }
+        activeProfile.type === 'group' && (data.senderName = this.userData.user.name)
+        socket.emit('sendMessage', data);
     }
 
     getInteractedUsersArray(result) {
