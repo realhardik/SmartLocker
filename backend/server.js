@@ -417,7 +417,7 @@ io.on('connection', (socket) => {
       }, 'findOne')
 
       db.search('chat', {
-        receiver: convId
+        group: convId
       }, 'updateMany',
       { $set: { "lastMessage.timestamp": Date.now() } })
 

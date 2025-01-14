@@ -855,7 +855,6 @@ class chat {
                     'Authorization': `Bearer ${this.token}`
                 }
             })
-            console.log("user req raw: ", uReq)
         var uList = this.getInteractedUsersArray(uReq.data.result, this.userData.user._id)
             if (uList.length === 0)
                 return (console.log("no chats found"), false)
@@ -992,7 +991,6 @@ class chat {
                 F.hide(F.G.id('leaveGroup'), !0)
             }
         }
-
         this.lastRenderedDate = null
         this.fetchMessages(this.activeProfile.con)
     }
@@ -1001,6 +999,13 @@ class chat {
         console.log('scroll')
         const sChat = F.G.id('sChat');
         sChat.scrollTop = sChat.scrollHeight;
+    }
+
+    moveToTop(p) {
+        var chat = p.el,
+            profS = F.G.id('profS')
+        profS.removeChild(chat)
+        profS.insertBefore(chat, profS.firstChild);
     }
 
     async fetchMessages(data) {
@@ -1114,6 +1119,7 @@ class chat {
             var chat = newChat.chatType === 'group' ? newChat.to : newChat.from,
                 context = this.chatUsers.get(chat),
                 element = context.el
+            this.moveToTop(context)
             newChat.chatType === 'group' && (refChat.name = newChat.sender, refChat.context = 'received')
             console.log(refChat)
             if (this.activeProfile.previous == context.el) {
@@ -1135,6 +1141,7 @@ class chat {
                 element.classList.add('unreadMsg')
             }
         } else {
+            this.moveToTop(this.chatUsers.get(newChat.to))
             this.renderMessages({
                 type: newChat.type,
                 chats: [refChat]
