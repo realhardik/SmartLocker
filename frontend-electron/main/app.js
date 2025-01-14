@@ -1034,22 +1034,11 @@ class chat {
         let cSection = F.G.id('sChat'),
             lastM = !1,
             type = data.type,
-            chats = data.chats,
-            date;
-            console.log(data.type)
-            console.log(chats)
+            chats = data.chats;
             chats.forEach((c, index) => {
-                date = F.getLocalTime(c.timestamp, 'date')
-                if (index === 0 || date !== F.getLocalTime(chats[index-1].timestamp, 'date')) {
-                    var newDate = F.getLocalTime(c.timestamp, 'date', { month: 'long', day: 'numeric', year: 'numeric' })
-                    var dHtml = F.Cr('div'),
-                        sHtml = F.Cr('span')
-                    sHtml.textContent = newDate
-                    dHtml.appendChild(sHtml)
-                    dHtml.classList.add('newDate')
-                    !lastM && cSection.appendChild(dHtml)
-                    lastM && cSection.insertBefore(dHtml, lastM)
-                }
+                let currentDate = F.getLocalTime(c.timestamp, 'date'),
+                previousDate = index < chats.length - 1 ? F.getLocalTime(chats[index + 1].timestamp, 'date')
+                : null;
                 var tempName = c.context === 'sent' ? "pmsgTemp" : "smsgTemp",
                     template = this[tempName].cloneNode(true),
                     message = F.G.class('mContent', template)[0],
@@ -1084,9 +1073,19 @@ class chat {
                 time.textContent = F.getLocalTime(c.timestamp, 'time') || "12:24"
                 !lastM && cSection.appendChild(template)
                 lastM && cSection.insertBefore(template, lastM)
-                console.log(c.file)
                 c?.type === 'file' && c.context === 'received' && c.file.status === 'Active' && F.l('click', template, (e) => {this.fileSharingIns.init('receivedFiles'); this.fileSharingIns.oRender(e) })
                 lastM = template
+                if ((data?.new && (index === 0 || currentDate !== previousDate)) || (!data?.new && currentDate !== this.lastRenderedDate)) {
+                    var newDate = F.getLocalTime(c.timestamp, 'date', { month: 'long', day: 'numeric', year: 'numeric' })
+                    var dHtml = F.Cr('div'),
+                        sHtml = F.Cr('span')
+                    sHtml.textContent = newDate
+                    dHtml.appendChild(sHtml)
+                    dHtml.classList.add('newDate')
+                    lastM && cSection.insertBefore(dHtml, lastM)
+                    lastM = dHtml
+                }
+                this.lastRenderedDate = currentDate
             })
         if (data?.new) {
             F.hide(F.G.id('chat'), !0, "flex")
@@ -1098,15 +1097,14 @@ class chat {
         let refChat;
         let cInput = F.G.id('textMessage');
         let count;
-        console.log('new message', newChat)
-        newChat.from === this.userData.user._id && (refChat = { context: "sent", type: newChat.type, content: newChat.content }) && (cInput.value = "")
-        newChat.to === this.userData.user._id && (refChat = { context: "received", type: newChat.type, content: newChat.content })
+        console.log(newChat)
+        refChat = { timestamp: newChat.timestamp, type: newChat.type, content: newChat.content }
+        newChat.from === this.userData.user._id && (refChat.context = "sent") && (cInput.value = "")
+        newChat.to === this.userData.user._id && (refChat.context = "received")
         newChat.type === 'file' && (refChat.file = newChat.otherData)
         if (type === "newMessage" && this.chatUsers.has(newChat.from)) {
             var context = this.chatUsers.get(newChat.from),
             element = context.el
-            console.log('open: ', context.el)
-            console.log("open: ", this.activeProfile.previous)
             if (this.activeProfile.previous == context.el) {
                 this.renderMessages({
                     type: newChat.type,
