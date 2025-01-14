@@ -760,7 +760,7 @@ class chat {
         this.chatUsers = new Map()
         this.fileSharingIns = file
         F.BM(this, ["addChat", "openChat", "addNewUser", "addNewGroup", "sendMessage", "createChat", "fetchMessages"])
-        F.BM(this, ['init', 'leaveGroup', 'newMessageLog'])
+        F.BM(this, ['init', 'leaveGroup', 'newMessageLog', 'scrollToBottom'])
         this.profS = F.G.id('profS')
         F.l('click', this.profS, this.openChat)
         F.l('click', F.G.id('sText'), this.sendMessage)
@@ -997,7 +997,15 @@ class chat {
                 F.hide(F.G.id('leaveGroup'), !0)
             }
         }
+
+        this.lastRenderedDate = null
         this.fetchMessages(this.activeProfile.con)
+    }
+
+    scrollToBottom() {
+        console.log('scroll')
+        const sChat = F.G.id('sChat');
+        sChat.scrollTop = sChat.scrollHeight;
     }
 
     async fetchMessages(data) {
@@ -1075,7 +1083,7 @@ class chat {
                 lastM && cSection.insertBefore(template, lastM)
                 c?.type === 'file' && c.context === 'received' && c.file.status === 'Active' && F.l('click', template, (e) => {this.fileSharingIns.init('receivedFiles'); this.fileSharingIns.oRender(e) })
                 lastM = template
-                if ((data?.new && (index === 0 || currentDate !== previousDate)) || (!data?.new && currentDate !== this.lastRenderedDate)) {
+                if ((F.Is.def(data.new) && (currentDate !== previousDate)) || (F.Is.und(data.new) && currentDate !== this.lastRenderedDate)) {
                     var newDate = F.getLocalTime(c.timestamp, 'date', { month: 'long', day: 'numeric', year: 'numeric' })
                     var dHtml = F.Cr('div'),
                         sHtml = F.Cr('span')
@@ -1085,12 +1093,14 @@ class chat {
                     lastM && cSection.insertBefore(dHtml, lastM)
                     lastM = dHtml
                 }
-                this.lastRenderedDate = currentDate
+                index === 0 && (this.lastRenderedDate = currentDate)
+                console.log('end')
             })
-        if (data?.new) {
-            F.hide(F.G.id('chat'), !0, "flex")
-            F.hide(this.load)
-        }
+            if (data?.new) {
+                F.hide(F.G.id('chat'), !0, "flex")
+                F.hide(this.load)
+            }
+        this.scrollToBottom()
     }
     
     newMessageLog(newChat, type) {
@@ -1098,16 +1108,19 @@ class chat {
         let cInput = F.G.id('textMessage');
         let count;
         console.log(newChat)
+        console.log(this.chatUsers)
         refChat = { timestamp: newChat.timestamp, type: newChat.type, content: newChat.content }
         newChat.from === this.userData.user._id && (refChat.context = "sent") && (cInput.value = "")
         newChat.to === this.userData.user._id && (refChat.context = "received")
         newChat.type === 'file' && (refChat.file = newChat.otherData)
-        if (type === "newMessage" && this.chatUsers.has(newChat.from)) {
-            var context = this.chatUsers.get(newChat.from),
-            element = context.el
+        if (type === "newMessage") {
+            var chat = newChat.chatType === 'group' ? newChat.to : newChat.from,
+                context = this.chatUsers.get(chat),
+                element = context.el
+            newChat.chatType === 'group' && (refChat.from = newChat?.from.name)
             if (this.activeProfile.previous == context.el) {
                 this.renderMessages({
-                    type: newChat.type,
+                    type: newChat.chatType,
                     chats: [refChat]
                 })
                 socket.emit('markRead', {
@@ -1117,8 +1130,8 @@ class chat {
             } else {
                 element.classList.contains('unreadMsg') ? (
                     count = parseInt(F.G.query('span', F.G.class('unreadCount', element)[0])?.innerText) || 1
-                ) : (count = 0)                
-                count++
+                ) : (count = 0);       
+                count++;
                 F.G.query('span', F.G.class('unreadCount', element)[0]).innerText = count
                 element.classList.add('unreadMsg')
             }

@@ -426,9 +426,10 @@ io.on('connection', (socket) => {
       {
           $inc: { unreadCount: 1 }
       })
+      
       group.result.members.forEach(async (u) => {
         if (!u.user.equals(senderId)) {
-          socket.to(u.user).emit('newMessage', { ...anc.result._doc })
+          socket.to(u.user.toString()).emit('newMessage', { ...anc.result._doc, chatType: 'group' })
         }
       })
       socket.emit('sentMessage', { ...anc.result._doc })
@@ -444,7 +445,7 @@ io.on('connection', (socket) => {
       }, 'updateMany', { $set: { "lastMessage.timestamp": Date.now() } })
 
       socket.emit('sentMessage', { ...anc.result._doc });
-      socket.to(convId).emit('newMessage', { ...anc.result._doc });
+      socket.to(convId).emit('newMessage', { ...anc.result._doc, chatType: 'solo' });
     }
   });
 
