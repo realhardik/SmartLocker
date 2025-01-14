@@ -770,7 +770,6 @@ class chat {
             this.newMessageLog(rMessage, 'newMessage')
         });
         socket.on('sentMessage', async (rMessage) => {
-            console.log('sent message')
             this.newMessageLog(rMessage)
         });
         socket.on('addedNewChat', (user) => {
@@ -791,8 +790,6 @@ class chat {
         socket.on('deletedGroup', (group) => {
             var users = Array.from(this.profS.children)
             for (var u = 0; u<users.length; u++) {
-                console.log(users[u])
-                console.log(users[u].con)
                 if(users[u]?.con?.convId === group) {
                     users[u].remove()
                     F.G.id('sChat').innerHTML = ""
@@ -805,9 +802,7 @@ class chat {
         socket.on('leavedGroup', (group) => {
             var users = Array.from(this.profS.children)
             for (var u = 0; u<users.length; u++) {
-                console.log(users[u])
-                console.log(users[u].con)
-                if(users[u]?.con?.convId === group) {
+                if (users[u]?.con?.convId === group) {
                     users[u].remove()
                     F.G.id('sChat').innerHTML = ""
                     F.G.id('textMessage').value = ""
@@ -819,7 +814,6 @@ class chat {
         socket.on('NoNewUser', (msg) => {
             alert(msg)
         })
-        
         this.addChat()
     }
     
@@ -972,7 +966,8 @@ class chat {
         F.hide(this.load, !0, 'flex')
         c.classList.contains('unreadMsg') && socket.emit('markRead', ({
             senderId: c.con.convId,
-            receiverId: this.userData.user._id
+            receiverId: this.userData.user._id,
+            type: c.con.type
         }))
         c.classList.remove('unreadMsg')
         !this.activeProfile.previous && F.hide(F.G.id('loadPoster'))
@@ -1128,7 +1123,8 @@ class chat {
                 })
                 socket.emit('markRead', {
                     senderId: context.convId,
-                    receiverId: this.userData.user._id
+                    receiverId: this.userData.user._id,
+                    type: newChat.chatType
                 })
             } else {
                 element.classList.contains('unreadMsg') ? (

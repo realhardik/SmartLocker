@@ -15,6 +15,7 @@ const nodemailer = require('nodemailer')
 const otpGen = require('otp-generator')
 const { type } = require('os')
 const { text } = require('stream/consumers')
+const { group } = require('console')
 
 const app = express()
 const server = http.createServer(app)
@@ -409,7 +410,7 @@ io.on('connection', (socket) => {
         content: message,
         cType: cType || 'solo'
     })
-    
+
     if (cType === 'group') {
       var group = await db.search('group', {
         _id: convId
@@ -421,13 +422,12 @@ io.on('connection', (socket) => {
       { $set: { "lastMessage.timestamp": Date.now() } })
 
       var oUsers = group.result.members.map(e => e.user !== senderId)
-      await db.search('chat', {
-        receiver: convId
+      var updCount = await db.search('chat', {
+        group: convId
       }, 'updateMany',
       {
           $inc: { unreadCount: 1 }
       })
-      
       group.result.members.forEach(async (u) => {
         if (!u.user.equals(senderId)) {
           socket.to(u.user.toString()).emit('newMessage', { ...anc.result._doc, chatType: 'group', sender: senderName })
@@ -451,14 +451,20 @@ io.on('connection', (socket) => {
   });
 
   socket.on('markRead', async (data) => {
-    var res = await db.search('chat', {
-      sender: data.receiverId,
-      receiver: data.senderId
-    }, 'findOneAndUpdate', {
-      $set: { unreadCount: 0 }
-    })
-    console.log("marked read: ", res)
-    socket.emit('markedRead')
+    if (data.type === 'group') {
+      var res = db.search('chat', {
+        group: data.senderId
+      }, 'updateMany', {
+        $set: { unreadCount: 0 }
+      })
+    } else {
+      var res = db.search('chat', {
+        sender: data.receiverId,
+        receiver: data.senderId
+      }, 'findOneAndUpdate', {
+        $set: { unreadCount: 0 }
+      })
+    }
   });
 
   socket.on('deleteGroup', async (data) => {
