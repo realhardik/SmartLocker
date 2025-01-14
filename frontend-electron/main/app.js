@@ -1009,7 +1009,6 @@ class chat {
     }
 
     async fetchMessages(data) {
-        console.log(data.type)
         var tokenReq = await F.getToken(),
             history = await axios.get(`${BASE_URL}/chatLog/${data.convId}`, {
                 params: {
@@ -1024,7 +1023,6 @@ class chat {
             return
         }
         let chat;
-        console.log(history.data.result)
         var response = history.data.result,
             chats = response.map(e => {
                 var from = data.type === 'group' ? e.from._id : e.from
@@ -1034,7 +1032,6 @@ class chat {
                 chat.timestamp = e.timestamp
                 return chat
             })
-            console.log(chats[0])
         F.G.id('sChat').innerHTML = ""
         this.renderMessages({ type: data.type, chats: chats, new: !0 })
     }
@@ -1043,7 +1040,10 @@ class chat {
         let cSection = F.G.id('sChat'),
             lastM = !1,
             type = data.type,
-            chats = data.chats;
+            chats = data.chats,
+            today = new Date(),
+            yesterday = new Date()
+            yesterday.setDate(today.getDate() - 1)
             chats.forEach((c, index) => {
                 let currentDate = F.getLocalTime(c.timestamp, 'date'),
                 previousDate = index < chats.length - 1 ? F.getLocalTime(chats[index + 1].timestamp, 'date')
@@ -1085,7 +1085,10 @@ class chat {
                 c?.type === 'file' && c.context === 'received' && c.file.status === 'Active' && F.l('click', template, (e) => {this.fileSharingIns.init('receivedFiles'); this.fileSharingIns.oRender(e) })
                 lastM = template
                 if ((F.Is.def(data.new) && (currentDate !== previousDate)) || (F.Is.und(data.new) && currentDate !== this.lastRenderedDate)) {
-                    var newDate = F.getLocalTime(c.timestamp, 'date', { month: 'long', day: 'numeric', year: 'numeric' })
+                    var messageTime = F.getLocalTime(c.timestamp, 'date'),
+                        recent = F.getLocalTime(today.toLocaleString(), 'date') === messageTime,
+                        yest = F.getLocalTime(yesterday.toLocaleString(), 'date') === messageTime
+                    var newDate = (recent || yest) ? (recent ? 'Today' : 'Yesterday') :  F.getLocalTime(c.timestamp, 'date', { month: 'long', day: 'numeric', year: 'numeric' })
                     var dHtml = F.Cr('div'),
                         sHtml = F.Cr('span')
                     sHtml.textContent = newDate
@@ -1108,8 +1111,6 @@ class chat {
         let refChat;
         let cInput = F.G.id('textMessage');
         let count;
-        console.log(newChat)
-        console.log(this.chatUsers)
         refChat = { timestamp: newChat.timestamp, type: newChat.type, content: newChat.content }
         newChat.from === this.userData.user._id && (refChat.context = "sent", cInput.value = "")
         newChat.to === this.userData.user._id && (refChat.context = "received")
