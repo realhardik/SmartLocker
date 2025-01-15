@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
@@ -13,9 +14,6 @@ const http = require('http')
 const { Server } = require('socket.io')
 const nodemailer = require('nodemailer')
 const otpGen = require('otp-generator')
-const { type } = require('os')
-const { text } = require('stream/consumers')
-const { group } = require('console')
 
 const app = express()
 const server = http.createServer(app)
@@ -33,8 +31,8 @@ app.use(cors())
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-      user: 'johnwickxh@gmail.com', 
-      pass: 'syky zwhr arud hpnt'
+      user: process.env.NEXUS_USER,
+      pass: process.env.NEXUS_PASS
   }
 })
 
@@ -81,11 +79,12 @@ const h = {
   }  
 }
 
-const JWT_SECRET = 'your_jwt_secret_key';
+const JWT_SECRET = process.env.JWT_SECRET;
 
-const mongoURI = 'mongodb+srv://hail:mrg_001@cluster0.916e9.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
-
-const pythonURL = 'http://127.0.0.1:5000'
+// const mongoURI = 'mongodb+srv://hail:mrg_001@cluster0.916e9.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+const mongoURI = process.env.MONGO_URI
+const pythonURL = process.env.PYTHON_URL
+// 'http://127.0.0.1:5000'
 
 const db = new class {
   constructor() {
@@ -693,7 +692,7 @@ async function encrypt(file, data) {
   formData.append('data', JSON.stringify(data));
   
   try {
-    const response = await axios.post('http://127.0.0.1:5000/encrypt', formData, {
+    const response = await axios.post(`${pythonURL}/encrypt`, formData, {
       headers: {
         ...formData.getHeaders()
       },
@@ -943,7 +942,7 @@ app.post('/download/:fileId', authenticateJWT, async (req, res) => {
     formData.append('encrypted_files.zip', fs.createReadStream(fileEntry.fPath));
     formData.append('data', JSON.stringify(dataObj));
     
-    const response = await axios.post('http://127.0.0.1:5000/decrypt', formData, {
+    const response = await axios.post(`${pythonURL}/decrypt`, formData, {
       headers: {
         ...formData.getHeaders()
       },

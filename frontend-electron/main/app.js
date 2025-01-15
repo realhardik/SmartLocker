@@ -20,7 +20,6 @@ function readFileAsText(file) {
 
 F.getToken = async () => {
     var t = await ipcRenderer.invoke('isAuthorized')
-    console.log("got token", t)
     return t
 }
 
@@ -147,8 +146,6 @@ class fileSharing {
 
             F.G.id('cButton').closeE = close
         } else if (e === 'receivedFiles') {
-            console.log(t)
-            console.log(this.rLayers)
             this.rLayers.children.length > 1
                 ? Array.from(this.rLayers.children).slice(1).forEach(child => child.remove())
                 : true;
@@ -192,7 +189,6 @@ class fileSharing {
     }
 
     handleLayers(e, t) {
-        console.log(e)
         var n = F.Clamp(parseInt(e.target.value, 10), 1, 7),
         p = this[t].children.length;
         if (n === p) return;
@@ -228,12 +224,6 @@ class fileSharing {
                 F.class([F.G.id('app')], ["disable"], !0)
                 return
             } else {
-                console.log('emiting')
-                console.log({
-                    from: tokenReq.user._id,
-                    type: "file",
-                    otherData: response.file
-                })
                 socket.emit('sharedFile', {
                     from: tokenReq.user._id,
                     type: "file",
@@ -267,7 +257,6 @@ class fileSharing {
             fileContent
             rTo =  isFile ? dBox.received.files[0] : dBox.received.value
             fileContent = isFile ? await readFileAsText(rTo) : false
-            console.log('file content: ', fileContent)
             var src = isFile ? fileContent : rTo
             type = "grpShare"
             eTo = src.split(',').map(e => e.trim())
@@ -285,7 +274,6 @@ class fileSharing {
                 passPhrase: F.G.class('passPh', temp)[0].value
             }
         }
-        console.log(eTo)
 
         try {
             if (type === 'group') {
@@ -294,7 +282,6 @@ class fileSharing {
                     query: { _id: rTo },
                     method: "findOne"
                 }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } });
-                console.log(userCheck)
                 if (!userCheck.data.success) {
                     dBox.closeE && dBox.closeE()
                     return (alert("Server error."), false)
@@ -364,7 +351,6 @@ class fileSharing {
                 wVal.columns = wCol.value
                 wVal.size = wSize.value
                 wVal.opacity = wOpacity.value
-                console.log('waterma: ', wVal)
                 formData.append('watermark_options', JSON.stringify(wVal))
             } else {
                 formData.append('watermark', false)
@@ -412,8 +398,6 @@ class fileSharing {
         data.layers = layers
         data.passwords = passPhrases
         data.fId = file._id
-        console.log('dbox ', dBox)
-        console.log('dbox ', dBox.closeE)
         F.hide(dBox)
         F.class([F.G.id('receivedFiles'), F.G.id('receiveFiles')], ['disable'], !0)
         dBox.closeE && dBox.closeE()
@@ -481,7 +465,6 @@ class fileSharing {
         var t = e.target,
             f = !1,
             tokenReq = await F.getToken()
-        console.log(t)
         for (; t;) {
             if ("TR" === t.tagName || t.classList.contains('mHeader')) {
                 f = !0;
@@ -602,7 +585,6 @@ class gen {
             for (var j = 0; j<f.length; j++) {
                 var tag = f[j].tagName,
                     span = 'DIV' === tag ? F.Cr('span') : f[j]
-                console.log(span)
                 tag === 'INPUT' && (f[j].value = "", span.setAttribute('placeholder', value))
                 tag === 'SPAN' && (span.innerText = value)
                 tag === 'DIV' && (f[j].innerHTML = "", span.innerText = value, f[j].appendChild(span))
@@ -615,7 +597,6 @@ class gen {
         var dts = e.target["dataset"],
             dBoxId = dts.dialog,
             dBox = F.G.id(dBoxId)
-        console.log(e.target)
         dts.c && this[dts.c].init && this[dts.c].init(dBoxId, e.target)
         dBox.classList.remove('disable')
         dBox && F.hide(dBox, !0)
@@ -683,7 +664,6 @@ class gen {
                 newName: newName,
                 newEmail: newEmail
             }, { headers: { 'Authorization': `Bearer ${tokenReq.token}` } })
-            console.log('update', updateRes)
             if (updateRes.data.userUpdate.success) {
                 alert('Saved Changes Successfully.')
                 if (updateRes.data.update.hasOwnProperty('email')) {
@@ -691,7 +671,6 @@ class gen {
                     ipcRenderer.invoke('logout')
                     return
                 }
-                console.log(updateRes.data.userUpdate.result)
                 this.setupProfile(updateRes.data.userUpdate.result)
                 return
             }
@@ -881,7 +860,6 @@ class chat {
             n2Span.innerHTML = data.unreadCount
         nCon.appendChild(nSpan)
         unCon.appendChild(n2Span)
-        console.log(profPic)
         data.unreadCount > 0 ? temp.classList.add('unreadMsg') : false
         F.G.id('profS').appendChild(temp)
         "solo" === type && (temp.con = {
@@ -907,8 +885,6 @@ class chat {
         var grpName = i["groupName"].value,
             grpMembers = F.G.query('input[type="checkbox"]:checked', this.grpList, "a")
         grpMembers = Array.from(grpMembers).map(checkbox => checkbox.value);
-        console.log("grp: ", grpName)
-        console.log("grp: ", grpMembers)
         socket.emit('addNewGroup', {
             grpName: grpName,
             grpMembers: grpMembers,
@@ -996,7 +972,6 @@ class chat {
     }
 
     scrollToBottom() {
-        console.log('scroll')
         const sChat = F.G.id('sChat');
         sChat.scrollTop = sChat.scrollHeight;
     }
@@ -1098,7 +1073,6 @@ class chat {
                     lastM = dHtml
                 }
                 index === 0 && (this.lastRenderedDate = currentDate)
-                console.log('end')
             })
             if (data?.new) {
                 F.hide(F.G.id('chat'), !0, "flex")
@@ -1121,7 +1095,6 @@ class chat {
                 element = context.el
             this.moveToTop(context)
             newChat.chatType === 'group' && (refChat.name = newChat.sender, refChat.context = 'received')
-            console.log(refChat)
             if (this.activeProfile.previous == context.el) {
                 this.renderMessages({
                     type: newChat.chatType,
@@ -1258,7 +1231,6 @@ class dashboard {
             }
             this.tablebody.innerHTML = ""
             this.data = result
-            console.log(result)
             this.renderFiles(e || 'shared')
         } catch (err) {
             if (axios.isCancel(err)) {
@@ -1278,7 +1250,6 @@ class dashboard {
             fiveDaysFromNow = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
         fiveDaysFromNow.setDate(fiveDaysFromNow.getDate() + 5);
-        console.log(received)
         const filteredShared = shared.filter(doc => {
             var docDate = new Date(doc.timestamp);
             return docDate >= sevenDaysAgo;
