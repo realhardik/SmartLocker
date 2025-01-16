@@ -378,7 +378,6 @@ class fileSharing {
             dBox.closeE && dBox.closeE()
             return;
         }
-        // F.G.id("receivers").value.split(",").map(email => ({ email: email.trim() }))
     }
 
     async renderFile(i, dBox) {
@@ -510,7 +509,7 @@ class fileSharing {
 
 class gen {
     constructor(data) {
-        F.BM(this, ["closeDialog", "openDialog", "handleInputs", "handleNav", "logout"])
+        F.BM(this, ["closeDialog", "openDialog", "handleInputs", "handleNav", "logout", "setupProfile", "editProfile"])
         this.fileSharing = new fileSharing
         this.chat = new chat(this.fileSharing)
         this.profileView = F.G.id('viewProfile')
@@ -560,6 +559,7 @@ class gen {
     }
     
     setupProfile(user) {
+        this.user = user
         var name = user.name,
             email = user.email,
             date = new Date(user.created_at),
@@ -658,7 +658,7 @@ class gen {
 
     async editProfile() {
         var tokenReq = await F.getToken(),
-            newEmail = F.G.id('newEmail').value.toLowerCase(),
+            newEmail = this.user.email,
             newName = F.G.id('newName').value
         try {
             var updateRes = await axios.post(`${BASE_URL}/updateProfile`, {

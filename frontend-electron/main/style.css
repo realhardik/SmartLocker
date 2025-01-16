@@ -457,6 +457,11 @@ nav>section:first-child .button.active {
     font-size: 11.2vh;
 }
 
+#loadPoster svg {
+    height: 200px;
+    width: 200px;
+}
+
 .hypnotic-4 {
     width: 75px;
     height: 75px;
@@ -473,8 +478,6 @@ nav>section:first-child .button.active {
 @keyframes h4{
     100% {background-position: -23px 0px,12px 35px}
 }
-
-
   
 #headerS {
     position: relative;

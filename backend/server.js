@@ -431,7 +431,7 @@ io.on('connection', (socket) => {
           socket.to(u.user.toString()).emit('newMessage', { ...anc.result._doc, chatType: 'group', sender: senderName })
         }
       })
-      socket.emit('sentMessage', { ...anc.result._doc })
+      socket.emit('sentMessage', { ...anc.result._doc, chatType: 'group', sender: senderName })
     } else {
       await db.search('chat', { sender: convId, receiver: senderId }, 'findOneAndUpdate',
       { $inc: { unreadCount: 1 } })
@@ -449,20 +449,14 @@ io.on('connection', (socket) => {
   });
 
   socket.on('markRead', async (data) => {
-    if (data.type === 'group') {
-      var res = db.search('chat', {
-        group: data.senderId
-      }, 'updateMany', {
-        $set: { unreadCount: 0 }
-      })
-    } else {
-      var res = db.search('chat', {
-        sender: data.receiverId,
-        receiver: data.senderId
-      }, 'findOneAndUpdate', {
-        $set: { unreadCount: 0 }
-      })
-    }
+    // if (data.type === 'group')
+    var recField = data.type === 'group' ? 'group' : "receiver"
+    var res = db.search('chat', {
+      sender: data.receiverId,
+      [recField]: data.senderId
+    }, 'findOneAndUpdate', {
+      $set: { unreadCount: 0 }
+    })
   });
 
   socket.on('deleteGroup', async (data) => {
@@ -846,6 +840,7 @@ app.get('/api/chat', authenticateJWT, async (req, res) => {
       { field:'group', select: '_id name members'}
     ]),
     iChats =  [...iUarr.result, ...iGarr.result]
+    console.log(iGarr.result[0].group.members)
     console.log("interacted both: ", iChats)
     if (!iUarr.success && !iUarr.hasOwnProperty('result'))
       return res.status(401).json({ success: false, msg: 'Error fetching chats. Try again later' })
@@ -887,7 +882,7 @@ app.post('/api/download/:fileId', authenticateJWT, async (req, res) => {
   const { fileId } = req.params;
   const to = req.user.data._id;
   const data = req.body
-  console.log(data)
+
   if (!fileId) {
     return res.status(400).json({ success: false, msg: 'File id required' });
   }
@@ -937,7 +932,8 @@ app.post('/api/download/:fileId', authenticateJWT, async (req, res) => {
     for (let opt of watermark_options) {
       dataObj[opt[0]] = watermark ? fileEntry.watermark_options[opt[1]] : opt[2];
     }
-    console.log('sending data', dataObj)
+    if (dataObj.watermark_text.toLowerCase() === 'default')
+      dataObj.watermark_text = req.user.data.email
     formData.append('encrypted_files.zip', fs.createReadStream(fileEntry.fPath));
     formData.append('data', JSON.stringify(dataObj));
     
@@ -1092,15 +1088,12 @@ const deleteExpiredFiles = async () => {
     // console.log(user)
     // var user = await db.addUser('test', 'hail@gmail.com', '123')
     // console.log(user)
-    console.log("exp files fn: ", expiredFiles)
     if (Array.isArray(expiredFiles) && expiredFiles.length > 0) {
       for (const file of expiredFiles) {
         if (fs.existsSync(file.fPath)) fs.unlinkSync(file.fPath);
         console.log(`File ${file.fName} deleted due to expiration.`);
       }
-    } else {
-      console.log('No expired files found.');
-    }    
+    }
 };
 
 const PORT = process.env.PORT || 3000;
