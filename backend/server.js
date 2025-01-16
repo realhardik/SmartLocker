@@ -52,7 +52,7 @@ const h = {
       .replace(/{{currentYear}}/g, new Date().getFullYear());
 
       let mailOptions = {
-        from: '"Smart Locker noreply" <noreply@gmail.com>',
+        from: '"Nexus noreply" <noreply@gmail.com>',
         to: data.to,
         subject: data.subject,
         text: data.text,
@@ -81,10 +81,9 @@ const h = {
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// const mongoURI = 'mongodb+srv://hail:mrg_001@cluster0.916e9.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
-const mongoURI = process.env.MONGO_URI
+const mongoURI = 'mongodb+srv://hail:mrg_001@cluster0.916e9.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+// const mongoURI = process.env.MONGO_URI
 const pythonURL = process.env.PYTHON_URL
-// 'http://127.0.0.1:5000'
 
 const db = new class {
   constructor() {
@@ -554,7 +553,7 @@ io.on('connection', (socket) => {
   });
 });
 
-app.get('/signup', async (req, res) => {
+app.get('/api/signup', async (req, res) => {
   try {
     var { email } = req.query,
     prevUser = await db.search('Users', {
@@ -603,7 +602,7 @@ app.get('/signup', async (req, res) => {
   }
 });
 
-app.post('/signup', async (req, res) => {
+app.post('/api/signup', async (req, res) => {
   try {
     var { name, email, password, otp } = req.body
     if (!name || !email || !password || !otp) {
@@ -626,7 +625,7 @@ app.post('/signup', async (req, res) => {
   }
 });
 
-app.post('/login', async (req, res) => {
+app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   const user = await db.search('Users', { email: email }, 'findOne')
   let pass;
@@ -723,7 +722,7 @@ async function decrypt(file, data) {
   
 }
 
-app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => {
+app.post('/api/upload', authenticateJWT, upload.single('file'), async (req, res) => {
   const from = req.user.data._id,
         file = req.file,
         data = typeof req.body.data === 'string' ? JSON.parse(req.body.data) : req.body.data,
@@ -777,7 +776,7 @@ app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => 
   }
 });
 
-app.post('/check', authenticateJWT, (req, res) => {
+app.post('/api/check', authenticateJWT, (req, res) => {
   res.json({
       user: req.user.data,
       success: true,
@@ -796,7 +795,7 @@ async function generateFileHash(filePath) {
   });
 }
 
-app.post('/files', authenticateJWT, async (req, res) => {
+app.post('/api/files', authenticateJWT, async (req, res) => {
   let user = req.user.data._id,
       { type, query } = req.body,
       populate = null;
@@ -835,7 +834,7 @@ app.post('/files', authenticateJWT, async (req, res) => {
   }
 });
 
-app.get('/chat', authenticateJWT, async (req, res) => {
+app.get('/api/chat', authenticateJWT, async (req, res) => {
   try {
     var user = req.user.data._id
     console.log(user)
@@ -856,7 +855,7 @@ app.get('/chat', authenticateJWT, async (req, res) => {
   }
 });
 
-app.get('/chatLog/:convId', authenticateJWT, async (req, res) => {
+app.get('/api/chatLog/:convId', authenticateJWT, async (req, res) => {
   const otherUser = req.params.convId,
         userId = req.user.data._id,
         type = req.query.type
@@ -884,7 +883,7 @@ app.get('/chatLog/:convId', authenticateJWT, async (req, res) => {
   return res.json({ success: true, result: history.result });
 });
 
-app.post('/download/:fileId', authenticateJWT, async (req, res) => {
+app.post('/api/download/:fileId', authenticateJWT, async (req, res) => {
   const { fileId } = req.params;
   const to = req.user.data._id;
   const data = req.body
@@ -963,13 +962,13 @@ app.post('/download/:fileId', authenticateJWT, async (req, res) => {
   }
 });
 
-app.post('/search', authenticateJWT, async (req, res) => {
+app.post('/api/search', authenticateJWT, async (req, res) => {
   var { collection, query, method } = req.body,
     result = await db.search(collection, query, method)
     return res.json(result)
 })
 
-app.post('/updateProfile', authenticateJWT, async (req, res) => {
+app.post('/api/updateProfile', authenticateJWT, async (req, res) => {
   let { newEmail, newName, newProfPic } = req.body
   const updateFields = {};
   console.log(req.user.data)
@@ -1003,7 +1002,7 @@ app.post('/updateProfile', authenticateJWT, async (req, res) => {
   }
 })
 
-app.post('/forgotPassword', async (req, res) => {
+app.post('/api/forgotPassword', async (req, res) => {
   const { email } = req.body,
     chkE = await db.search('Users', { email: email }, 'findOne')
 
@@ -1048,7 +1047,7 @@ app.post('/forgotPassword', async (req, res) => {
   }
 })
 
-app.get('/forgotPassword/:otp', async (req, res) => {
+app.get('/api/forgotPassword/:otp', async (req, res) => {
   const { otp } = req.params;
   const { email, newPassword } = req.query;
 
@@ -1085,24 +1084,6 @@ const deleteExpiredFiles = async () => {
         expiredFiles = await db.search('Files', { expiry: { $lt: today } }, 
           'updateMany', {  status: 'Expired' }
         )
-    // var files = await db.remove('chat', {}, 'multiple')
-    // console.log("files fn: ", files)
-    // var files = await db.remove('chatLog', {}, 'multiple')
-    // console.log("files fn: ", files)
-    // var files = await db.remove('Users', {}, 'multiple')
-    // console.log(files)
-    // var files = await db.remove('group', {}, 'multiple')
-    // console.log(files)
-    // var files = await db.remove('Files', {}, 'multiple')
-    // console.log(files)
-    // var files = await db.remove('chatLog', {
-    //   type: 'file'
-    // }, 'multiple')
-    // console.log(files)
-    var files = await db.remove('Users', {
-      email: "ujc183@gmail.com"
-    }, 'multiple')
-    console.log(files)
     // var user = await db.addUser('Tobey', 'tobey@gmail.com', '123')
     // console.log(user)
     // var user = await db.addUser('Brock', 'brock@gmail.com', '123')
@@ -1112,13 +1093,17 @@ const deleteExpiredFiles = async () => {
     // var user = await db.addUser('test', 'hail@gmail.com', '123')
     // console.log(user)
     console.log("exp files fn: ", expiredFiles)
-  // for (const file of expiredFiles) {
-    // if (fs.existsSync(file.fPath)) fs.unlinkSync(file.fPath);
-    // console.log(`File ${file.fName} deleted due to expiration.`);
-  // }
+    if (Array.isArray(expiredFiles) && expiredFiles.length > 0) {
+      for (const file of expiredFiles) {
+        if (fs.existsSync(file.fPath)) fs.unlinkSync(file.fPath);
+        console.log(`File ${file.fName} deleted due to expiration.`);
+      }
+    } else {
+      console.log('No expired files found.');
+    }    
 };
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log('Server running on http://localhost:3000');
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });

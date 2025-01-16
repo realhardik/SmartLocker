@@ -1,6 +1,6 @@
+require('dotenv').config();
 const { ipcRenderer } = require("electron/renderer");
-const BASE_URL = "http://localhost:3000"
-
+const BASE_URL = process.env.NODE_PROCESS === 'DEV' ? process.env.API_URL : 'http://localhost:3000';
 F.getToken = async () => {
     var t = await ipcRenderer.invoke('isAuthorized')
     console.log("got token", t)

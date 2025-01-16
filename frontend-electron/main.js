@@ -1,11 +1,11 @@
+require('dotenv').config();
 const { app, BrowserWindow, ipcMain, dialog, session } = require('electron');
 const axios = require('axios');
 const keytar = require('keytar');
 
 const INACTIVITY_LIMIT = 10 * 60 * 1e3;
 let mainWindow, loginWindow, renderWindow, inactivityTimeout;
-let apiBaseUrl = 'https://nexus.hardikgandhi.me';
-
+let apiBaseUrl = process.env.NODE_PROCESS === 'DEV' ? process.env.API_URL : 'http://localhost:3000/api';
 async function alert(title) {
   const response = await dialog.showMessageBox({
     type: 'info',
