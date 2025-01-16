@@ -4,7 +4,7 @@ const keytar = require('keytar');
 
 const INACTIVITY_LIMIT = 10 * 60 * 1e3;
 let mainWindow, loginWindow, renderWindow, inactivityTimeout;
-let apiBaseUrl = 'http://localhost:3000';
+let apiBaseUrl = 'https://nexus.hardikgandhi.me';
 
 async function alert(title) {
   const response = await dialog.showMessageBox({

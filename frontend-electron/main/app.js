@@ -1,9 +1,9 @@
 const { ipcRenderer } = require('electron');
 const axios = require('axios');
 const io = require("socket.io-client");
-const socket = io("http://localhost:3000");
+const socket = io("https://nexus.hardikgandhi.me");
 const reader = new FileReader();
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = 'https://nexus.hardikgandhi.me';
 
 function readFileAsText(file) {
     return new Promise((resolve, reject) => {
