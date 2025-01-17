@@ -26,6 +26,7 @@ let generateId;
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use(express.static('static'));
 app.use(cors())
 
 const transporter = nodemailer.createTransport({
