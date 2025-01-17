@@ -548,6 +548,10 @@ io.on('connection', (socket) => {
   });
 });
 
+app.get('/', async (req, res) => {
+  res.sendFile(path.join(__dirname, 'homepage', 'index.html'));
+})
+
 app.get('/api/signup', async (req, res) => {
   try {
     var { email } = req.query,
