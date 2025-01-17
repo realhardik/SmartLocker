@@ -444,7 +444,7 @@ nav>section:first-child .button.active {
     width: 80%;
     position: relative;
     display: none;
-    font-family: varela;
+    font-family: grotesk;
     pointer-events: none;
     flex-direction: column;
     justify-content: center;
