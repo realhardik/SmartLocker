@@ -3,8 +3,10 @@ const { app, BrowserWindow, ipcMain, dialog, session } = require('electron');
 const axios = require('axios');
 const keytar = require('keytar');
 
+app.setAsDefaultProtocolClient('nexus');
+
 const INACTIVITY_LIMIT = 10 * 60 * 1e3;
-let mainWindow, loginWindow, renderWindow, inactivityTimeout;
+let mainWindow, loginWindow, renderWindow, authWindow, inactivityTimeout;
 let apiBaseUrl = process.env.NODE_PROCESS === 'DEV' ? process.env.API_URL : 'http://localhost:3000/api';
 async function alert(title) {
   const response = await dialog.showMessageBox({
@@ -131,12 +133,7 @@ ipcMain.handle('login', async (event, credentials) => {
       console.log(data)
       var token = data.session.token
       await keytar.setPassword('ElectronApp', 'auth-token', token);
-      await alert("Login Successfull!")
-      ipcMain.on('profile', (event) => {
-        const email = data.session.email;
-        const name = data.session.name;
-        event.sender.send('rec-profile', { email, name });
-    });
+      await alert("Login Successfull!");
       loginWindow.close();
       createMainWindow();
       return { success: true, result: data }
@@ -185,11 +182,46 @@ ipcMain.handle('isAuthorized', async () => {
     
 });
 
+ipcMain.handle('googleSignIn', () => {
+  if (!authWindow) {
+    openGoogleAuth();
+  }
+  mainWindow && mainWindow.close();
+})
+
 ipcMain.on('create-login-window', () => {
   if (!loginWindow) {
     createLoginWindow();
   }
   mainWindow && mainWindow.close()
+});
+
+function openGoogleAuth() {
+    authWindow = new BrowserWindow({
+        width: 500,
+        height: 650,
+        webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true
+        }
+    });
+
+    authWindow.loadURL(`${apiBaseUrl}/auth/google`);
+
+    authWindow.webContents.on('did-navigate', (event, url) => {
+        if (url.startsWith('http://localhost:3000/api/auth/google/callback')) {
+            
+        }
+    });
+
+    authWindow.on('closed', () => {
+      
+    });
+}
+
+app.on('open-url', (event, url) => {
+  event.preventDefault();
+  console.log(`Custom protocol called with URL: ${url}`);
 });
 
 app.whenReady().then(() => {

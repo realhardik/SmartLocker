@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express')
+const session = require('express-session');
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const mongoose = require('mongoose')
@@ -14,6 +15,9 @@ const http = require('http')
 const { Server } = require('socket.io')
 const nodemailer = require('nodemailer')
 const otpGen = require('otp-generator')
+const passport = require('passport');
+const { type } = require('os');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 const app = express()
 const server = http.createServer(app)
@@ -26,8 +30,37 @@ let generateId;
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-app.use(express.static(path.join(__dirname, 'homepage')));
+// app.use(session({
+//   secret: process.env.EXPSESSION, 
+//   resave: false,
+//   saveUninitialized: false,
+// }));
+app.use(passport.initialize());
+// app.use(passport.session());
+// app.use(express.static(path.join(__dirname, 'homepage')));
 app.use(cors())
+// passport.serializeUser((user, done) => {
+//   console.log(user)
+//   console.log(user.id)
+//   done(null, user.id); // Serialize the user ID into the session
+// });
+
+// passport.deserializeUser((id, done) => {
+//   // Fetch the user details using the ID from your database
+//   // For example:
+//   // User.findById(id, (err, user) => done(err, user));
+//   console.log(id)
+// });
+passport.use(new GoogleStrategy({
+  clientID: process.env.GCLIENTID,
+  clientSecret: process.env.GCLIENTST,
+  callbackURL: 'http://localhost:3000/api/auth/google/callback'
+},
+(token, tokenSecret, profile, done) => {
+  // On success, handle user data or create session
+  return done(null, profile);
+}
+));
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -109,7 +142,8 @@ const db = new class {
       },
       name: { type: String, required: true },
       email: { type: String, required: true, unique: true },
-      password: { type: String, required: true }
+      password: { type: String, required: true },
+      type: { type: String, enum: ["static", "google"], default: "static" }
     });
     
     this.sessionSchema = new mongoose.Schema({
@@ -212,17 +246,26 @@ const db = new class {
     }
   }
   
-  async addUser(name, email, pass) {
-    var exists = await this.search('Users', { email: email }, 'findOne')
-    if (exists.success)
-      return { success: false, msg: "User Already Exists." }
+  async addUser(name, email, type, pass) {
+    var exists = await this.search('Users', { email: email }, 'findOne'),
+      newUser;
+    if (exists.success) {
+      if (type === 'google')
+        return { success: true, message: 'Logged In'}
+      return { success: false, message: "User Already Exists." }
+    }
     try {
-        var hashedPassword = await bcrypt.hash(pass, 10),
-            newUser = await this["Users"].create({ name, email, password: hashedPassword })
-        return { success: true, user: newUser, msg: "User created Successfully." };
+      if (type === 'static') {
+        var hashedPassword = await bcrypt.hash(pass, 10)
+        newUser = await this["Users"].create({ name, email, type, password: hashedPassword })
+        return { success: true, user: newUser, message: "User created Successfully." };
+      } else if (type === 'google') {
+        newUser = await this["Users"].create({ name, email, type });
+        return { success: true, user: newUser, message: "User created Successfully." };
+      }
     } catch (err) {
         console.error("Error adding user: ", err);
-        return { success: false, msg: "Failed to add user." };
+        return { success: false, message: "Failed to add user." };
     }
   }
 
@@ -243,7 +286,6 @@ const db = new class {
   async newSession(email) {
     try {
       const user = await this.search('Users', { email: email }, 'findOne')
-      console.log("user ins ession: ", user)
       if (!user.success || !user.result)
         return { success: false }
       var jTn = jwt.sign({ data: user.result }, JWT_SECRET, { expiresIn: '15m' }),
@@ -548,9 +590,36 @@ io.on('connection', (socket) => {
   });
 });
 
-app.get('/', async (req, res) => {
-  res.sendFile(path.join(__dirname, 'homepage', 'index.html'));
-})
+app.get('/api/auth/google',
+  passport.authenticate('google', { scope: ['profile', 'email'], session: false })
+);
+
+app.get('/api/auth/google/callback', 
+  passport.authenticate('google', { failureRedirect: '/', session: false }),
+  async (req, res) => {
+    const user = req.user;
+
+    if (user) {
+        console.log('User:', user);
+
+        const userName = user.displayName;
+        const userEmail = user.emails[0].value;
+
+        var response = await db.addUser(userName, userEmail, 'google')
+
+        if (response.success) {
+          if (response.message.toLowerCase().startsWith('logged')) {
+            var newSession = await db.newSession(userEmail);
+            return res.status(200).json(response)
+          }
+          return res.status(200).json(response);
+        }
+        return res.status(400).json(response)
+    } else {
+        res.status(400).send('Authentication failed!');
+    }
+  }
+);
 
 app.get('/api/signup', async (req, res) => {
   try {
@@ -558,13 +627,12 @@ app.get('/api/signup', async (req, res) => {
     prevUser = await db.search('Users', {
       email: email
     })
-    console.log("email", email)
-    console.log(prevUser)
+
     if (prevUser.success && prevUser.result.length > 0) {
       res.status(401).json({ success: false, message: "User already exists."})
       return
     }
-    console.log(prevUser)
+
     var prevReq = await db.search('otp', {
       email: email,
       type: "signUp"
@@ -616,11 +684,13 @@ app.post('/api/signup', async (req, res) => {
       return res.status(401).json({ success: false, message: "Invalid OTP." });
     }
     await db.remove('otp', { email: email }, 'multiple')
-    await db.addUser(name, email, password)
-    res.status(200).json({ success: true, message: "OTP verified successfully." });
+    var response = await db.addUser(name, email, 'static', password)
+    if (response.success)
+      return res.status(400).json(response)
+    return res.status(400).json(response);
   } catch (err) {
     console.log("error signing up: ", err)
-    return res.json({ success: false, message: "Error signing up."})
+    return res.status(400).json({ success: false, message: "Error signing up."})
   }
 });
 
@@ -630,19 +700,23 @@ app.post('/api/login', async (req, res) => {
   let pass;
 
   if (!user.success || !user.result || !user.result.password ) {
-    return res.json({ success: false, message: 'Invalid credentials.' });
+    return res.status(400).json({ success: false, message: 'Invalid credentials.' });
+  }
+
+  if (user.type === 'google') {
+    return res.status(400).json({ success: false, message: 'Use Google Sign In to Log In with this account.'})
   }
 
   pass = await bcrypt.compare(password, user.result.password);
   if (!pass) {
-    return res.json({ success: false, message: 'Invalid credentials.' });
+    return res.status(400).json({ success: false, message: 'Server Error. Try again later.' });
   }
 
   var s = await db.newSession(email);
   
   if (s.success)
     return res.status(200).json(s);
-  return res.json(s)
+  return res.status(400).json(s);
 });
 
 function authenticateJWT(req, res, next) {

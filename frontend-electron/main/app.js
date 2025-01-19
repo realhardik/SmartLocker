@@ -41,11 +41,6 @@ socket.on('disconnect', () => {
     console.log('Disconnected from server');
 });
 
-ipcRenderer.on('rec-profile', (event, { email, name }) => {
-    localStorage.setItem('email', email);
-    localStorage.setItem('name', name);
-});
-
 class fileSharing {
     constructor() {
         F.BM(this, ["init", "handleUpload", "fetchFiles", "oRender", "shareFile", "renderFile"])

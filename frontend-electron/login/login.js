@@ -32,11 +32,16 @@ class login {
             event.preventDefault();
             this.forgotPassword('verify')
         });
-
         F.l("click", F.G.id('signUp'), (e) => { 
             e.preventDefault();
             this.sendOtp("signUp")
         })
+        F.G.class('googleSignInButton').forEach(el => {
+            F.l('click', el, async (e) => {
+                e.preventDefault();
+                await ipcRenderer.invoke('googleSignIn')
+            })
+        });
     }
 
     switchTabs(e) {

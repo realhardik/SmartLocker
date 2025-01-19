@@ -115,6 +115,39 @@ body{
     transition: all 0.6s ease-in-out;
 }
 
+.googleSignInContainer {
+    text-align: center;
+    margin: 10px 0;
+}
+  
+.googleSignInButton {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: white;
+    border: none;
+    font-family: sans-serif;
+    padding: 12px 12px !important;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 20px !important;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+  
+.googleSignInButton:hover {
+    background-color: rgba(53, 122, 232, 0.2) !important;
+}
+  
+.googleSignInButton:focus {
+    outline: none;
+}
+  
+.googleLogo {
+    width: 20px;  /* Adjust size */
+    height: 20px;
+}
+
 .sign-in {
     left: 0;
     width: 50%;
