@@ -204,9 +204,9 @@ ipcMain.handle('googleSignIn', async () =>  {
     !authWindow && createGAUTHwindow();
     authWindow.loadURL(`${apiBaseUrl}/auth/google`);
 
-    // authWindow.on('closed', () => {
-      
-    // });
+    authWindow.on('closed', () => {
+      authWindow = null
+    });
 
     authWindow.webContents.on('will-redirect', async (event, url) => {
       var sRes = url.split('?')
@@ -242,6 +242,7 @@ ipcMain.handle('googleSignIn', async () =>  {
             }
             await alert("Authentication Failed.")
             authWindow.close()
+            return
           }
         } else if (s === 'f') {
           console.log('fails')

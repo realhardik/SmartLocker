@@ -938,8 +938,6 @@ app.get('/api/chat', authenticateJWT, async (req, res) => {
       { field:'group', select: '_id name members'}
     ]),
     iChats =  [...iUarr.result, ...iGarr.result]
-    console.log(iGarr.result[0].group.members)
-    console.log("interacted both: ", iChats)
     if (!iUarr.success && !iUarr.hasOwnProperty('result'))
       return res.status(401).json({ success: false, msg: 'Error fetching chats. Try again later' })
     return res.status(201).json({ success: true, result: iChats })
@@ -1178,12 +1176,6 @@ const deleteExpiredFiles = async () => {
         expiredFiles = await db.search('Files', { expiry: { $lt: today } }, 
           'updateMany', {  status: 'Expired' }
         )
-        console.log(await db.search('Session', {
-          user: '678d2a226cf6e1560cd4f673'
-        }, 'findOne'))
-        console.log(await db.search('Session', {
-          user: '678d2a226cf6e1560cd4f673'
-        }, 'find'))
     // var user = await db.addUser('Tobey', 'tobey@gmail.com', '123')
     // console.log(user)
     // var user = await db.addUser('Brock', 'brock@gmail.com', '123')
