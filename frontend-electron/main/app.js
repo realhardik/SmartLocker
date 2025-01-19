@@ -3,7 +3,6 @@ const { ipcRenderer } = require('electron');
 const axios = require('axios');
 const reader = new FileReader();
 const BASE_URL = process.env.NODE_PROCESS === 'DEV' ? process.env.API_URL : 'http://localhost:3000/api';
-console.log(BASE_URL)
 const io = require("socket.io-client");
 const socket = io("http://localhost:3000/");
 function readFileAsText(file) {
@@ -823,13 +822,16 @@ class chat {
     
     async addChat() {
         this.userData = await F.getToken()
+        console.log(this.userData)
         this.token = this.userData.token
+        console.log(this.token)
         try {
             var uReq = await axios.get(`${BASE_URL}/chat`, {
                 headers: {
                     'Authorization': `Bearer ${this.token}`
                 }
             })
+        console.log(uReq)
         var uList = this.getInteractedUsersArray(uReq.data.result, this.userData.user._id)
             if (uList.length === 0)
                 return (console.log("no chats found"), false)
@@ -1334,11 +1336,12 @@ new class {
 
     async auth() {
         const isAuthorized = await ipcRenderer.invoke('isAuthorized');
+        console.log(isAuthorized)
         if (!isAuthorized) {
             ipcRenderer.send('create-login-window');
         } else {
             this.startInTimer()
-            ipcRenderer.send('profile');
+            
             socket.emit('joinRoom', isAuthorized.user._id);
             new gen(isAuthorized.user)
             new dashboard

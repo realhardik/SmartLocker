@@ -39,7 +39,10 @@ class login {
         F.G.class('googleSignInButton').forEach(el => {
             F.l('click', el, async (e) => {
                 e.preventDefault();
-                await ipcRenderer.invoke('googleSignIn')
+                this.load(!0)
+                var response = await ipcRenderer.invoke('googleSignIn')
+                if (!response.success)
+                    this.load()
             })
         });
     }

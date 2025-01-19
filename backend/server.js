@@ -54,7 +54,7 @@ app.use(cors())
 passport.use(new GoogleStrategy({
   clientID: process.env.GCLIENTID,
   clientSecret: process.env.GCLIENTST,
-  callbackURL: 'http://localhost:3000/api/auth/google/callback'
+  callbackURL: `${(process.env.BASE_URL || 'http://localhost:3000')}/api/auth/google/callback`
 },
 (token, tokenSecret, profile, done) => {
   // On success, handle user data or create session
@@ -147,7 +147,7 @@ const db = new class {
     });
     
     this.sessionSchema = new mongoose.Schema({
-      timestamp: { type: Date, default: Date.now },
+      timestamp: { type: Date, default: Date.now, index: { expires: '16m' } },
       user: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
       token: { type: String, required: true }
     });
@@ -249,6 +249,7 @@ const db = new class {
   async addUser(name, email, type, pass) {
     var exists = await this.search('Users', { email: email }, 'findOne'),
       newUser;
+    console.log('exists', exists)
     if (exists.success) {
       if (type === 'google')
         return { success: true, message: 'Logged In'}
@@ -260,7 +261,7 @@ const db = new class {
         newUser = await this["Users"].create({ name, email, type, password: hashedPassword })
         return { success: true, user: newUser, message: "User created Successfully." };
       } else if (type === 'google') {
-        newUser = await this["Users"].create({ name, email, type });
+        newUser = await this["Users"].create({ name, email, type, password: "GOOGLE_NEXUS_ACCOUNT" });
         return { success: true, user: newUser, message: "User created Successfully." };
       }
     } catch (err) {
@@ -293,7 +294,7 @@ const db = new class {
                     user: user.result._id,
                     token: jTn
                   })
-      return { success: true, session: { user: user.result, token: session.token } };
+      return { success: true, session: { _id: session._id, user: user.result, token: session.token } };
     } catch (err) {
       console.log("Error Creating Session: ", err)
       return { success: false, message: "Error creating new session." }
@@ -595,10 +596,9 @@ app.get('/api/auth/google',
 );
 
 app.get('/api/auth/google/callback', 
-  passport.authenticate('google', { failureRedirect: '/', session: false }),
+  passport.authenticate('google', { failureRedirect: `${(process.env.BASE_URL || 'http://localhost:3000')}/api/auth/failure`, session: false }),
   async (req, res) => {
     const user = req.user;
-
     if (user) {
         console.log('User:', user);
 
@@ -606,20 +606,38 @@ app.get('/api/auth/google/callback',
         const userEmail = user.emails[0].value;
 
         var response = await db.addUser(userName, userEmail, 'google')
-
+        console.log('adduser', response)
         if (response.success) {
-          if (response.message.toLowerCase().startsWith('logged')) {
-            var newSession = await db.newSession(userEmail);
-            return res.status(200).json(response)
-          }
-          return res.status(200).json(response);
+          var newSession = await db.newSession(userEmail);
+          console.log(newSession)
+          if (newSession.success)
+            return res.redirect(`${(process.env.BASE_URL || 'http://localhost:3000')}/api/auth/success?id=${newSession.session._id}`)
         }
-        return res.status(400).json(response)
+        return res.redirect(`${(process.env.BASE_URL || 'http://localhost:3000')}/api/auth/failure`)
     } else {
-        res.status(400).send('Authentication failed!');
+      return res.redirect(`${(process.env.BASE_URL || 'http://localhost:3000')}/api/auth/failure`)
     }
   }
 );
+
+app.get('/api/auth/session', async (req, res) => {
+  console.log('session req')
+  const sessionID = req.query.id;
+  if (!sessionID) {
+    return res.redirect(`${(process.env.BASE_URL || 'http://localhost:3000')}/api/auth/failure`)
+  }
+  const sessionData = await db.search('Session', {
+    _id: sessionID
+  }, 'findOne');
+  console.log(sessionData)
+  if (sessionData.success)
+    return res.status(200).json(sessionData.result)
+  return res.redirect(`${(process.env.BASE_URL || 'http://localhost:3000')}/api/auth/failure`)
+})
+
+app.get('/api/auth/success', (req, res) => {
+  res.json({ success: true, message: "Redirect handled successfully" });
+});
 
 app.get('/api/signup', async (req, res) => {
   try {
@@ -909,6 +927,7 @@ app.post('/api/files', authenticateJWT, async (req, res) => {
 
 app.get('/api/chat', authenticateJWT, async (req, res) => {
   try {
+    console.log('chat req')
     var user = req.user.data._id
     console.log(user)
     var iUarr = await db.search('chat', { sender: user, type: 'solo' }, 'find', null, [
@@ -1159,6 +1178,12 @@ const deleteExpiredFiles = async () => {
         expiredFiles = await db.search('Files', { expiry: { $lt: today } }, 
           'updateMany', {  status: 'Expired' }
         )
+        console.log(await db.search('Session', {
+          user: '678d2a226cf6e1560cd4f673'
+        }, 'findOne'))
+        console.log(await db.search('Session', {
+          user: '678d2a226cf6e1560cd4f673'
+        }, 'find'))
     // var user = await db.addUser('Tobey', 'tobey@gmail.com', '123')
     // console.log(user)
     // var user = await db.addUser('Brock', 'brock@gmail.com', '123')

@@ -41,6 +41,17 @@ function createLoginWindow() {
   loginWindow.loadFile('./login/login.html');
 }
 
+function createGAUTHwindow() {
+  authWindow = new BrowserWindow({
+    width: 500,
+    height: 650,
+    webPreferences: {
+        nodeIntegration: false,
+        contextIsolation: true
+    }
+  });
+}
+
 function createMainWindow() {
   mainWindow = new BrowserWindow({
     width: 1340,
@@ -182,13 +193,6 @@ ipcMain.handle('isAuthorized', async () => {
     
 });
 
-ipcMain.handle('googleSignIn', () => {
-  if (!authWindow) {
-    openGoogleAuth();
-  }
-  mainWindow && mainWindow.close();
-})
-
 ipcMain.on('create-login-window', () => {
   if (!loginWindow) {
     createLoginWindow();
@@ -196,28 +200,62 @@ ipcMain.on('create-login-window', () => {
   mainWindow && mainWindow.close()
 });
 
-function openGoogleAuth() {
-    authWindow = new BrowserWindow({
-        width: 500,
-        height: 650,
-        webPreferences: {
-            nodeIntegration: false,
-            contextIsolation: true
-        }
-    });
-
+ipcMain.handle('googleSignIn', async () =>  {
+    !authWindow && createGAUTHwindow();
     authWindow.loadURL(`${apiBaseUrl}/auth/google`);
 
-    authWindow.webContents.on('did-navigate', (event, url) => {
-        if (url.startsWith('http://localhost:3000/api/auth/google/callback')) {
-            
-        }
-    });
-
-    authWindow.on('closed', () => {
+    // authWindow.on('closed', () => {
       
+    // });
+
+    authWindow.webContents.on('will-redirect', async (event, url) => {
+      var sRes = url.split('?')
+      var response = sRes[0].endsWith('success') ? 's' : sRes[0].endsWith('failure') ? 'f' : !1
+      console.log(response)
+      console.log(url)
+      if (!response)
+        return
+      event.preventDefault()
+      console.log('red', url)
+      console.log(sRes)
+      try {
+        if (response === 's') {
+          console.log('succ')
+          const urlParams = new URLSearchParams(sRes[1]);
+          const sessionID = urlParams.get('id');
+          console.log(sessionID)
+          if (sessionID) {
+            let response = await axios.get(`${apiBaseUrl}/auth/session`, {
+              params: { id: sessionID }
+            });            
+            response = response.data
+            console.log('res in suc', response)
+            if (response.token) {
+              console.log('in token', response.token)
+              var em = await keytar.setPassword('ElectronApp', 'auth-token', response.token);
+              console.log(em)
+              await alert("Login Successfull!");
+              authWindow.close();
+              loginWindow.close();
+              createMainWindow();
+              return
+            }
+            await alert("Authentication Failed.")
+            authWindow.close()
+          }
+        } else if (s === 'f') {
+          console.log('fails')
+          await alert("Authentication Failed.")
+          setTimeout(authWindow.close, 1000)
+          return { success: false }
+        }
+      } catch (err) {
+        await alert("Authentication Failed.")
+        setTimeout(authWindow.close, 1000)
+        return { success: false }
+      }
     });
-}
+})
 
 app.on('open-url', (event, url) => {
   event.preventDefault();
