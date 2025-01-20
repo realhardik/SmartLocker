@@ -200,63 +200,71 @@ ipcMain.on('create-login-window', () => {
   mainWindow && mainWindow.close()
 });
 
-ipcMain.handle('googleSignIn', async () =>  {
-    !authWindow && createGAUTHwindow();
-    authWindow.loadURL(`${apiBaseUrl}/auth/google`);
+ipcMain.handle('close-auth-window', (e, tab) => {
+  authWindow.close();
+  authWindow = null;
+  if (tab) {
+      loginWindow.close();
+      createMainWindow();
+  };
+});
 
+ipcMain.handle('googleSignIn', async () => {
+  if (!authWindow) createGAUTHwindow();
+  authWindow.loadURL(`${apiBaseUrl}/auth/google`);
+
+  let fResponse = {};
+
+  const waitForRedirect = new Promise((resolve, reject) => {
     authWindow.on('closed', () => {
-      authWindow = null
+      authWindow = null;
     });
 
     authWindow.webContents.on('will-redirect', async (event, url) => {
-      var sRes = url.split('?')
-      var response = sRes[0].endsWith('success') ? 's' : sRes[0].endsWith('failure') ? 'f' : !1
-      console.log(response)
-      console.log(url)
-      if (!response)
-        return
-      event.preventDefault()
-      console.log('red', url)
-      console.log(sRes)
-      try {
-        if (response === 's') {
-          console.log('succ')
-          const urlParams = new URLSearchParams(sRes[1]);
-          const sessionID = urlParams.get('id');
-          console.log(sessionID)
-          if (sessionID) {
-            let response = await axios.get(`${apiBaseUrl}/auth/session`, {
-              params: { id: sessionID }
-            });            
-            response = response.data
-            console.log('res in suc', response)
-            if (response.token) {
-              console.log('in token', response.token)
-              var em = await keytar.setPassword('ElectronApp', 'auth-token', response.token);
-              console.log(em)
-              await alert("Login Successfull!");
-              authWindow.close();
-              loginWindow.close();
-              createMainWindow();
-              return
+      if (url.startsWith(apiBaseUrl)) {
+        console.log('enter');
+        var sRes = url.split('?');
+        console.log(sRes);
+
+        var response = sRes[0].endsWith('success') ? 's' : sRes[0].endsWith('failure') ? 'f' : null;
+        console.log(response);
+
+        if (response) {
+          event.preventDefault();
+          try {
+            if (response === 's') {
+              console.log('success');
+              const urlParams = new URLSearchParams(sRes[1]);
+              const sessionID = urlParams.get('id');
+              console.log(sessionID);
+              if (sessionID) {
+                let axiosResponse = await axios.get(`${apiBaseUrl}/auth/session`, {
+                  params: { id: sessionID }
+                });
+                axiosResponse = axiosResponse.data;
+                if (axiosResponse.token) {
+                  console.log('in token', axiosResponse.token);
+                  await keytar.setPassword('ElectronApp', 'auth-token', axiosResponse.token);
+                  fResponse = { success: true, message: "Login Successful!" };
+                } else {
+                  fResponse = { success: false, message: "Authentication Failed." };
+                }
+              }
+            } else if (response === 'f') {
+              fResponse = { success: false, message: "Authentication Failed." };
             }
-            await alert("Authentication Failed.")
-            authWindow.close()
-            return
+            resolve(fResponse);
+          } catch (err) {
+            console.error('Error:', err);
+            fResponse = { success: false, message: "Authentication Failed." };
+            resolve(fResponse);
           }
-        } else if (s === 'f') {
-          console.log('fails')
-          await alert("Authentication Failed.")
-          setTimeout(authWindow.close, 1000)
-          return { success: false }
         }
-      } catch (err) {
-        await alert("Authentication Failed.")
-        setTimeout(authWindow.close, 1000)
-        return { success: false }
       }
     });
-})
+  });
+  return waitForRedirect;
+});
 
 app.on('open-url', (event, url) => {
   event.preventDefault();

@@ -41,8 +41,14 @@ class login {
                 e.preventDefault();
                 this.load(!0)
                 var response = await ipcRenderer.invoke('googleSignIn')
-                if (!response.success)
-                    this.load()
+                console.log(response)
+                this.load()
+                alert(response.message)
+                if (response.success) {
+                    ipcRenderer.invoke('close-auth-window', !0)
+                } else {
+                    ipcRenderer.invoke('close-auth-window')
+                }
             })
         });
     }

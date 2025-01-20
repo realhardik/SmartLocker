@@ -16,7 +16,6 @@ const { Server } = require('socket.io')
 const nodemailer = require('nodemailer')
 const otpGen = require('otp-generator')
 const passport = require('passport');
-const { type } = require('os');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 const app = express()
@@ -30,35 +29,42 @@ let generateId;
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-// app.use(session({
-//   secret: process.env.EXPSESSION, 
-//   resave: false,
-//   saveUninitialized: false,
-// }));
+app.use(session({
+  secret: process.env.EXPSESSION, 
+  resave: false,
+  saveUninitialized: false,
+}));
 app.use(passport.initialize());
-// app.use(passport.session());
+app.use(passport.session());
 // app.use(express.static(path.join(__dirname, 'homepage')));
 app.use(cors())
-// passport.serializeUser((user, done) => {
-//   console.log(user)
-//   console.log(user.id)
-//   done(null, user.id); // Serialize the user ID into the session
-// });
+passport.serializeUser((user, done) => {
+  console.log(user)
+  console.log(user.id)
+  done(null, user.id);
+});
 
-// passport.deserializeUser((id, done) => {
-//   // Fetch the user details using the ID from your database
-//   // For example:
-//   // User.findById(id, (err, user) => done(err, user));
-//   console.log(id)
-// });
+passport.deserializeUser(async (id, done) => {
+  const user = await db.search('Users', {
+    _id: id,
+    type: 'google'
+  }, 'findOne')
+  done(null, user.result);
+});
 passport.use(new GoogleStrategy({
   clientID: process.env.GCLIENTID,
   clientSecret: process.env.GCLIENTST,
   callbackURL: `${(process.env.BASE_URL || 'http://localhost:3000')}/api/auth/google/callback`
 },
-(token, tokenSecret, profile, done) => {
-  // On success, handle user data or create session
-  return done(null, profile);
+async (token, tokenSecret, profile, done) => {
+  console.log(profile)
+  const userName = profile.displayName;
+  const userEmail = profile.emails[0].value;
+
+  var response = await db.addUser(userName, userEmail, 'google')
+  if (response.success)
+    return done(null, response.user);
+  return
 }
 ));
 
@@ -252,7 +258,7 @@ const db = new class {
     console.log('exists', exists)
     if (exists.success) {
       if (type === 'google')
-        return { success: true, message: 'Logged In'}
+        return { success: true, message: 'Logged In', user: exists.result}
       return { success: false, message: "User Already Exists." }
     }
     try {
@@ -598,25 +604,16 @@ app.get('/api/auth/google',
 app.get('/api/auth/google/callback', 
   passport.authenticate('google', { failureRedirect: `${(process.env.BASE_URL || 'http://localhost:3000')}/api/auth/failure`, session: false }),
   async (req, res) => {
-    const user = req.user;
+    const user = req.user
+    console.log(user)
     if (user) {
-        console.log('User:', user);
-
-        const userName = user.displayName;
-        const userEmail = user.emails[0].value;
-
-        var response = await db.addUser(userName, userEmail, 'google')
-        console.log('adduser', response)
-        if (response.success) {
-          var newSession = await db.newSession(userEmail);
-          console.log(newSession)
-          if (newSession.success)
-            return res.redirect(`${(process.env.BASE_URL || 'http://localhost:3000')}/api/auth/success?id=${newSession.session._id}`)
-        }
-        return res.redirect(`${(process.env.BASE_URL || 'http://localhost:3000')}/api/auth/failure`)
-    } else {
-      return res.redirect(`${(process.env.BASE_URL || 'http://localhost:3000')}/api/auth/failure`)
+      let newSession = await db.newSession(user.email)
+      if (newSession.success) {
+        newSession = newSession.session
+        return res.redirect(`${(process.env.BASE_URL || 'http://localhost:3000')}/api/auth/success?id=${newSession._id}`)
+      }
     }
+    return res.redirect(`${(process.env.BASE_URL || 'http://localhost:3000')}/api/auth/failure`)
   }
 );
 
